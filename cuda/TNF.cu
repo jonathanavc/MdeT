@@ -131,8 +131,8 @@ std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
 
-const int n_TNF = 136;
-const int n_TNFP = 16;
+const size_t n_TNF = 136;
+const size_t n_TNFP = 16;
 
 unsigned char TNmap[256];
 unsigned char TNPmap[256];
@@ -235,10 +235,10 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    int err = cudaMalloc(&TNF_d, nobs * n_TNF * size_t(double));                                                          // memoria para almacenar TNF
+    int err = cudaMalloc(&TNF_d, (size_t)(nobs * n_TNF * size_t(double)));                                                          // memoria para almacenar TNF
     err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
     err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
-    
+
     err += cudaMalloc(seqs_d, seqs_h.size());
     err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
 
