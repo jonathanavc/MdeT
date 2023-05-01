@@ -12,7 +12,7 @@ __device__ char * get_contig_d(int contig_index,char * seqs_d, int * seqs_d_inde
     }
     contig_end = seqs_d_index[contig_index];
     char * contig;
-    cudaMalloc(contig , contig_end - contig_beg);
+    cudaMalloc(&contig , contig_end - contig_beg);
     for(int i = contig_beg; i < contig_end ;i++){
         contig[i - contig_beg] = seqs_d[i];
     }
@@ -29,7 +29,7 @@ __device__ __host__ unsigned char get_tn(char * contig, int index){
 			N = 1;
 		else if (N == 'T')
 			N = 2;
-		else if (s[i] == 'G')
+		else if (N == 'G')
 		    N = 3;
         else
             return 0;
@@ -38,7 +38,7 @@ __device__ __host__ unsigned char get_tn(char * contig, int index){
     return tn;
 }
 
-__device__ unsigned char get_revComp_tn_d(int contig_index,char * seqs_d, int * seqs_d_index){
+__device__ unsigned char get_revComp_tn_d(char * contig, int index){
     unsigned char tn = 0;
     for(int i = 3; i >= 0; i--){
         char N = contig[index + i];
@@ -48,7 +48,7 @@ __device__ unsigned char get_revComp_tn_d(int contig_index,char * seqs_d, int * 
 			N = 3;
 		else if (N == 'T')
 			N = 0;
-		else if (s[i] == 'G')
+		else if (N == 'G')
 		    N = 1;
         else
             return 0;
@@ -59,7 +59,7 @@ __device__ unsigned char get_revComp_tn_d(int contig_index,char * seqs_d, int * 
 
 __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
-    const size_t * gCtgIdx,size_t contigs_per_thread){
+    const size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
     for(int i = 0, i < contigs_per_thread){ 
         int contig_index = (blockIdx.x * contigs_per_thread) + i;
@@ -160,11 +160,11 @@ int main(int argc, char const *argv[]){
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
-        unsigned char key = get_tn(TN[i]);
+        unsigned char key = get_tn(TN[i], 0);
         TNmap[key] = i;
 	}
 	for(size_t i = 0; i < n_TNFP; ++i) {
-		unsigned char key = get_tn(TNP[i]);
+		unsigned char key = get_tn(TNP[i], 0);
         TNmap[key] = 1;
 	}
     
