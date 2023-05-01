@@ -235,7 +235,8 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    int err = cudaMalloc(&TNF_d,(nobs * n_TNF * size_t(double)));                                                          // memoria para almacenar TNF
+    size_t tnf_size = nobs * n_TNF * size_t(double);
+    int err = cudaMalloc(&TNF_d, tnf_size);                                                          // memoria para almacenar TNF
     err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
     err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
 
@@ -248,7 +249,7 @@ int main(int argc, char const *argv[]){
     std::cout << "error:" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
-    
+
     dim3 threadsPerBlock(N_THREADS, 0);
 
     TNF<<<1,threadsPerBlock>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
