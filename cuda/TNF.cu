@@ -228,6 +228,18 @@ int main(int argc, char const *argv[]){
 	}
     */
 
+    std::string combined; //Works perfectly fine so long as it is contiguously allocated
+    std::vector<size_t> indexes; //You *might* be able to use int instead of size_t to save space
+    for(std::string const& line : seqs) {
+        combined += line;
+        indexes.emplace_back(combined.size());
+    }
+    /* If 'lines' initially consisted of ["Dog", "Cat", "Tree", "Yard"], 'combined' is now
+    * "DogCatTreeYard", and 'indexes' is now [3, 6, 10, 14].
+    */
+
+    err = cudaMemcpy(seqs_d, combined.data(), combined.size(), cudaMemcpyHostToDevice);
+
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
     for(std::string const& contig : seqs) {
