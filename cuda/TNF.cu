@@ -61,7 +61,7 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
-    for(int i = 0, i < contigs_per_thread){ 
+    for(int i = 0, i < contigs_per_thread; i++){ 
         int contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF; j++){
@@ -71,7 +71,7 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
 
     __syncthreads(); 
 
-    for(size_t i = 0, i < contigs_per_thread){
+    for(size_t i = 0, i < contigs_per_thread; i++){
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
@@ -80,14 +80,14 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
             if(gCtgIdx[contig_index] != 0){
                 contig_size -= seqs_d_index[gCtgIdx[contig_index] - 1];
             }
-            for (size_t i = 0; i < contig_size - 3; ++i) {
-                unsigned char tn = get_tn(contig, i);
+            for (size_t j = 0; j < contig_size - 3; ++j) {
+                unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
                 if(TNmap[tn] != -1){
                     ++TNF_d[contig_index * n_TNF + TNmap[tn]];   
                 }
                 
-                tn = get_revComp_tn_d(contig, i);
+                tn = get_revComp_tn_d(contig, j);
 
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
