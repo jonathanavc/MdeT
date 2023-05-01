@@ -212,17 +212,6 @@ int main(int argc, char const *argv[]){
 
     std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
-    /*
-	assert(nobs == lCtgIdx.size());
-	nobs2 = ignored.size();
-	verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
-
-	if(contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
-		cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << endl;
-		return 1;
-	}
-    */
-
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
     for(std::string const& contig : seqs) {
@@ -247,6 +236,15 @@ int main(int argc, char const *argv[]){
     get_TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
     cudaDeviceSynchronize();
+
+    double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
+    cudaMemcpy(TNF, TNF_d, nobs * n_TNF, sizeof(double), cudaMemcpyDeviceToHost);
+    for(int i = 0; i < nobs; i++){
+        for(int j = 0; j < n_TNF; j++){
+            std::cout << TNF[i * n_TNF + j] << " ";
+        }
+        std::cout << std::endl;
+    }
 
     std::cout << "chao" + err << std::endl;  
 
