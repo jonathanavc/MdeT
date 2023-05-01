@@ -126,7 +126,7 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG",
         "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
-static int N_THREADS = 100;
+static int n_THREADS = 100;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
@@ -248,9 +248,9 @@ int main(int argc, char const *argv[]){
     err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
     std::cout << "error:" + err << std::endl;  
 
-    size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
+    size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
 
-    TNF<<<1, N_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
     
     cudaDeviceSynchronize():
 
