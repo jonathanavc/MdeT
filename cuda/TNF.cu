@@ -193,8 +193,9 @@ int main(int argc, char const *argv[]){
                     nobs++;
                     ///////
                 
-				} else
-					ignored[kseq->name.s] = seqs.size();
+				} else{
+                    //ignored[kseq->name.s] = seqs.size();
+                }	
 				contig_names.push_back(kseq->name.s);
 				seqs.push_back(kseq->seq.s);
 			}
@@ -205,7 +206,7 @@ int main(int argc, char const *argv[]){
 	}
 
 	assert(nobs == lCtgIdx.size());
-	nobs2 = ignored.size();
+	//nobs2 = ignored.size();
 	verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
 
 	if(contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
@@ -227,7 +228,6 @@ int main(int argc, char const *argv[]){
     err = _cudaMemcpy(seqs_d_index, seqs_h_index.data(), indexes.size() * sizeof(size_t), cudaMemcpyHostToDevice);  // seqs_index
     err = _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                    // gCtgIdx
     err = _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                 // seqs
-
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
 
