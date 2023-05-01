@@ -61,8 +61,8 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
-    for(int i = 0, i < contigs_per_thread; i++){ 
-        int contig_index = (blockIdx.x * contigs_per_thread) + i;
+    for(size_t i = 0, i < contigs_per_thread; i++){ 
+        size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF; j++){
             TNF_d[contig_index * n_TNF + j] = 0;
