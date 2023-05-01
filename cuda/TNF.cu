@@ -204,7 +204,7 @@ int main(int argc, char const *argv[]){
 				} else{
                     //ignored[kseq->name.s] = seqs.size();
                 }	
-				contig_names.push_back(kseq->name.s);
+				//contig_names.push_back(kseq->name.s);
 				seqs.push_back(kseq->seq.s);
 			}
 		}
@@ -213,14 +213,17 @@ int main(int argc, char const *argv[]){
 		gzclose(f);
 	}
     std::cout << "nobs" + nobs << ". small: " + smallCtgs.size() << ". gctg:" + gCtgIdx.size() << std::endl;
-	//assert(nobs == lCtgIdx.size());
-	//nobs2 = ignored.size();
-	//verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
+
+    /*
+	assert(nobs == lCtgIdx.size());
+	nobs2 = ignored.size();
+	verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
 
 	if(contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
 		cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << endl;
 		return 1;
 	}
+    */
 
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
@@ -229,13 +232,15 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    cudaMalloc(&TNF, nobs * n_TNF * size_t(double))                                                                 // memoria para almacenar TNF
-    err = _cudaMemcpy(TNmap_d, TNmap, n_TNF, cudaMemcpyHostToDevice);                                               // TNmap
-    err = _cudaMemcpy(TNPmap_d, TNPmap, n_TNFP, cudaMemcpyHostToDevice);                                            // TNPmap 
-    err = _cudaMemcpy(seqs_d, seqs_h.data(), combined.size(), cudaMemcpyHostToDevice);                              // seqs
-    err = _cudaMemcpy(seqs_d_index, seqs_h_index.data(), indexes.size() * sizeof(size_t), cudaMemcpyHostToDevice);  // seqs_index
-    err = _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                    // gCtgIdx
-    err = _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                 // seqs
+
+    int err = cudaMalloc(&TNF, nobs * n_TNF * size_t(double));                                                              // memoria para almacenar TNF
+    err += _cudaMemcpy(TNmap_d, TNmap, n_TNF, cudaMemcpyHostToDevice);                                               // TNmap
+    err += _cudaMemcpy(TNPmap_d, TNPmap, n_TNFP, cudaMemcpyHostToDevice);                                            // TNPmap 
+    err += _cudaMemcpy(seqs_d, seqs_h.data(), combined.size(), cudaMemcpyHostToDevice);                              // seqs
+    err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), indexes.size() * sizeof(size_t), cudaMemcpyHostToDevice);  // seqs_index
+    err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                    // gCtgIdx
+    err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                 // seqs
+    std::cout << "error:" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
 
