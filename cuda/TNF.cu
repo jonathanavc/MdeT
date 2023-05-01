@@ -234,8 +234,10 @@ int main(int argc, char const *argv[]){
     std::cout << "hola" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
+    dim3 blkDim (n_THREADS, 1, 1);
+    dim3 grdDim (1, 1, 1);
 
-    get_TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    get_TNF<<<blkDim, grdDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
     cudaDeviceSynchronize();
 
