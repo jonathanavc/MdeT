@@ -59,7 +59,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF_d; j++){
-            TNF_d[contig_index * n_TNF_d + j] = blockIdx.x;
+            TNF_d[contig_index * n_TNF_d + j] = 0;
         }
     }
 
@@ -67,7 +67,10 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
 
     for(size_t i = 0; i < contigs_per_thread; i++){
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
-        if(contig_index >= nobs) break;
+        if(contig_index >= nobs){
+            TNF_d
+            break;
+        }
         if(smallCtgs[contig_index] == 0){
             const char * contig = get_contig_d(gCtgIdx_d[contig_index], seqs_d, seqs_d_index);
             int contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
@@ -238,8 +241,10 @@ int main(int argc, char const *argv[]){
     cudaDeviceSynchronize();
 
     double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
-
+    
     cudaMemcpy(TNF, TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+
+    cudaDeviceSynchronize();
 
     for(int i = 0; i < nobs; i++){
         for(int j = 0; j < n_TNF; j++){
