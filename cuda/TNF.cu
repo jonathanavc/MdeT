@@ -93,7 +93,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
 
             double rsum = 0;
             for(size_t c = 0; c < n_TNF_d; ++c) {
-                rsum += TNF_d[contig_index * n_TNF + c] * TNF_d[contig_index * n_TNF + c];
+                rsum += TNF_d[contig_index * n_TNF_d + c] * TNF_d[contig_index * n_TNF_d + c];
             }
             rsum = sqrt(rsum);
             for(size_t c = 0; c < n_TNF_d; ++c) {
