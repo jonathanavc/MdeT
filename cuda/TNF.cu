@@ -212,7 +212,7 @@ int main(int argc, char const *argv[]){
 
     std::cout << "nobs: " + nobs << " small: " + smallCtgs.size() << " gctg:" + gCtgIdx.size() << std::endl;
 
-    std::cout << nobs << std::endl;
+    std::cout <<"nobs:"+ nobs << std::endl;
 
     /*
 	assert(nobs == lCtgIdx.size());
