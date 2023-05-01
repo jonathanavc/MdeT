@@ -140,9 +140,9 @@ static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
 double * TNF_d;
 static char * seqs_d;
 static size_t * seqs_d_index;
-static unsigned char * TNmap_d,
-static unsigned char * TNPmap_D,
-static unsigned char * smallCtgs,
+static unsigned char * TNmap_d;
+static unsigned char * TNPmap_d;
+static unsigned char * smallCtgs;
 static size_t * gCtgIdx_d;
 
 int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int type){
