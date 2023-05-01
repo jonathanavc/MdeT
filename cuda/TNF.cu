@@ -67,10 +67,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
 
     for(size_t i = 0; i < contigs_per_thread; i++){
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
-        if(contig_index >= nobs){
-            TNF_d[contig_index * n_TNF_d] = 666;
-            break;
-        }
+        if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
             const char * contig = get_contig_d(gCtgIdx_d[contig_index], seqs_d, seqs_d_index);
             int contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
@@ -96,11 +93,11 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
 
             double rsum = 0;
             for(size_t c = 0; c < n_TNF_d; ++c) {
-                rsum += TNF_d[contig_index + c] * TNF_d[contig_index + c];
+                rsum += TNF_d[contig_index * n_TNF + c] * TNF_d[contig_index * n_TNF + c];
             }
             rsum = sqrt(rsum);
             for(size_t c = 0; c < n_TNF_d; ++c) {
-                TNF_d[contig_index + c] /= rsum;
+                TNF_d[contig_index * n_TNF_d + c] /= rsum;
             }
 
         }
