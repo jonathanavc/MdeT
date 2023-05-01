@@ -232,9 +232,6 @@ int main(int argc, char const *argv[]){
     for(std::string const& line : seqs) {
         combined += line;
     }
-    /* If 'lines' initially consisted of ["Dog", "Cat", "Tree", "Yard"], 'combined' is now
-    * "DogCatTreeYard", and 'indexes' is now [3, 6, 10, 14].
-    */
 
     cudaMemcpy(seqs_d, combined.data(), combined.size(), cudaMemcpyHostToDevice);
 
@@ -252,7 +249,7 @@ int main(int argc, char const *argv[]){
     err += _cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);                                   // seqs
     err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
     err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
-    err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
+    err += _cudaMemcpy(smallCtgs_d, smallCtgs.begin(), nobs, cudaMemcpyHostToDevice);                                    // seqs
     std::cout << "error:" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
