@@ -130,13 +130,17 @@ std::vector<unsigned char> smallCtgs;
 unsigned char TNmap[256];
 unsigned char TNPmap[256];
 
+static size_t minContig = 2500; //minimum contig size for binning
+static size_t minContigByCorr = 1000; //minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
+
 double * TNF_d;
-const char * seqs_d;
-const size_t * seqs_d_index;
-const unsigned char * TNmap_d,
-const unsigned char * TNPmap_D,
-const unsigned char * smallCtgs,
-const size_t * gCtgIdx_d;
+static char * seqs_d;
+static size_t * seqs_d_index;
+static unsigned char * TNmap_d,
+static unsigned char * TNPmap_D,
+static unsigned char * smallCtgs,
+static size_t * gCtgIdx_d;
 
 int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int type){
     int err;
