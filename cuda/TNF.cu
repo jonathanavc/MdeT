@@ -238,7 +238,9 @@ int main(int argc, char const *argv[]){
     cudaDeviceSynchronize();
 
     double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
-    cudaMemcpy(TNF, TNF_d, nobs * n_TNF, sizeof(double), cudaMemcpyDeviceToHost);
+
+    cudaMemcpy(TNF, TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+
     for(int i = 0; i < nobs; i++){
         for(int j = 0; j < n_TNF; j++){
             std::cout << TNF[i * n_TNF + j] << " ";
