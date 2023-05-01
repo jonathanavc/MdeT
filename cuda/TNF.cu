@@ -7,17 +7,10 @@ __device__ __constant__ int n_TNF_d = 136;
 
 __device__ char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
-    size_t contig_end;
     if(contig_index != 0){
         contig_beg = seqs_d_index[contig_index-1];
     }
-    contig_end = seqs_d_index[contig_index];
-    char * contig;
-    cudaMalloc(&contig , contig_end - contig_beg);
-    for(int i = contig_beg; i < contig_end ;i++){
-        contig[i - contig_beg] = seqs_d[i];
-    }
-    return contig;
+    return seqs_d + contig_beg;
 }
 
 __device__ __host__ unsigned char get_tn(const char * contig, int index){
