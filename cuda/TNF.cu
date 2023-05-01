@@ -3,8 +3,7 @@
 #include <vector>
 #include "extra/KseqReader.h"
 
-__device__ __constant__ int n_TNF = 136;
-__device__ __constant__ int n_TNFP = 16;
+__device__ __constant__ int n_TNF_d = 136;
 
 __device__ char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
@@ -66,8 +65,8 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
     for(size_t i = 0; i < contigs_per_thread; i++){ 
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
-        for(int j = 0; j < n_TNF; j++){
-            TNF_d[contig_index * n_TNF + j] = 0;
+        for(int j = 0; j < n_TNF_d; j++){
+            TNF_d[contig_index * n_TNF_d + j] = 0;
         }
     }
 
@@ -85,26 +84,26 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
             for (size_t j = 0; j < contig_size - 3; ++j) {
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
-                if(TNmap[tn] != n_TNF){
-                    ++TNF_d[contig_index * n_TNF + TNmap[tn]];   
+                if(TNmap[tn] != n_TNF_d){
+                    ++TNF_d[contig_index * n_TNF_d + TNmap[tn]];   
                 }
                 
                 tn = get_revComp_tn_d(contig, j);
 
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
-                    if(TNmap[tn] != n_TNF){
-                        ++TNF_d[contig_index * n_TNF + TNmap[tn]];
+                    if(TNmap[tn] != n_TNF_d){
+                        ++TNF_d[contig_index * n_TNF_d + TNmap[tn]];
                     }
                 }
             }
 
             double rsum = 0;
-            for(size_t c = 0; c < n_TNF; ++c) {
+            for(size_t c = 0; c < n_TNF_d; ++c) {
                 rsum += TNF_d[contig_index + c] * TNF_d[contig_index + c];
             }
             rsum = sqrt(rsum);
-            for(size_t c = 0; c < n_TNF; ++c) {
+            for(size_t c = 0; c < n_TNF_d; ++c) {
                 TNF_d[contig_index + c] /= rsum;
             }
 
@@ -238,8 +237,8 @@ int main(int argc, char const *argv[]){
 
 
     int err = cudaMalloc(&TNF_d, nobs * n_TNF * size_t(double));                                                          // memoria para almacenar TNF
-    err += _cudaMemcpy(TNmap_d, TNmap, n_TNF, cudaMemcpyHostToDevice);                                                   // TNmap
-    err += _cudaMemcpy(TNPmap_d, TNPmap, n_TNFP, cudaMemcpyHostToDevice);                                               // TNPmap 
+    err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
+    err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                               // TNPmap 
     err += _cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);                                   // seqs
     err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
     err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
