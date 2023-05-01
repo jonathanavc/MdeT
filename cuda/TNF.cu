@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "extra/KseqReader.h"
 
 __device__ __host__ const int n_TNF = 136;
@@ -92,18 +93,18 @@ __global__ void TNF(double * TNF_d , char * seqs_d, size_t * seqs_d_index , size
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
                     if(TNmap[tn] != n_TNF){
-                        ++TNF_d(contig_index * n_TNF + TNmap[tn]);
+                        ++TNF_d[contig_index * n_TNF + TNmap[tn]];
                     }
                 }
             }
 
             double rsum = 0;
             for(size_t c = 0; c < n_TNF; ++c) {
-                rsum += TNF[contig_index + c] * TNF[contig_index + c];
+                rsum += TNF_d[contig_index + c] * TNF_d[contig_index + c];
             }
-            rsum = SQRT(rsum);
+            rsum = sqrt(rsum);
             for(size_t c = 0; c < n_TNF; ++c) {
-                TNF[contig_index + c] /= rsum;
+                TNF_d[contig_index + c] /= rsum;
             }
 
         }
