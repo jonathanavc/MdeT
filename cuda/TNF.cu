@@ -1,5 +1,5 @@
+#include <algorithm>
 #include <iostream>
-#include <string>
 #include <vector>
 #include "extra/KseqReader.h"
 
@@ -143,16 +143,16 @@ static char * seqs_d;
 static size_t * seqs_d_index;
 static unsigned char * TNmap_d;
 static unsigned char * TNPmap_d;
-static unsigned char * smallCtgs;
+static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
 int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int type){
     int err;
     if(type == 1){
-        err += cudaMalloc(&_device_pointer, size);
+        err = cudaMalloc(&_device_pointer, size);
         err += cudaMemcpy(_device_pointer, _host_pointer, size, cudaMemcpyHostToDevice); 
     }
-    return (err == 0) : 0 ? 1; 
+    return (err == 0) ? 0 : 1; 
 }
 
 int main(int argc, char const *argv[]){
@@ -162,11 +162,11 @@ int main(int argc, char const *argv[]){
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
-        unsigned char key = get_tn(TN[i], 0);
+        unsigned char key = get_tn(TN[i].c_str(), 0);
         TNmap[key] = i;
 	}
 	for(size_t i = 0; i < n_TNFP; ++i) {
-		unsigned char key = get_tn(TNP[i], 0);
+		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNmap[key] = 1;
 	}
     
