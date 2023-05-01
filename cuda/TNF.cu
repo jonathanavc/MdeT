@@ -46,7 +46,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, int index){
 		    N = 1;
         else
             return 0;
-        tn+= tn<<8 + N;
+        tn+= tn<<2 + N;
     }
     return tn;
 }
