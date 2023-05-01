@@ -249,10 +249,8 @@ int main(int argc, char const *argv[]){
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
 
-    dim3 threadsPerBlock(N_THREADS, 0);
-
-    TNF<<<1,threadsPerBlock>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
-
+    TNF<<<1, N_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    
     cudaDeviceSynchronize():
 
     return 0;
