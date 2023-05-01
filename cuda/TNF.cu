@@ -4,7 +4,7 @@
 __device__ __host__ const int n_TNF = 136;
 __device__ __host__ const int n_TNFP = 16;
 
-__device__ char * get_contig_d(int contig_index, char * seqs_d, int * seqs_d_index){
+__device__ char * get_contig_d(int contig_index, char * seqs_d, size_t * seqs_d_index){
     size_t contig_beg = 0;
     size_t contig_end;
     if(contig_index != 0){
@@ -83,7 +83,7 @@ __global__ void TNF(double * TNF_d , char * seqs_d, size_t * seqs_d_index , size
             for (size_t j = 0; j < contig_size - 3; ++j) {
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
-                if(TNmap[tn] != -1){
+                if(TNmap[tn] != n_TNF){
                     ++TNF_d[contig_index * n_TNF + TNmap[tn]];   
                 }
                 
@@ -91,7 +91,7 @@ __global__ void TNF(double * TNF_d , char * seqs_d, size_t * seqs_d_index , size
 
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
-                    if(TNmap[tn] != -1){
+                    if(TNmap[tn] != n_TNF){
                         ++TNF_d(contig_index * n_TNF + TNmap[tn]);
                     }
                 }
@@ -156,7 +156,7 @@ int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int t
 int main(int argc, char const *argv[]){
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
-        TNmap[i] = -1;
+        TNmap[i] = n_TNF;
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
