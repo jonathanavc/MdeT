@@ -149,7 +149,7 @@ static unsigned char * TNPmap_d;
 static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
-int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int type){
+int _cudaMemcpy(auto _device_pointer, auto _host_pointer, size_t size, int type){
     int err;
     if(type == 1){
         err = cudaMalloc(&_device_pointer, size);
@@ -228,13 +228,6 @@ int main(int argc, char const *argv[]){
 	}
     */
 
-    std::string combined; //Works perfectly fine so long as it is contiguously allocated
-    for(std::string const& line : seqs) {
-        combined += line;
-    }
-
-    cudaMemcpy(seqs_d, combined.data(), combined.size(), cudaMemcpyHostToDevice);
-
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
     for(std::string const& contig : seqs) {
@@ -249,7 +242,7 @@ int main(int argc, char const *argv[]){
     err += _cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);                                   // seqs
     err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
     err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
-    err += _cudaMemcpy(smallCtgs_d, smallCtgs.begin(), nobs, cudaMemcpyHostToDevice);                                    // seqs
+    err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
     std::cout << "error:" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
