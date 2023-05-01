@@ -53,7 +53,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, int index){
 
 __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
-    const size_t * gCtgIdx, size_t contigs_per_thread){
+    const size_t * gCtgIdx_d, size_t contigs_per_thread){
     // inicializar valores de vector en 0
     for(size_t i = 0; i < contigs_per_thread; i++){ 
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
@@ -210,7 +210,7 @@ int main(int argc, char const *argv[]){
 		gzclose(f);
 	}
 
-    std::cout << "nobs: " < nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
+    std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
     /*
 	assert(nobs == lCtgIdx.size());
