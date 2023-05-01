@@ -3,8 +3,8 @@
 #include <vector>
 #include "extra/KseqReader.h"
 
-__device__ __host__ const int n_TNF = 136;
-__device__ __host__ const int n_TNFP = 16;
+__device__ __constant__ int n_TNF = 136;
+__device__ __constant__ int n_TNFP = 16;
 
 __device__ char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
@@ -131,6 +131,10 @@ static int N_THREADS = 100;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
+
+const int n_TNF = 136;
+const int n_TNFP = 16;
+
 unsigned char TNmap[256];
 unsigned char TNPmap[256];
 
