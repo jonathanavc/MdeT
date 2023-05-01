@@ -58,7 +58,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, int index){
     return tn;
 }
 
-__global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
+__global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
@@ -250,9 +250,9 @@ int main(int argc, char const *argv[]){
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
 
-    TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
-    
-    cudaDeviceSynchronize():
+    get_TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+
+    cudaDeviceSynchronize();
 
     return 0;
 }
