@@ -4,7 +4,7 @@
 __device__ __host__ const int n_TNF = 136;
 __device__ __host__ const int n_TNFP = 16;
 
-__device__ char * get_contig_d(int contig_index,char * seqs_d, int * seqs_d_index){
+__device__ char * get_contig_d(int contig_index, char * seqs_d, int * seqs_d_index){
     size_t contig_beg = 0;
     size_t contig_end;
     if(contig_index != 0){
@@ -57,9 +57,9 @@ __device__ unsigned char get_revComp_tn_d(char * contig, int index){
     return tn;
 }
 
-__global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
-    const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
-    const size_t * gCtgIdx, size_t contigs_per_thread){
+__global__ void TNF(double * TNF_d , char * seqs_d, size_t * seqs_d_index , size_t nobs,
+    unsigned char * TNmap, unsigned char * TNPmap, unsigned char * smallCtgs,
+    size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
     for(size_t i = 0; i < contigs_per_thread; i++){ 
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
