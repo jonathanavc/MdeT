@@ -5,7 +5,7 @@
 
 __device__ __constant__ int n_TNF_d = 136;
 
-__device__ char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
+__device__ const char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
     if(contig_index != 0){
         contig_beg = seqs_d_index[contig_index-1];
@@ -69,7 +69,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
-            char * contig = get_contig_d(gCtgIdx[contig_index], seqs_d, seqs_d_index);
+            const char * contig = get_contig_d(gCtgIdx[contig_index], seqs_d, seqs_d_index);
             int contig_size = seqs_d_index[gCtgIdx[contig_index]];
             if(gCtgIdx[contig_index] != 0){
                 contig_size -= seqs_d_index[gCtgIdx[contig_index] - 1];
