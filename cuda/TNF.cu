@@ -209,7 +209,8 @@ int main(int argc, char const *argv[]){
 		kseq = NULL;
 		gzclose(f);
 	}
-    std::cout << "nobs" + nobs << ". small: " + smallCtgs.size() << ". gctg:" + gCtgIdx.size() << std::endl;
+
+    std::cout << "nobs: " + nobs << " small: " + smallCtgs.size() << " gctg:" + gCtgIdx.size() << std::endl;
 
     /*
 	assert(nobs == lCtgIdx.size());
