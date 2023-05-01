@@ -191,7 +191,7 @@ int main(int argc, char const *argv[]){
 					}
                     else
                         smallCtgs.emplace_back(0);
-					lCtgIdx[kseq->name.s] = nobs;
+					//lCtgIdx[kseq->name.s] = nobs;
                     /////// cambio para facilitar la transferencia de gCtgIdx
 					gCtgIdx.emplace_back(seqs.size());
                     nobs++;
@@ -208,10 +208,10 @@ int main(int argc, char const *argv[]){
 		kseq = NULL;
 		gzclose(f);
 	}
-
-	assert(nobs == lCtgIdx.size());
+    std::cout << "nobs" + nobs << ". small: " + smallCtgs.size() << ". gctg:" + gCtgIdx.size() << std::endl;
+	//assert(nobs == lCtgIdx.size());
 	//nobs2 = ignored.size();
-	verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
+	//verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
 
 	if(contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
 		cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << endl;
