@@ -5,19 +5,12 @@
 
 __device__ __constant__ int n_TNF_d = 136;
 
-__device__ char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
+__device__ const char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
-    size_t contig_end;
     if(contig_index != 0){
         contig_beg = seqs_d_index[contig_index-1];
     }
-    contig_end = seqs_d_index[contig_index];
-    char * contig;
-    cudaMalloc(&contig , contig_end - contig_beg);
-    for(int i = contig_beg; i < contig_end ;i++){
-        contig[i - contig_beg] = seqs_d[i];
-    }
-    return contig;
+    return seqs_d + contig_beg;
 }
 
 __device__ __host__ unsigned char get_tn(const char * contig, int index){
@@ -58,7 +51,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, int index){
     return tn;
 }
 
-__global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
+__global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx, size_t contigs_per_thread){
     // inicializar valores de vector en 0
@@ -76,7 +69,7 @@ __global__ void TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
-            char * contig = get_contig_d(gCtgIdx[contig_index], seqs_d, seqs_d_index);
+            const char * contig = get_contig_d(gCtgIdx[contig_index], seqs_d, seqs_d_index);
             int contig_size = seqs_d_index[gCtgIdx[contig_index]];
             if(gCtgIdx[contig_index] != 0){
                 contig_size -= seqs_d_index[gCtgIdx[contig_index] - 1];
@@ -126,7 +119,7 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG",
         "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
-static int N_THREADS = 100;
+static int n_THREADS = 100;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
@@ -175,6 +168,7 @@ int main(int argc, char const *argv[]){
     
 	size_t nobs = 0;
 	int nresv = 0;
+    std::string inFile = "test.gz";
 	gzFile f = gzopen(inFile.c_str(), "r");
 	if (f == NULL) {
 		cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -245,16 +239,15 @@ int main(int argc, char const *argv[]){
     err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
     err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
     err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
+    std::cout << "hola" + err << std::endl;  
 
-    std::cout << "holaaaa" + err << std::endl;  
+    size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
 
-    size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
+    get_TNF<<<1, n_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
-    TNF<<<1, N_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    cudaDeviceSynchronize();
 
-    cudaDeviceSynchronize():
-
-    std::cout << "era" + err << std::endl;  
+    std::cout << "chao" + err << std::endl;  
 
     return 0;
 }
