@@ -175,7 +175,8 @@ int main(int argc, char const *argv[]){
     
 	size_t nobs = 0;
 	int nresv = 0;
-	gzFile f = gzopen("test", "r");
+    inFile = "test";
+	gzFile f = gzopen(inFile.c_str(), "r");
 	if (f == NULL) {
 		cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
 		return 1;
@@ -250,7 +251,7 @@ int main(int argc, char const *argv[]){
     size_t contigs_per_thread = 1 + ((nobs - 1) / N_THREADS);
 
     TNF<<<1, N_THREADS>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
-
+    
     cudaDeviceSynchronize():
 
     return 0;
