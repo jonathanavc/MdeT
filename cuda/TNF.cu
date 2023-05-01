@@ -236,8 +236,8 @@ int main(int argc, char const *argv[]){
     int err = cudaMalloc(&TNF, nobs * n_TNF * size_t(double));                                                              // memoria para almacenar TNF
     err += _cudaMemcpy(TNmap_d, TNmap, n_TNF, cudaMemcpyHostToDevice);                                               // TNmap
     err += _cudaMemcpy(TNPmap_d, TNPmap, n_TNFP, cudaMemcpyHostToDevice);                                            // TNPmap 
-    err += _cudaMemcpy(seqs_d, seqs_h.data(), combined.size(), cudaMemcpyHostToDevice);                              // seqs
-    err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), indexes.size() * sizeof(size_t), cudaMemcpyHostToDevice);  // seqs_index
+    err += _cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);                              // seqs
+    err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);  // seqs_index
     err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                    // gCtgIdx
     err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                 // seqs
     std::cout << "error:" + err << std::endl;  
