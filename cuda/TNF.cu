@@ -168,7 +168,7 @@ int main(int argc, char const *argv[]){
     
 	size_t nobs = 0;
 	int nresv = 0;
-    std::string inFile = "test";
+    std::string inFile = "test.gz";
 	gzFile f = gzopen(inFile.c_str(), "r");
 	if (f == NULL) {
 		cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
