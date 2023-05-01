@@ -69,10 +69,10 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
-            const char * contig = get_contig_d(gCtgIdx[contig_index], seqs_d, seqs_d_index);
-            int contig_size = seqs_d_index[gCtgIdx[contig_index]];
-            if(gCtgIdx[contig_index] != 0){
-                contig_size -= seqs_d_index[gCtgIdx[contig_index] - 1];
+            const char * contig = get_contig_d(gCtgCtgIdx_dgIdx[contig_index], seqs_d, seqs_d_index);
+            int contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
+            if(gCtgIdx_d[contig_index] != 0){
+                contig_size -= seqs_d_index[gCtgIdx_d[contig_index] - 1];
             }
             for (size_t j = 0; j < contig_size - 3; ++j) {
                 unsigned char tn = get_tn(contig, j);
