@@ -235,8 +235,7 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    size_t tnf_size = nobs * n_TNF * size_t(double);
-    int err = cudaMalloc(&TNF_d, tnf_size);                                                          // memoria para almacenar TNF
+    int err = cudaMalloc(&TNF_d,(nobs * n_TNF * sizeof(double)));                                                          // memoria para almacenar TNF
     err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
     err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
 
