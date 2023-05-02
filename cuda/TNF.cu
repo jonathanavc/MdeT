@@ -157,15 +157,6 @@ int main(int argc, char const *argv[]){
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
 	}
-    for(int i = 0; i < 256; i++){
-        std::cout << (int)TNmap[i] << " ";
-    }
-    std::cout << std::endl;
-
-    for(int i = 0; i < 256; i++){
-        std::cout << (int)TNPmap[i] << " ";
-    }
-    std::cout << std::endl;
     
 	size_t nobs = 0;
 	int nresv = 0;
