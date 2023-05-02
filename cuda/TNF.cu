@@ -144,17 +144,22 @@ static size_t * gCtgIdx_d;
 int main(int argc, char const *argv[]){
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
+        
         TNmap[i] = n_TNF;
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
         unsigned char key = get_tn(TN[i].c_str(), 0);
+        std::cout << key << std:: " "
         TNmap[key] = i;
 	}
+    std::cout << std::endl;
 	for(size_t i = 0; i < n_TNFP; ++i) {
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
+        std::cout << key << std:: " "
         TNPmap[key] = 1;
 	}
+    std::cout << std::endl;
     for(int i = 0; i < 256; i++){
         std::cout << (int)TNmap[i] << " ";
     }
