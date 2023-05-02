@@ -78,7 +78,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
                 if(TNmap[tn] != n_TNF_d){
-                    TNF_d[contig_index] = 1;   
+                    TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;   
                 }
                 
                 tn = get_revComp_tn_d(contig, j);
@@ -86,7 +86,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
                     if(TNmap[tn] != n_TNF_d){
-                        TNF_d[contig_index] = 1;
+                        TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;
                     }
                 }
             }
