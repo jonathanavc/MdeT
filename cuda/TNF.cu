@@ -86,7 +86,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
                     if(TNmap[tn] != n_TNF_d){
-                        TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f; error
+                        TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;
                     }
                 }
             }
