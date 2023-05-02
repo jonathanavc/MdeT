@@ -17,7 +17,6 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 0; i < 3; i++){
         char N = contig[index + i];
-        std::cout << N ;
         if (N == 'A')
 			N = 0;
 		else if (N == 'C')
@@ -143,22 +142,44 @@ static unsigned char * TNPmap_d;
 static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
+unsigned char get_tn_h(const char * contig, size_t index){
+    unsigned char tn = 0;
+
+    for(int i = 0; i < 3; i++){
+        char N = contig[index + i];
+        std::cout << N; 
+        if (N == 'A')
+			N = 0;
+		else if (N == 'C')
+			N = 1;
+		else if (N == 'T')
+			N = 2;
+		else if (N == 'G')
+		    N = 3;
+        else
+            return 0;
+        
+        tn = (tn<<2) + N;
+        std::cout << (int)tn; 
+    }
+    return tn;
+}
+
 int main(int argc, char const *argv[]){
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
-        
         TNmap[i] = n_TNF;
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
-        unsigned char key = get_tn(TN[i].c_str(), 0);
-        std::cout << (int)key <<" ";
+        unsigned char key = get_tn_h(TN[i].c_str(), 0);
+        std::cout << (unsigned char)key <<std::endl;
         TNmap[key] = i;
 	}
     std::cout << std::endl;
 	for(size_t i = 0; i < n_TNFP; ++i) {
-		unsigned char key = get_tn(TNP[i].c_str(), 0);
-        std::cout <<(int) key <<" ";
+		unsigned char key = get_tn_h(TNP[i].c_str(), 0);
+        std::cout <<(unsigned char) key << std::endl;
         TNPmap[key] = 1;
 	}
     std::cout << std::endl;
