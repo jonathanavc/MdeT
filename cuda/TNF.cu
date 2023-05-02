@@ -16,7 +16,7 @@ __device__ const char * get_contig_d(int contig_index, const char * seqs_d,const
 __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 0; i < 3; i++){
-        char N = contig[index + i];
+        unsigned char N = (unsigned char)contig[index + i];
         if (N == 'A')
 			N = 0;
 		else if (N == 'C')
@@ -26,7 +26,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 3;
         else
-            return 255;
+            return 0;
         tn += tn<<2 + N;
     }
     return tn;
