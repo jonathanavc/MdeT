@@ -27,7 +27,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		    N = 3;
         else
             return 0;
-        tn += tn<<2 + N;
+        tn += (tn<<2) + N;
     }
     return tn;
 }
@@ -46,7 +46,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 		    N = 1;
         else
             return 0;
-        tn+= tn<<2 + N;
+        tn+= (tn<<2) + N;
     }
     return tn;
 }
