@@ -119,7 +119,7 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG",
         "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
-static int n_THREADS = 100;
+static int n_THREADS = 1000;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
