@@ -147,6 +147,7 @@ int main(int argc, char const *argv[]){
     if(argc > 2){
         n_THREADS = atoi(argv[1]);
     }
+    std::cout << n_THREADS << std::endl;
     for(int i = 0; i < 256; i++){
         TNmap[i] = n_TNF;
         TNPmap[i] = 0;
@@ -155,7 +156,7 @@ int main(int argc, char const *argv[]){
         unsigned char key = get_tn(TN[i].c_str(), 0);
         TNmap[key] = i;
 	}
-    std::cout << std::endl;
+    
 	for(size_t i = 0; i < n_TNFP; ++i) {
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
