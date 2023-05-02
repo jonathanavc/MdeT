@@ -157,7 +157,7 @@ int main(int argc, char const *argv[]){
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
 	}
-    
+
 	size_t nobs = 0;
 	int nresv = 0;
     std::string inFile = "test.gz";
@@ -230,8 +230,6 @@ int main(int argc, char const *argv[]){
 
     err += cudaMalloc(&smallCtgs_d, nobs);
     err += cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
-
-    std::cout << "hola" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
     dim3 blkDim (n_THREADS, 1, 1);
