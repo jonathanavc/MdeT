@@ -150,8 +150,10 @@ int main(int argc, char const *argv[]){
     }
     for(int i = 0; i < n_TNF; ++i) {
         unsigned char key = get_tn(TN[i].c_str(), 0);
+        std::cout << (int) key << " ";
         TNmap[key] = i;
 	}
+    std::cout << std::endl;
 	for(size_t i = 0; i < n_TNFP; ++i) {
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
