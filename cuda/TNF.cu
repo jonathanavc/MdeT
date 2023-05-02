@@ -64,6 +64,8 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
     }
 
     //__syncthreads(); 
+    
+    /*
 
     for(size_t i = 0; i < contigs_per_thread; i++){
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
@@ -99,9 +101,9 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
             for(size_t c = 0; c < n_TNF_d; ++c) {
                 //TNF_d[contig_index * n_TNF_d + c] /= rsum;
             }
-
         }
     }
+    */
 }
 
 static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA",
