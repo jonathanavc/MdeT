@@ -59,7 +59,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF_d; j++){
-            TNF_d[contig_index * n_TNF_d + j] = blockIdx.x;
+            TNF_d[contig_index * n_TNF_d + j] = 0;
         }
     }
 
@@ -78,7 +78,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
                 if(TNmap[tn] != n_TNF_d){
-                    //TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;
+                    TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;
                 }
                 
                 tn = get_revComp_tn_d(contig, j);
@@ -86,7 +86,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
                     if(TNmap[tn] != n_TNF_d){
-                        //TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f; error
+                        TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f; error
                     }
                 }
             }
@@ -133,7 +133,7 @@ static size_t minContig = 2500; //minimum contig size for binning
 static size_t minContigByCorr = 1000; //minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
 
-static double * TNF_d;
+double * TNF_d;
 static char * seqs_d;
 static size_t * seqs_d_index;
 static unsigned char * TNmap_d;
