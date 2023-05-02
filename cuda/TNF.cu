@@ -220,7 +220,7 @@ int main(int argc, char const *argv[]){
     err += cudaMalloc(&seqs_d, seqs_h.size());
     err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
 
-    err += cudaMalloc(&seqs_d_index, seqs_d_index.size() * sizeof(size_t));
+    err += cudaMalloc(&seqs_d_index, seqs_h_index.size() * sizeof(size_t));
     err += cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
 
     err += cudaMalloc(&gCtgIdx_d, nobs * sizeof(size_t));
