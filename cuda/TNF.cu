@@ -59,7 +59,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF_d; j++){
-            TNF_d[contig_index * n_TNF_d + j] = 0;
+            TNF_d[contig_index * n_TNF_d + j] = TNPmap[0];
         }
     }
 
@@ -218,7 +218,7 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    int err = cudaMalloc(&TNF_d,(nobs * n_TNF * sizeof(double)));                                                          // memoria para almacenar TNF
+    int err = cudaMalloc(&TNF_d,(nobs * n_TNF * sizeof(double)));                                                      // memoria para almacenar TNF
     err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
     err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
 
