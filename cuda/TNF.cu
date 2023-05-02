@@ -26,7 +26,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 3;
         else
-            return 0;
+            return 256;
         tn += tn<<2 + N;
     }
     return tn;
