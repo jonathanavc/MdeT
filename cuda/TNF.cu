@@ -149,11 +149,11 @@ int main(int argc, char const *argv[]){
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
-        unsigned char key = get_tn_h(TN[i].c_str(), 0);
+        unsigned char key = get_tn(TN[i].c_str(), 0);
         TNmap[key] = i;
 	}
 	for(size_t i = 0; i < n_TNFP; ++i) {
-		unsigned char key = get_tn_h(TNP[i].c_str(), 0);
+		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
 	}
     for(int i = 0; i < 256; i++){
