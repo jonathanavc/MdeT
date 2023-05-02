@@ -155,8 +155,8 @@ int main(int argc, char const *argv[]){
 	}
     std::cout << std::endl;
 	for(size_t i = 0; i < n_TNFP; ++i) {
-		unsigned char (int)key = get_tn(TNP[i].c_str(), 0);
-        std::cout << key <<" ";
+		unsigned char key = get_tn(TNP[i].c_str(), 0);
+        std::cout <<(int) key <<" ";
         TNPmap[key] = 1;
 	}
     std::cout << std::endl;
