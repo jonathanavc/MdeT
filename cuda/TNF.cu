@@ -119,7 +119,7 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG",
         "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
-static int n_THREADS = 1000;
+int n_THREADS = 100;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
@@ -144,6 +144,9 @@ static size_t * gCtgIdx_d;
 
 int main(int argc, char const *argv[]){
     // se inicializan los mapas
+    if(argc > 2){
+        n_THREADS = atoi(argv[1]);
+    }
     for(int i = 0; i < 256; i++){
         TNmap[i] = n_TNF;
         TNPmap[i] = 0;
