@@ -108,7 +108,7 @@ unsigned char get_tn_h(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 0; i < 4; i++){
         char N = contig[index + i];
-        std::cout << N << std::endl;
+        std::cout <<" N:"<< N;
         if (N == 'A')
 			N = 0;
 		else if (N == 'C')
@@ -119,8 +119,9 @@ unsigned char get_tn_h(const char * contig, size_t index){
 		    N = 3;
         else
             return 0;
+        std::cout <<" N2:" << (int) N;
         tn = (tn<<2) + N;
-        std::cout << (int) tn;
+        std::cout <<" TN:"<< (int) tn;
     }
     return tn;
 }
