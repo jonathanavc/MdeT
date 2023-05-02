@@ -143,11 +143,12 @@ static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
 int main(int argc, char const *argv[]){
-    // se inicializan los mapas
-    if(argc > 2){
+    if(argc > 1){
         n_THREADS = atoi(argv[1]);
     }
     std::cout << n_THREADS << std::endl;
+
+    // se inicializan los mapas
     for(int i = 0; i < 256; i++){
         TNmap[i] = n_TNF;
         TNPmap[i] = 0;
