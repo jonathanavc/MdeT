@@ -59,7 +59,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF_d; j++){
-            TNF_d[contig_index * n_TNF_d + j] = TNPmap[0];
+            TNF_d[contig_index * n_TNF_d + j] = 0;
         }
     }
 
@@ -141,15 +141,6 @@ static unsigned char * TNPmap_d;
 static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
-int _cudaMemcpy(void * _device_pointer, void * _host_pointer, size_t size, int type){
-    int err;
-    if(type == 1){
-        err = cudaMalloc(&_device_pointer, size);
-        err += cudaMemcpy(_device_pointer, _host_pointer, size, cudaMemcpyHostToDevice); 
-    }
-    return (err == 0) ? 0 : 1; 
-}
-
 int main(int argc, char const *argv[]){
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
@@ -219,15 +210,25 @@ int main(int argc, char const *argv[]){
     }
 
     int err = cudaMalloc(&TNF_d,(nobs * n_TNF * sizeof(double)));                                                      // memoria para almacenar TNF
-    err += _cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
-    err += _cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
+
+    err += cudaMalloc(&TNmap_d, 256);
+    err += cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice);                                                   // TNmap
+
+    err += cudaMalloc(&TNPmap_d, 256);
+    err += cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);                                                  // TNPmap 
 
     err += cudaMalloc(&seqs_d, seqs_h.size());
     err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
 
-    err += _cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-    err += _cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
-    err += _cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
+    err += cudaMalloc(&seqs_d_index, seqs_d_index.size() * sizeof(size_t));
+    err += cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
+
+    err += cudaMalloc(&gCtgIdx_d, nobs * sizeof(size_t));
+    err += cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+
+    err += cudaMalloc(&smallCtgs_d, nobs);
+    err += cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
+
     std::cout << "hola" + err << std::endl;  
 
     size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
