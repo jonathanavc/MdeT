@@ -13,7 +13,7 @@ __device__ const char * get_contig_d(int contig_index, const char * seqs_d,const
     return seqs_d + contig_beg;
 }
 
-__device__ __host__ unsigned char get_tn(const char * contig, int index){
+__device__ __host__ unsigned char get_tn(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 3; i >= 0; i--){
         char N = contig[index + i];
@@ -32,7 +32,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, int index){
     return tn;
 }
 
-__device__ unsigned char get_revComp_tn_d(const char * contig, int index){
+__device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 3; i >= 0; i--){
         char N = contig[index + i];
@@ -70,7 +70,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
             const char * contig = get_contig_d(gCtgIdx_d[contig_index], seqs_d, seqs_d_index);
-            int contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
+            size_t contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
             if(gCtgIdx_d[contig_index] != 0){
                 contig_size -= seqs_d_index[gCtgIdx_d[contig_index] - 1];
             }
@@ -78,7 +78,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
                 if(TNmap[tn] != n_TNF_d){
-                    TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;   
+                    TNF_d[contig_index * n_TNF_d + TNmap[tn]] += 1.0f;
                 }
                 
                 tn = get_revComp_tn_d(contig, j);
