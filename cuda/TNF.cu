@@ -17,6 +17,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
     unsigned char tn = 0;
     for(int i = 0; i < 3; i++){
         char N = contig[index + i];
+        std::cout << N ;
         if (N == 'A')
 			N = 0;
 		else if (N == 'C')
@@ -27,6 +28,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		    N = 3;
         else
             return 0;
+        
         tn = (tn<<2) + N;
     }
     return tn;
