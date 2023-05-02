@@ -15,7 +15,7 @@ __device__ const char * get_contig_d(int contig_index, const char * seqs_d,const
 
 __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
     unsigned char tn = 0;
-    for(int i = 3; i >= 0; i--){
+    for(int i = 0; i < 3; i++){
         char N = contig[index + i];
         if (N == 'A')
 			N = 0;
