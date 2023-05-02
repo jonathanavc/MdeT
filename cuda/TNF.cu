@@ -104,6 +104,27 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
     }
 }
 
+unsigned char get_tn_h(const char * contig, size_t index){
+    unsigned char tn = 0;
+    for(int i = 0; i < 4; i++){
+        char N = contig[index + i];
+        std::cout << N << std::endl;
+        if (N == 'A')
+			N = 0;
+		else if (N == 'C')
+			N = 1;
+		else if (N == 'T')
+			N = 2;
+		else if (N == 'G')
+		    N = 3;
+        else
+            return 0;
+        tn = (tn<<2) + N;
+        std::cout << (int) tn;
+    }
+    return tn;
+}
+
 static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA",
         "CCAG", "GGAC", "ATTA", "GATC", "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC",
 		"GACC", "GAGA", "ATAG", "ATCA", "CAGA", "AGTA", "ATGA", "AAAT", "TTAA", "TATA", "AGTG", "AGCT", "CCAC", "GGCC",
@@ -149,8 +170,8 @@ int main(int argc, char const *argv[]){
         TNPmap[i] = 0;
     }
     for(int i = 0; i < n_TNF; ++i) {
-        unsigned char key = get_tn(TN[i].c_str(), 0);
-        std::cout << (int) key << " ";
+        unsigned char key = get_tn_h(TN[i].c_str(), 0);
+        std::cout << (int)key << endl;
         TNmap[key] = i;
 	}
     std::cout << std::endl;
