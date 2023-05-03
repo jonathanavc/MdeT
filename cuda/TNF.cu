@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include "extra/KseqReader.h"
 
 __device__ __constant__ int n_TNF_d = 136;
@@ -209,6 +210,8 @@ int main(int argc, char const *argv[]){
 
     //std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
+    auto start = std::chrono::system_clock::now();
+
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
     for(std::string const& contig : seqs) {
@@ -249,6 +252,10 @@ int main(int argc, char const *argv[]){
     cudaMemcpy(TNF, TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 
     cudaDeviceSynchronize();
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float,std::milli> duration = end - start;
+    std::cout << duration.count() << “s “ << std:endl;
     
     /*
     for(int i = 0; i < nobs; i++){
