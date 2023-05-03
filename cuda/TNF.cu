@@ -255,7 +255,7 @@ int main(int argc, char const *argv[]){
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float,std::milli> duration = end - start;
-    std::cout << duration.count() << "s " << std::endl;
+    std::cout << duration.count()/1000.f << "s " << std::endl;
     
     /*
     for(int i = 0; i < nobs; i++){
