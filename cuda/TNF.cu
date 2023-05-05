@@ -167,6 +167,9 @@ int main(int argc, char const *argv[]){
 	size_t nobs = 0;
 	int nresv = 0;
     std::string inFile = "test.gz";
+
+    auto start = std::chrono::system_clock::now();
+
 	gzFile f = gzopen(inFile.c_str(), "r");
 	if (f == NULL) {
 		cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -208,9 +211,13 @@ int main(int argc, char const *argv[]){
 		gzclose(f);
 	}
 
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float,std::milli> duration = end - start;
+    std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
+
     //std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
-    auto start = std::chrono::system_clock::now();
+    start = std::chrono::system_clock::now();
 
     std::string seqs_h;
     std::vector<size_t> seqs_h_index;
@@ -219,8 +226,8 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float,std::milli> duration = end - start;
+    end = std::chrono::system_clock::now();
+    duration = end - start;
     std::cout <<"vector<string> -> string "<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
