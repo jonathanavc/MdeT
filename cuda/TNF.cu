@@ -220,6 +220,7 @@ int main(int argc, char const *argv[]){
     }
 
     auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float,std::milli> duration = end - start;
     std::cout <<"vector<string> -> string"<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
@@ -245,6 +246,7 @@ int main(int argc, char const *argv[]){
     err += cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
 
     end = std::chrono::system_clock::now();
+    duration = end - start;
     std::cout <<"cudaMemcpy -> deveice"<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
@@ -258,6 +260,7 @@ int main(int argc, char const *argv[]){
     cudaDeviceSynchronize();
 
     end = std::chrono::system_clock::now();
+    duration = end - start;
     std::cout <<"kernel"<< duration.count()/1000.f << "s " << std::endl;
     start = std::chrono::system_clock::now();
 
@@ -268,10 +271,8 @@ int main(int argc, char const *argv[]){
     cudaDeviceSynchronize();
 
     end = std::chrono::system_clock::now();
+    duration = end - start;
     std::cout <<"cudaMemcpy -> host"<< duration.count()/1000.f << "s " << std::endl;
-
-    std::chrono::duration<float,std::milli> duration = end - start;
-    std::cout << duration.count()/1000.f << "s " << std::endl;
     
     /*
     for(int i = 0; i < nobs; i++){
