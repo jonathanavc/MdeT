@@ -219,6 +219,11 @@ int main(int argc, char const *argv[]){
         seqs_h_index.emplace_back(seqs_h.size());
     }
 
+    auto end = std::chrono::system_clock::now();
+    std::cout <<"vector<string> -> string"<< duration.count()/1000.f << "s " << std::endl;
+
+    start = std::chrono::system_clock::now();
+
     int err = cudaMalloc(&TNF_d,(nobs * n_TNF * sizeof(double)));                                                      // memoria para almacenar TNF
 
     err += cudaMalloc(&TNmap_d, 256);
@@ -239,6 +244,11 @@ int main(int argc, char const *argv[]){
     err += cudaMalloc(&smallCtgs_d, nobs);
     err += cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice);                                    // seqs
 
+    end = std::chrono::system_clock::now();
+    std::cout <<"cudaMemcpy -> deveice"<< duration.count()/1000.f << "s " << std::endl;
+
+    start = std::chrono::system_clock::now();
+
     size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (1, 1, 1);
@@ -247,13 +257,19 @@ int main(int argc, char const *argv[]){
 
     cudaDeviceSynchronize();
 
+    end = std::chrono::system_clock::now();
+    std::cout <<"kernel"<< duration.count()/1000.f << "s " << std::endl;
+    start = std::chrono::system_clock::now();
+
     double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
 
     cudaMemcpy(TNF, TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 
     cudaDeviceSynchronize();
 
-    auto end = std::chrono::system_clock::now();
+    end = std::chrono::system_clock::now();
+    std::cout <<"cudaMemcpy -> host"<< duration.count()/1000.f << "s " << std::endl;
+
     std::chrono::duration<float,std::milli> duration = end - start;
     std::cout << duration.count()/1000.f << "s " << std::endl;
     
