@@ -180,7 +180,6 @@ int main(int argc, char const *argv[]){
                 }
             }
 
-            /*
             double rsum = 0;
             for (size_t c = 0; c < n_TNF; ++c)
             {
@@ -191,7 +190,6 @@ int main(int argc, char const *argv[]){
             {
                 TNF[r * n_TNF + c] /= rsum;
             }
-            */
         }
     }
 
@@ -210,10 +208,6 @@ int main(int argc, char const *argv[]){
         std::cout << "Error al guardar" << std::endl;
     }
     out.close();
-
-    for (int i = 0; i < nobs * n_TNF; i++){
-        std::cout << TNF[i] <<" "<< std::endl;
-    }
 
     return 0;
 }
