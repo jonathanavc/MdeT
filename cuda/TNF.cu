@@ -30,7 +30,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 3;
         else
-            return 170;
+            return 170; // no existe en TNmap[]
         
         tn = (tn<<2) + N;
     }
@@ -50,7 +50,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 1;
         else
-            return 170;
+            return 170; // no existe en TNmap[]
         tn = (tn<<2) + N;
     }
     return tn;
