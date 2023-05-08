@@ -201,7 +201,7 @@ int main(int argc, char const *argv[]){
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 	if (out) {
-		out.write((char *) &TNF, nobs * n_TNF * 4);
+		out.write((char *) &TNF, sizeof(TNF));
         out.close();
         std::cout << "TNF guardado" << std::endl;
 	}
