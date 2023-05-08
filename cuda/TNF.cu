@@ -268,7 +268,7 @@ int main(int argc, char const *argv[]){
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
-    get_TNF<<<grdDim, blockDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
     cudaDeviceSynchronize();
 
