@@ -286,14 +286,17 @@ int main(int argc, char const *argv[]){
     end = std::chrono::system_clock::now();
     duration = end - start;
     std::cout <<"cudaMemcpy -> host "<< duration.count()/1000.f << "s " << std::endl;
-    
-    /*
-    for(int i = 0; i < nobs; i++){
-        for(int j = 0; j < n_TNF; j++){
-            std::cout << TNF[i * n_TNF + j] << " ";
-        }
-        std::cout << std::endl;
-    }*/
+
+    std::ofstream out("TNF.bin", ios::out | ios::binary);
+	if (out) {
+		out.write((char *) TNF, nobs * n_TNF * sizeof(double));
+        out.close();
+        std::cout << "TNF guardado" << std::endl;
+	}
+    else{
+        std::cout << "Error al guardar" << std::endl;
+    }
+    out.close();
 
     return 0;
 }
