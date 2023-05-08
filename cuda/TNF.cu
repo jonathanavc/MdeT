@@ -57,7 +57,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx_d, size_t contigs_per_thread){
 
-   size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     // inicializar valores de vector en 0
     for(size_t i = 0; i < contigs_per_thread; i++){ 
@@ -125,6 +125,7 @@ static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG
 
 int n_THREADS = 32;
 int n_BLOCKS = 128;
+
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
