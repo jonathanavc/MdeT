@@ -299,5 +299,9 @@ int main(int argc, char const *argv[]){
     }
     out.close();
 
+    for (int i = 0; i < nobs * n_TNF; i++){
+        std::cout << TNF[i] <<" "<< std::endl;
+    }
+
     return 0;
 }
