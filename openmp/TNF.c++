@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <omp.h>
+#include <math.h> 
 
 #include "../extra/KseqReader.h"
 
@@ -160,7 +161,7 @@ int main(int argc, char const *argv[]){
             {
                 rsum += TNF[r * n_TNF + c] * TNF[r * n_TNF + c];
             }
-            rsum = std::sqrt(rsum);
+            rsum = sqrt(rsum);
             for (size_t c = 0; c < n_TNF; ++c)
             {
                 TNF[r * n_TNF + c] /= rsum;
