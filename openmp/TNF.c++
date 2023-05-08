@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]){
     if(n_THREADS == 0)
 		n_THREADS = omp_get_max_threads();
 	else
-		n_THREADS = std::min(n_THREADS, (size_t) omp_get_max_threads());
+		n_THREADS = std::min(n_THREADS, (int) omp_get_max_threads());
 	omp_set_num_threads(n_THREADS);
 
     std::cout << "n°threads:"<< n_THREADS << std::endl;
