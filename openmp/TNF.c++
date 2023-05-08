@@ -180,7 +180,7 @@ int main(int argc, char const *argv[]){
                 }
             }
 
-            // normalize to unit size (L2 norm)
+            /*
             double rsum = 0;
             for (size_t c = 0; c < n_TNF; ++c)
             {
@@ -191,6 +191,7 @@ int main(int argc, char const *argv[]){
             {
                 TNF[r * n_TNF + c] /= rsum;
             }
+            */
         }
     }
 
