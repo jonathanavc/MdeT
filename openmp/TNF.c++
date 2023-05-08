@@ -198,8 +198,8 @@ int main(int argc, char const *argv[]){
     std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
 
 
-    std::ofstream os("TNF.bin", ios::out | ios::binary);
-	if (os) {
+    std::ofstream out("TNF.bin", ios::out | ios::binary);
+	if (out) {
 		out.write((double *) &TNF, nobs * n_TNF);
         out.close();
         std::cout << "TNF guardado" << std::endl;
