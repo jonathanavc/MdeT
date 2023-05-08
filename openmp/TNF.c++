@@ -150,7 +150,7 @@ int main(int argc, char const *argv[]){
                 { // if it is palindromic, then skip
                     it = TNmap.find(tn);
                     if (it != TNmap.end()) //********************** consulta innecesaria
-                        ++TNF(r, it->second);
+                        ++TNF[r * n_TNF + it->second];
                 }
             }
 
@@ -160,7 +160,7 @@ int main(int argc, char const *argv[]){
             {
                 rsum += TNF[r * n_TNF + c] * TNF[r * n_TNF + c];
             }
-            rsum = sqrt(rsum);
+            rsum = std::sqrt(rsum);
             for (size_t c = 0; c < n_TNF; ++c)
             {
                 TNF[r * n_TNF + c] /= rsum;
