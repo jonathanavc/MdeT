@@ -56,9 +56,12 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
     const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
     const size_t * gCtgIdx_d, size_t contigs_per_thread){
+
+   size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+
     // inicializar valores de vector en 0
     for(size_t i = 0; i < contigs_per_thread; i++){ 
-        size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
+        size_t contig_index = (thead_id * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         for(int j = 0; j < n_TNF_d; j++){
             TNF_d[contig_index * n_TNF_d + j] = 0;
@@ -68,7 +71,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
     //__syncthreads(); 
 
     for(size_t i = 0; i < contigs_per_thread; i++){
-        size_t contig_index = (blockIdx.x * contigs_per_thread) + i;
+        size_t contig_index = (thead_id * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
             const char * contig = get_contig_d(gCtgIdx_d[contig_index], seqs_d, seqs_d_index);
@@ -120,7 +123,8 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG",
         "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
-int n_THREADS = 100;
+int n_THREADS = 32;
+int n_BLOCKS = 128;
 std::vector<std::string> seqs;
 std::vector<size_t> gCtgIdx;
 std::vector<unsigned char> smallCtgs;
@@ -144,10 +148,11 @@ static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
 int main(int argc, char const *argv[]){
-    if(argc > 1){
-        n_THREADS = atoi(argv[1]);
+    if(argc > 2){
+        n_BLOCKS = atoi(argv[1]);
+        n_THREADS = atoi(argv[2]);
     }
-    std::cout << n_THREADS << std::endl;
+    std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << << std::endl;
 
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
@@ -258,11 +263,11 @@ int main(int argc, char const *argv[]){
 
     start = std::chrono::system_clock::now();
 
-    size_t contigs_per_thread = 1 + ((nobs - 1) / n_THREADS);
+    size_t contigs_per_thread = 1 + ((nobs - 1) / (n_THREADS * n_BLOCKS));
     dim3 blkDim (n_THREADS, 1, 1);
-    dim3 grdDim (1, 1, 1);
+    dim3 grdDim (n_BLOCKS, 1, 1);
 
-    get_TNF<<<blkDim, grdDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    get_TNF<<<grdDim, blockDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
     cudaDeviceSynchronize();
 
