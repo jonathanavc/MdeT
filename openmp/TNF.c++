@@ -40,6 +40,22 @@ static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
 std::unordered_map<std::string,int> TNmap;
 std::unordered_set<std::string> TNPmap;
 
+static bool revComp(char* s, int size) {
+	for (int i = 0; i < size; ++i) {
+		if (s[i] == 'A')
+			s[i] = 'T';
+		else if (s[i] == 'T')
+			s[i] = 'A';
+		else if (s[i] == 'C')
+			s[i] = 'G';
+		else if (s[i] == 'G')
+			s[i] = 'C';
+		else
+			return false;
+	}
+	return true;
+}
+
 int main(int argc, char const *argv[]){
     if(argc > 1){
         n_THREADS = atoi(argv[1]);
