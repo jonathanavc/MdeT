@@ -4,8 +4,10 @@
 #include <chrono>
 #include <unordered_map>
 #include <unordered_set>
+#include <fstream>
+#include <math.h>
 #include <omp.h>
-#include <math.h> 
+
 
 #include "../extra/KseqReader.h"
 
@@ -190,9 +192,22 @@ int main(int argc, char const *argv[]){
             }
         }
     }
-    
+
     end = std::chrono::system_clock::now();
     duration = end - start;
     std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
+
+
+    std::ofstream os("TNF.bin", ios::out, ios::binary);
+	if (os) {
+		out.write((double *) &TNF, nobs * n_TNF);
+        out.close();
+        std::cout << "TNF guardado" << std::endl;
+	}
+    else{
+        std::cout << "Error al guardar" << std::endl;
+    }
+    out.close();
+
     return 0;
 }
