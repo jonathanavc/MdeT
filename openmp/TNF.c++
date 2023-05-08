@@ -121,7 +121,13 @@ int main(int argc, char const *argv[]){
     std::chrono::duration<float,std::milli> duration = end - start;
     std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
 
+    start = std::chrono::system_clock::now();
+
     double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
+
+    for (size_t i = 0; i < nobs * n_TNF; i++){
+        TNF[i] = 0;
+    }
 
     #pragma omp parallel for schedule(dynamic)
     for (size_t r = 0; r < nobs; ++r)
@@ -184,5 +190,9 @@ int main(int argc, char const *argv[]){
             }
         }
     }
+    
+    end = std::chrono::system_clock::now();
+    duration = end - start;
+    std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
     return 0;
 }
