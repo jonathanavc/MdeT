@@ -30,7 +30,7 @@ __device__ __host__ unsigned char get_tn(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 3;
         else
-            return 0;
+            return 170;
         
         tn = (tn<<2) + N;
     }
@@ -50,7 +50,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 		else if (N == 'G')
 		    N = 1;
         else
-            return 0;
+            return 170;
         tn = (tn<<2) + N;
     }
     return tn;
@@ -268,7 +268,7 @@ int main(int argc, char const *argv[]){
 
     start = std::chrono::system_clock::now();
 
-    size_t contigs_per_thread = 1 + (int)((nobs - 1) / (n_THREADS * n_BLOCKS));
+    size_t contigs_per_thread = 1 + ((nobs - 1) / (n_THREADS * n_BLOCKS));
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
