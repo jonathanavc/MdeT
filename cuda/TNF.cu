@@ -268,7 +268,7 @@ int main(int argc, char const *argv[]){
 
     start = std::chrono::system_clock::now();
 
-    size_t contigs_per_thread = 1 + ((nobs - 1) / (n_THREADS * n_BLOCKS));
+    size_t contigs_per_thread = 1 + (int)((nobs - 1) / (n_THREADS * n_BLOCKS));
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
