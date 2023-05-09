@@ -194,7 +194,7 @@ int main(int argc, char const *argv[]){
     std::string seqs_kernel;
     std::vector<size_t> smallCtgs_kernel;
     std::vector<size_t> gCtgIdx_kernel;
-    std::vector<std::string> seqs_kernel_index;
+    std::vector<size_t> seqs_kernel_index;
    
     std::vector<double*> TNF;
 
@@ -265,7 +265,7 @@ int main(int argc, char const *argv[]){
 				//contig_names.push_back(kseq->name.s);
 				seqs.push_back(kseq->seq.s);
                 seqs_kernel += kseq->seq.s;
-                seqs_kernel_index.emplace_back(cont);
+                seqs_kernel_index.emplace_back(seqs_ker.size());
 			}
 		}
 		kseq_destroy(kseq);
