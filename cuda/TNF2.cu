@@ -190,9 +190,10 @@ int main(int argc, char const *argv[]){
 
     auto start = std::chrono::system_clock::now();
     
-    std::vector<size_t> gCtgIdx_kernel;
-    std::vector<std::string> seqs_kernel;
+    
+    std::string seqs_kernel;
     std::vector<size_t> smallCtgs_kernel;
+    std::vector<size_t> gCtgIdx_kernel;
     std::vector<std::string> seqs_kernel_index;
    
     std::vector<double*> TNF;
