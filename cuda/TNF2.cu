@@ -306,11 +306,15 @@ int main(int argc, char const *argv[]){
 
     cudaDeviceSynchronize();
 
-
     std::ofstream out("TNF.bin", ios::out | ios::binary);
+
+
 	if (out) {
         for(size_t i = 0; TNF.size(); i++){
-            out.write((char *) TNF[i], TNF.size() * sizeof(double));
+            if(i < TNF.size() - 1 || ((n_BLOCKS * n_THREADS) % nobs) == 0)
+                out.write((char *) TNF[i], n_BLOCKS * n_THREADS * sizeof(double));
+            else
+                out.write((char *) TNF[i], ((n_BLOCKS * n_THREADS) % nobs) * sizeof(double));
         }
         out.close();
         std::cout << "TNF guardado" << std::endl;
