@@ -232,7 +232,7 @@ int main(int argc, char const *argv[]){
                     }
 					gCtgIdx.emplace_back(seqs.size());
                     gCtgIdx_kernel.emplace_back(seqs_kernel_index.size());
-                    kernel_cont++;
+                    cont++;
                     nobs++;
                     if(cont == n_BLOCKS * n_THREADS){
                         if(kernel_cont != 0 ){
