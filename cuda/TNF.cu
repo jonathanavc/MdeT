@@ -194,10 +194,11 @@ int main(int argc, char const *argv[]){
                             // cambio para facilitar la transferencia de smallCtgs
                             smallCtgs.emplace_back(1);
 							//smallCtgs.insert(nobs);
-						else
+						else{
                             // cambio para facilitar la transferencia de smallCtgs
                             smallCtgs.emplace_back(0);
 							++nresv;
+                        }
 					}
                     else
                         smallCtgs.emplace_back(0);
