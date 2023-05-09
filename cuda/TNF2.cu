@@ -243,7 +243,7 @@ int main(int argc, char const *argv[]){
                         cudaMalloc(&seqs_d, seqs_kernel.size());
                         cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
                         cudaMemcpy(seqs_d_index, seqs_kernel_index.data(), seqs_kernel_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-                        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel.data(), gCtgIdx_ker.size() * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+                        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel.data(), gCtgIdx_kernel.size() * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
                         cudaMemcpy(smallCtgs_d, smallCtgs_kernel.data(), n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);                                    // seqs
                         dim3 blkDim (n_THREADS, 1, 1);
                         dim3 grdDim (n_BLOCKS, 1, 1);
