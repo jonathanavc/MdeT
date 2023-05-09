@@ -265,7 +265,7 @@ int main(int argc, char const *argv[]){
 				//contig_names.push_back(kseq->name.s);
 				seqs.push_back(kseq->seq.s);
                 seqs_kernel += kseq->seq.s;
-                seqs_kernel_index.emplace_back(seqs_kernel.size());
+                seqs_kernel_index.emplace_back(cont);
 			}
 		}
 		kseq_destroy(kseq);
@@ -303,7 +303,7 @@ int main(int argc, char const *argv[]){
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * sizeof(double)));
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
     }
-    
+
     cudaDeviceSynchronize();
 
 
