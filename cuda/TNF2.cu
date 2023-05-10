@@ -281,6 +281,7 @@ int main(int argc, char const *argv[]){
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * sizeof(double), cudaMemcpyDeviceToHost);
         
     }
+    std::cout << "adios" << kernel_cont<< std::endl;
 
     cudaDeviceSynchronize();
     if(cont != 0){
@@ -304,6 +305,8 @@ int main(int argc, char const *argv[]){
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * sizeof(double), cudaMemcpyDeviceToHost);
     }
     cudaDeviceSynchronize();
+
+    std::cout << "adios" << kernel_cont<< std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
