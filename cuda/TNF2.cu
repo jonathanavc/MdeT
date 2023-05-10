@@ -287,7 +287,7 @@ int main(int argc, char const *argv[]){
     }
     cudaDeviceSynchronize();
 
-    auto start = std::chrono::system_clock::now();
+    auto end = std::chrono::system_clock::now();
     std::chrono::duration<float,std::milli> duration = end - start;
     std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
 
