@@ -272,6 +272,8 @@ int main(int argc, char const *argv[]){
 		gzclose(f);
 	}
 
+    std::cout << "adios" << kernel_cont<< std::endl;
+
     if(kernel_cont != 0 ){
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * sizeof(double)));
