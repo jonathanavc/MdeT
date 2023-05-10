@@ -165,12 +165,10 @@ void kernel(){
     cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                   // gCtgIdx
     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
     std::cout << "kernel: " << kernel_cont<< std::endl;
     seqs_kernel = "";
     kernel_cont++;
-    cont = 0;
-    cont_2 = 0;
 }
 
 void save_tnf(){
