@@ -157,7 +157,7 @@ size_t * seqs_kernel_index;
 unsigned char * smallCtgs_kernel;
 
 void kernel(){
-    std::cout << "kernel: " << kernel_cont<< std::endl;
+    //std::cout << "kernel: " << kernel_cont<< std::endl;
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
@@ -173,7 +173,7 @@ void kernel(){
 }
 
 void save_tnf(){
-    std::cout << "save kernel: " << kernel_cont<< std::endl;
+    //std::cout << "save kernel: " << kernel_cont<< std::endl;
     cudaDeviceSynchronize();
     cudaFree(seqs_d);
     TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
@@ -201,6 +201,8 @@ int main(int argc, char const *argv[]){
 		unsigned char key = get_tn(TNP[i].c_str(), 0);
         TNPmap[key] = 1;
 	}
+
+    auto start = std::chrono::system_clock::now();
 
     //TNmap
     cudaMalloc(&TNmap_d, 256);
@@ -275,7 +277,6 @@ int main(int argc, char const *argv[]){
 		kseq = NULL;
 		gzclose(f);
 	}
-    std::cout << "hola" << endl;
     if(kernel_cont != 0 && nobs_cont != 0){
         save_tnf();
     }
@@ -285,6 +286,10 @@ int main(int argc, char const *argv[]){
         save_tnf();
     }
     cudaDeviceSynchronize();
+
+    auto start = std::chrono::system_clock::now();
+    std::chrono::duration<float,std::milli> duration = end - start;
+    std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
