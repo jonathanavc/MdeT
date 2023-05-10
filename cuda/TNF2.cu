@@ -248,7 +248,7 @@ int main(int argc, char const *argv[]){
 				seqs.push_back(kseq->seq.s);
                 seqs_kernel += kseq->seq.s;
                 seqs_kernel_index[cont] = seqs_kernel.size();
-                if(cont == n_BLOCKS * n_THREADS){
+                if(cont_2 == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
                         cudaFree(seqs_d);
                         cudaDeviceSynchronize();
@@ -293,7 +293,6 @@ int main(int argc, char const *argv[]){
         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
         std::cout << "kernel: " << kernel_cont<< std::endl;
         seqs_kernel = "";
-        kernel_cont++;
         cont = 0;
         
         cudaFree(seqs_d);
