@@ -307,14 +307,14 @@ int main(int argc, char const *argv[]){
         std::cout <<nobs/(double)(n_BLOCKS*n_THREADS)<< std::endl;
         for(size_t i = 0; i < TNF.size(); i++){
             std::cout <<"TNF:"<< i << std::endl;
-            if(i < (TNF.size() - 1) || (n_BLOCKS * n_THREADS) % nobs == 0){
+            if(i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS)  == 0){
 
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
                 std::cout <<"max" <<  n_BLOCKS * n_THREADS * n_TNF * sizeof(double) << std::endl;
             }   
             else{
-                out.write((char *) TNF[i], ((n_BLOCKS * n_THREADS) % nobs) * n_TNF * sizeof(double));
-                std::cout <<"min"<< ((n_BLOCKS * n_THREADS) % nobs) * n_TNF * sizeof(double) << std::endl;
+                out.write((char *) TNF[i], (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double));
+                std::cout <<"min"<< (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double) << std::endl;
             }
                 
         }
