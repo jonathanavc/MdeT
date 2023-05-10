@@ -202,7 +202,7 @@ int main(int argc, char const *argv[]){
    
     
 
-    cudaMalloc(&TNF_d,(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
+    cudaMalloc(&TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index, n_BLOCKS * n_THREADS * sizeof(size_t));
     cudaMalloc(&gCtgIdx_d, n_BLOCKS * n_THREADS * sizeof(size_t));
     cudaMalloc(&smallCtgs_d, n_BLOCKS * n_THREADS);
@@ -256,8 +256,8 @@ int main(int argc, char const *argv[]){
                     
                     cudaMalloc(&seqs_d, seqs_kernel.size());
                     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-                    cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-                    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+                    cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
+                    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                   // gCtgIdx
                     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
                     get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
@@ -288,16 +288,15 @@ int main(int argc, char const *argv[]){
         cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
-        cudaDeviceSynchronize();
-
         std::cout << "kernel: " << kernel_cont<< std::endl;
         seqs_kernel = "";
         kernel_cont++;
         cont = 0;
 
         cudaFree(seqs_d);
+        cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
     }
     cudaDeviceSynchronize();
 
