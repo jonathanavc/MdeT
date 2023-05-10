@@ -257,12 +257,12 @@ int main(int argc, char const *argv[]){
                         smallCtgs_kernel[nobs_cont] = 0;
                     }
 					gCtgIdx.emplace_back(seqs.size());
+                    nobs++;
+
                     gCtgIdx_kernel[nobs_cont] = nobs_cont;
                     seqs_kernel += kseq->seq.s;
                     seqs_kernel_index[nobs_cont] = seqs_kernel.size();
                     nobs_cont++;
-                    nobs++;
-
 				} else{
                     //ignored[kseq->name.s] = seqs.size();
                 }	
