@@ -248,7 +248,7 @@ int main(int argc, char const *argv[]){
                 seqs_kernel_index[cont] = seqs_kernel.size();
                 if(cont == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
-                        //cudaFree(seqs_d);
+                        cudaFree(seqs_d);
                         cudaDeviceSynchronize();
                         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
                     
@@ -272,18 +272,13 @@ int main(int argc, char const *argv[]){
 		kseq = NULL;
 		gzclose(f);
 	}
-
-    std::cout << "adios" << kernel_cont<< std::endl;
-
     if(kernel_cont != 0 ){
-        //cudaFree(seqs_d);
+        cudaFree(seqs_d);
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
         
     }
-    std::cout << "adios" << kernel_cont<< std::endl;
-
     cudaDeviceSynchronize();
     if(cont != 0){
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
@@ -302,14 +297,11 @@ int main(int argc, char const *argv[]){
         seqs_kernel = "";
         kernel_cont++;
         cont = 0;
+        cudaFree(seqs_d);
     }
     cudaDeviceSynchronize();
 
-    std::cout << "adios" << kernel_cont<< std::endl;
-
     std::ofstream out("TNF.bin", ios::out | ios::binary);
-
-    std::cout << "xddd" << kernel_cont<< std::endl;
 
 	if (out) {
         for(size_t i = 0; i < TNF.size(); i++){
