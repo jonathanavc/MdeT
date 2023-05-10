@@ -248,7 +248,7 @@ int main(int argc, char const *argv[]){
                 seqs_kernel_index[cont] = seqs_kernel.size();
                 if(cont == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
-                        cudaFree(seqs_d);
+                        //cudaFree(seqs_d);
                         cudaDeviceSynchronize();
                         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
                     
@@ -276,7 +276,7 @@ int main(int argc, char const *argv[]){
     std::cout << "adios" << kernel_cont<< std::endl;
 
     if(kernel_cont != 0 ){
-        cudaFree(seqs_d);
+        //cudaFree(seqs_d);
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
@@ -301,7 +301,7 @@ int main(int argc, char const *argv[]){
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * sizeof(double)));
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-        cudaFree(seqs_d);
+        //cudaFree(seqs_d);
     }
     cudaDeviceSynchronize();
 
