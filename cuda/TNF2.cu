@@ -283,22 +283,21 @@ int main(int argc, char const *argv[]){
     if(cont != 0){
         cudaMalloc(&seqs_d, seqs_kernel.size());
         cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+        cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);        // seqs_index
+        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);               // gCtgIdx
         cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
         cudaDeviceSynchronize();
-        
-        cudaFree(seqs_d);
-        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 
         std::cout << "kernel: " << kernel_cont<< std::endl;
         seqs_kernel = "";
         kernel_cont++;
         cont = 0;
+        
         cudaFree(seqs_d);
+        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
+        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
     }
     cudaDeviceSynchronize();
 
@@ -307,17 +306,10 @@ int main(int argc, char const *argv[]){
 	if (out) {
         std::cout <<nobs/(double)(n_BLOCKS*n_THREADS)<< std::endl;
         for(size_t i = 0; i < TNF.size(); i++){
-            std::cout <<"TNF:"<< i << std::endl;
-            if(i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS)  == 0){
-
+            if(i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS)  == 0)
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-                std::cout <<"max" <<  n_BLOCKS * n_THREADS * n_TNF * sizeof(double) << std::endl;
-            }   
-            else{
+            else
                 out.write((char *) TNF[i], (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double));
-                std::cout <<"min"<< (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double) << std::endl;
-            }
-                
         }
         std::cout << "TNF guardado" << std::endl;
 	}
