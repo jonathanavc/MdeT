@@ -77,10 +77,10 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
-            const char * contig = get_contig_d(gCtgIdx_d[contig_index], seqs_d, seqs_d_index);
-            size_t contig_size = seqs_d_index[gCtgIdx_d[contig_index]];
-            if(gCtgIdx_d[contig_index] != 0){
-                contig_size -= seqs_d_index[gCtgIdx_d[contig_index] - 1];
+            const char * contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
+            size_t contig_size = seqs_d_index[contig_index];
+            if(contig_index != 0){
+                contig_size -= seqs_d_index[contig_index - 1];
             }
             for (size_t j = 0; j < contig_size - 3; ++j) {
                 unsigned char tn = get_tn(contig, j);
@@ -166,10 +166,9 @@ void kernel(){
     cudaMalloc(&seqs_d, seqs_kernel.size());
     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
-    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                   // gCtgIdx
     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, TNmap_d, TNPmap_d, smallCtgs_d, 1);
     seqs_kernel = "";
     kernel_cont++;
     nobs_cont = 0;
@@ -220,7 +219,6 @@ int main(int argc, char const *argv[]){
 
     nobs_cont = 0;
     kernel_cont = 0;
-    gCtgIdx_kernel = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
     seqs_kernel_index = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
     smallCtgs_kernel = (unsigned char *) malloc(n_THREADS * n_BLOCKS);
    
@@ -245,7 +243,6 @@ int main(int argc, char const *argv[]){
                             smallCtgs.emplace_back(1);
                             smallCtgs_kernel[nobs_cont] = 1;
                         }
-                            
 						else{
                             smallCtgs.emplace_back(0);
                             smallCtgs_kernel[nobs_cont] = 0;
@@ -259,7 +256,6 @@ int main(int argc, char const *argv[]){
 					gCtgIdx.emplace_back(seqs.size());
                     nobs++;
 
-                    gCtgIdx_kernel[nobs_cont] = nobs_cont;
                     seqs_kernel += kseq->seq.s;
                     seqs_kernel_index[nobs_cont] = seqs_kernel.size();
                     nobs_cont++;
