@@ -311,7 +311,7 @@ int main(int argc, char const *argv[]){
             if(i < (TNF.size() - 1) || (n_BLOCKS * n_THREADS) % nobs == 0){
 
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-                std::cout <<"max"<  n_BLOCKS * n_THREADS * n_TNF * sizeof(double) << std::endl;
+                std::cout <<"max" <<  n_BLOCKS * n_THREADS * n_TNF * sizeof(double) << std::endl;
             }   
             else{
                 out.write((char *) TNF[i], ((n_BLOCKS * n_THREADS) % nobs) * n_TNF * sizeof(double));
