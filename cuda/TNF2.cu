@@ -309,6 +309,7 @@ int main(int argc, char const *argv[]){
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
+    std::cout << "xddd" << kernel_cont<< std::endl;
 
 	if (out) {
         for(size_t i = 0; i < TNF.size(); i++){
