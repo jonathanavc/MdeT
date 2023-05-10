@@ -251,9 +251,6 @@ int main(int argc, char const *argv[]){
 
                         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
                         std::cout << "kernel: " << kernel_cont<< std::endl;
-
-                        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-
                         seqs_kernel.clear();
                         smallCtgs_kernel.clear();
                         seqs_kernel_index.clear();
@@ -292,9 +289,6 @@ int main(int argc, char const *argv[]){
         dim3 grdDim (n_BLOCKS, 1, 1);
 
         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
-
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);        
-
         seqs_kernel.clear();
         smallCtgs_kernel.clear();
         seqs_kernel_index.clear();
