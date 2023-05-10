@@ -294,7 +294,7 @@ int main(int argc, char const *argv[]){
         seqs_kernel = "";
         kernel_cont++;
         cont = 0;
-        
+
         cudaFree(seqs_d);
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
@@ -304,7 +304,6 @@ int main(int argc, char const *argv[]){
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
 	if (out) {
-        std::cout <<nobs/(double)(n_BLOCKS*n_THREADS)<< std::endl;
         for(size_t i = 0; i < TNF.size(); i++){
             if(i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS)  == 0)
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
