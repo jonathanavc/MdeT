@@ -190,13 +190,14 @@ int main(int argc, char const *argv[]){
 
     auto start = std::chrono::system_clock::now();
     
-    
     std::string seqs_kernel;
-    std::vector<size_t> smallCtgs_kernel;
+
+    std::vector<double*> TNF;
     std::vector<size_t> gCtgIdx_kernel;
     std::vector<size_t> seqs_kernel_index;
+    std::vector<unsigned char> smallCtgs_kernel;
    
-    std::vector<double*> TNF;
+    
 
     cudaMalloc(&TNF_d,(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
     cudaMalloc(&seqs_d_index, n_BLOCKS * n_THREADS * sizeof(size_t));
@@ -257,7 +258,7 @@ int main(int argc, char const *argv[]){
                     dim3 blkDim (n_THREADS, 1, 1);
                     dim3 grdDim (n_BLOCKS, 1, 1);
 
-                    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
+                    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
                     std::cout << "kernel: " << kernel_cont<< std::endl;
                     seqs_kernel.clear();
                     smallCtgs_kernel.clear();
@@ -291,7 +292,7 @@ int main(int argc, char const *argv[]){
         dim3 blkDim (n_THREADS, 1, 1);
         dim3 grdDim (n_BLOCKS, 1, 1);
 
-        get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
+        get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
         seqs_kernel.clear();
         smallCtgs_kernel.clear();
         seqs_kernel_index.clear();
