@@ -176,7 +176,7 @@ void kernel(){
 
 void save_tnf(){
     cudaDeviceSynchronize();
-    cudaFree(seqs_d);
+    //cudaFree(seqs_d);
     TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
     cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 }
