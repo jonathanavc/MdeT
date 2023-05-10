@@ -247,7 +247,7 @@ int main(int argc, char const *argv[]){
                 cont_2++;
 				seqs.push_back(kseq->seq.s);
                 seqs_kernel += kseq->seq.s;
-                seqs_kernel_index[cont] = seqs_kernel.size();
+                seqs_kernel_index[cont_2] = seqs_kernel.size();
                 if(cont_2 == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
                         cudaFree(seqs_d);
