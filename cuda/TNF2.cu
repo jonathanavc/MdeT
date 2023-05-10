@@ -57,9 +57,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 }
 
 __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seqs_d_index , size_t nobs,
-    const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs,
-    const size_t * gCtgIdx_d, size_t contigs_per_thread){
-
+    const unsigned char * TNmap, const unsigned char * TNPmap, const unsigned char * smallCtgs, size_t contigs_per_thread){
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     // inicializar valores de vector en 0
