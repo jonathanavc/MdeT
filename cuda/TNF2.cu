@@ -176,6 +176,7 @@ void kernel(){
 }
 
 void save_tnf(){
+    std::cout << "save kernel: " << kernel_cont<< std::endl;
     cudaDeviceSynchronize();
     //cudaFree(seqs_d);
     TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
