@@ -312,7 +312,7 @@ int main(int argc, char const *argv[]){
 
 
 	if (out) {
-        for(size_t i = 0; TNF.size(); i++){
+        for(size_t i = 0; i < TNF.size(); i++){
             if(i < TNF.size() - 1 || ((n_BLOCKS * n_THREADS) % nobs) == 0)
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * sizeof(double));
             else
