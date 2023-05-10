@@ -304,8 +304,6 @@ int main(int argc, char const *argv[]){
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
-    srd
-
 	if (out) {
         std::cout <<nobs/(double)(n_BLOCKS*n_THREADS)<< std::endl;
         for(size_t i = 0; i < TNF.size(); i++){
