@@ -241,18 +241,18 @@ int main(int argc, char const *argv[]){
 					if(len < (int) minContig) {
 						if(len >= (int) minContigByCorr){
                             smallCtgs.emplace_back(1);
-                            smallCtgs_kernel[cont] = 1;
+                            smallCtgs_kernel[nobs_cont] = 1;
                         }
                             
 						else{
                             smallCtgs.emplace_back(0);
-                            smallCtgs_kernel[cont] = 0;
+                            smallCtgs_kernel[nobs_cont] = 0;
 							++nresv;
                         }
 					}
                     else{
                         smallCtgs.emplace_back(0);
-                        smallCtgs_kernel[cont] = 0;
+                        smallCtgs_kernel[nobs_cont] = 0;
                     }
 					gCtgIdx.emplace_back(seqs.size());
                     gCtgIdx_kernel[nobs_cont] = nobs_cont;
