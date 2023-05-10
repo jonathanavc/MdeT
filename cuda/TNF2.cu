@@ -185,8 +185,7 @@ int main(int argc, char const *argv[]){
 
 	size_t nobs = 0;
 
-    size_t cont = 0;
-    size_t cont_2 = 0;
+    size_t nobs_cont = 0;
     size_t kernel_cont = 0;
     
 	int nresv = 0;
@@ -236,19 +235,19 @@ int main(int argc, char const *argv[]){
                         smallCtgs_kernel[cont] = 0;
                     }
 					gCtgIdx.emplace_back(seqs.size());
-                    gCtgIdx_kernel[cont] = cont_2;
-                    cont++;
+                    gCtgIdx_kernel[nobs_cont] = nobs_cont;
+                    seqs_kernel += kseq->seq.s;
+                    seqs_kernel_index[nobs_cont] = seqs_kernel.size();
+                    nobs_cont++;
                     nobs++;
-                    
+
 				} else{
                     //ignored[kseq->name.s] = seqs.size();
                 }	
 				//contig_names.push_back(kseq->name.s);
-                cont_2++;
 				seqs.push_back(kseq->seq.s);
-                seqs_kernel += kseq->seq.s;
-                seqs_kernel_index[cont_2] = seqs_kernel.size();
-                if(cont_2 == n_BLOCKS * n_THREADS){
+                
+                if(nobs_cont == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
                         cudaFree(seqs_d);
                         cudaDeviceSynchronize();

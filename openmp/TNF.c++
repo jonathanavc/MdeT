@@ -196,10 +196,12 @@ int main(int argc, char const *argv[]){
     end = std::chrono::system_clock::now();
     duration = end - start;
     std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
-    
+
+    /*
     for (int i = 0; i < nobs * n_TNF; i++){
         std::cout << TNF[i] <<" "<< std::endl;
     }
+    */
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 	if (out) {
