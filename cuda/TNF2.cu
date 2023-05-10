@@ -161,7 +161,7 @@ unsigned char * smallCtgs_kernel;
 void kernel(){
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
-    
+
     cudaMalloc(&seqs_d, seqs_kernel.size());
     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
@@ -279,7 +279,7 @@ int main(int argc, char const *argv[]){
 		kseq = NULL;
 		gzclose(f);
 	}
-    if(kernel_cont != 0 && cont != 0){
+    if(kernel_cont != 0 && nobs_cont != 0){
         save_tnf();
     }
     cudaDeviceSynchronize();
