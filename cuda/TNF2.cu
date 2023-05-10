@@ -173,6 +173,7 @@ void kernel(){
     
     seqs_kernel = "";
     kernel_cont++;
+    std::cout << "kernel: " << kernel_cont<< std::endl;
 }
 
 void save_tnf(){
