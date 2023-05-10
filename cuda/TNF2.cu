@@ -304,15 +304,17 @@ int main(int argc, char const *argv[]){
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
 	if (out) {
+        std::cout <<"???"<< std::endl;
         for(size_t i = 0; i < TNF.size(); i++){
             std::cout <<"TNF:"<< i << std::endl;
             if(i < (TNF.size() - 1) || (n_BLOCKS * n_THREADS) % nobs == 0){
+
                 out.write((char *) TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-                std::cout << "1"<< std::endl;
+                std::cout <<  n_BLOCKS * n_THREADS * n_TNF * sizeof(double) << std::endl;
             }   
             else{
                 out.write((char *) TNF[i], ((n_BLOCKS * n_THREADS) % nobs) * n_TNF * sizeof(double));
-                std::cout << "2"<< std::endl;
+                std::cout << ((n_BLOCKS * n_THREADS) % nobs) * n_TNF * sizeof(double) << std::endl;
             }
                 
         }
