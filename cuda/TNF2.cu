@@ -159,6 +159,9 @@ size_t * seqs_kernel_index;
 unsigned char * smallCtgs_kernel;
 
 void kernel(){
+    dim3 blkDim (n_THREADS, 1, 1);
+    dim3 grdDim (n_BLOCKS, 1, 1);
+    
     cudaMalloc(&seqs_d, seqs_kernel.size());
     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
@@ -206,10 +209,7 @@ int main(int argc, char const *argv[]){
 
     //TNPmap
     cudaMalloc(&TNPmap_d, 256);
-    cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice); 
-
-    dim3 blkDim (n_THREADS, 1, 1);
-    dim3 grdDim (n_BLOCKS, 1, 1);
+    cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);   
 
 	size_t nobs = 0;
 
