@@ -150,6 +150,36 @@ static unsigned char * TNPmap_d;
 static unsigned char * smallCtgs_d;
 static size_t * gCtgIdx_d;
 
+size_t nobs_cont;
+size_t kernel_cont;
+std::string seqs_kernel;
+std::vector<double*> TNF;
+size_t * gCtgIdx_kernel;
+size_t * seqs_kernel_index;
+unsigned char * smallCtgs_kernel;
+
+void kernel(){
+    cudaMalloc(&seqs_d, seqs_kernel.size());
+    cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
+    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                   // gCtgIdx
+    cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
+
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
+    std::cout << "kernel: " << kernel_cont<< std::endl;
+    seqs_kernel = "";
+    kernel_cont++;
+    cont = 0;
+    cont_2 = 0;
+}
+
+void save_tnf(){
+    cudaFree(seqs_d);
+    cudaDeviceSynchronize();
+    TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
+    cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+}
+
 int main(int argc, char const *argv[]){
     if(argc > 2){
         n_BLOCKS = atoi(argv[1]);
@@ -185,23 +215,15 @@ int main(int argc, char const *argv[]){
 
 	size_t nobs = 0;
 
-    size_t nobs_cont = 0;
-    size_t kernel_cont = 0;
-    
 	int nresv = 0;
     std::string inFile = "test.gz";
 
-    auto start = std::chrono::system_clock::now();
-    
-    std::string seqs_kernel;
-
-    std::vector<double*> TNF;
-    size_t * gCtgIdx_kernel = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
-    size_t * seqs_kernel_index = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
-    unsigned char * smallCtgs_kernel = (unsigned char *) malloc(n_THREADS * n_BLOCKS);
+    nobs_cont = 0;
+    kernel_cont = 0;
+    gCtgIdx_kernel = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    seqs_kernel_index = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    smallCtgs_kernel = (unsigned char *) malloc(n_THREADS * n_BLOCKS);
    
-    
-
     cudaMalloc(&TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index, n_BLOCKS * n_THREADS * sizeof(size_t));
     cudaMalloc(&gCtgIdx_d, n_BLOCKS * n_THREADS * sizeof(size_t));
@@ -249,24 +271,9 @@ int main(int argc, char const *argv[]){
                 
                 if(nobs_cont == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
-                        cudaFree(seqs_d);
-                        cudaDeviceSynchronize();
-                        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-                        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+                        save_tnf();
                     }
-                    
-                    cudaMalloc(&seqs_d, seqs_kernel.size());
-                    cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-                    cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
-                    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                   // gCtgIdx
-                    cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
-
-                    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
-                    std::cout << "kernel: " << kernel_cont<< std::endl;
-                    seqs_kernel = "";
-                    kernel_cont++;
-                    cont = 0;
-                    cont_2 = 0;
+                    kernel();
                 }
 			}
 		}
@@ -275,30 +282,12 @@ int main(int argc, char const *argv[]){
 		gzclose(f);
 	}
     if(kernel_cont != 0 && cont != 0){
-        cudaFree(seqs_d);
-        cudaDeviceSynchronize();
-        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-        
+        save_tnf();
     }
     cudaDeviceSynchronize();
     if(cont != 0){
-        cudaMalloc(&seqs_d, seqs_kernel.size());
-        cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);        // seqs_index
-        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);               // gCtgIdx
-        cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
-
-        get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
-        std::cout << "kernel: " << kernel_cont<< std::endl;
-        seqs_kernel = "";
-        cont = 0;
-        
-        cudaFree(seqs_d);
-        cudaDeviceSynchronize();
-        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-        
+        kernel();
+        save_tnf();
     }
     cudaDeviceSynchronize();
 
