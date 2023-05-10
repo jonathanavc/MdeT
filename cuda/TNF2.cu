@@ -277,7 +277,7 @@ int main(int argc, char const *argv[]){
     if(kernel_cont != 0 ){
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * sizeof(double), cudaMemcpyDeviceToHost);
         
     }
 
@@ -300,9 +300,8 @@ int main(int argc, char const *argv[]){
 
         cudaDeviceSynchronize();
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * sizeof(double)));
-        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, nobs * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * sizeof(double), cudaMemcpyDeviceToHost);
     }
-
     cudaDeviceSynchronize();
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
