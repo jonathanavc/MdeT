@@ -281,7 +281,6 @@ int main(int argc, char const *argv[]){
     }
     cudaDeviceSynchronize();
     if(cont != 0){
-        TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         cudaMalloc(&seqs_d, seqs_kernel.size());
         cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
