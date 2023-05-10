@@ -214,5 +214,7 @@ int main(int argc, char const *argv[]){
     }
     out.close();
 
+    free(TNF);
+
     return 0;
 }

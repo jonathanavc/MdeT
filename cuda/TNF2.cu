@@ -307,5 +307,8 @@ int main(int argc, char const *argv[]){
     }
     out.close();
 
+    for(int i = 0; i < TNF.size(); i++)
+        free(TNF[i]);
+
     return 0;
 }

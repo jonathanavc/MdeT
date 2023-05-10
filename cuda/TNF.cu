@@ -300,6 +300,8 @@ int main(int argc, char const *argv[]){
         std::cout << "Error al guardar" << std::endl;
     }
     out.close();
+    
+    free(TNF);
 
     return 0;
 }
