@@ -283,7 +283,7 @@ int main(int argc, char const *argv[]){
         save_tnf();
     }
     cudaDeviceSynchronize();
-    if(cont != 0){
+    if(nobs_cont != 0){
         kernel();
         save_tnf();
     }
