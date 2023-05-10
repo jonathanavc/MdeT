@@ -159,6 +159,7 @@ size_t * seqs_kernel_index;
 unsigned char * smallCtgs_kernel;
 
 void kernel(){
+    std::cout << "kernel: " << kernel_cont<< std::endl;
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
@@ -169,7 +170,7 @@ void kernel(){
     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
     get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
-    std::cout << "kernel: " << kernel_cont<< std::endl;
+    
     seqs_kernel = "";
     kernel_cont++;
 }
