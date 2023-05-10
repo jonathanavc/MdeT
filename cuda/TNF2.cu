@@ -196,9 +196,9 @@ int main(int argc, char const *argv[]){
     std::string seqs_kernel;
 
     std::vector<double*> TNF;
-    std::vector<size_t> gCtgIdx_kernel;
-    std::vector<size_t> seqs_kernel_index;
-    std::vector<unsigned char> smallCtgs_kernel;
+    size_t * gCtgIdx_kernel = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    size_t * seqs_kernel_index = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    unsigned char * smallCtgs_kernel = (unsigned char *) malloc(n_THREADS * n_BLOCKS);
    
     
 
@@ -221,21 +221,21 @@ int main(int argc, char const *argv[]){
 					if(len < (int) minContig) {
 						if(len >= (int) minContigByCorr){
                             smallCtgs.emplace_back(1);
-                            smallCtgs_kernel.emplace_back(1);
+                            smallCtgs_kernel[cont] = 1;
                         }
                             
 						else{
                             smallCtgs.emplace_back(0);
-                            smallCtgs_kernel.emplace_back(0);
+                            smallCtgs_kernel[cont] = 0;
 							++nresv;
                         }
 					}
                     else{
                         smallCtgs.emplace_back(0);
-                        smallCtgs_kernel.emplace_back(0);
+                        smallCtgs_kernel[cont] = 0;
                     }
 					gCtgIdx.emplace_back(seqs.size());
-                    gCtgIdx_kernel.emplace_back(seqs_kernel_index.size());
+                    gCtgIdx_kernel[cont] = cont;
                     cont++;
                     nobs++;
                     
@@ -245,7 +245,7 @@ int main(int argc, char const *argv[]){
 				//contig_names.push_back(kseq->name.s);
 				seqs.push_back(kseq->seq.s);
                 seqs_kernel += kseq->seq.s;
-                seqs_kernel_index.emplace_back(seqs_kernel.size());
+                seqs_kernel_index[cont] = seqs_kernel.size();
                 if(cont == n_BLOCKS * n_THREADS){
                     if(kernel_cont != 0 ){
                         cudaDeviceSynchronize();
@@ -255,15 +255,13 @@ int main(int argc, char const *argv[]){
                     TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_THREADS * sizeof(double)));
                     cudaMalloc(&seqs_d, seqs_kernel.size());
                     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-                    cudaMemcpy(seqs_d_index, seqs_kernel_index.data(), seqs_kernel_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-                    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel.data(), gCtgIdx_kernel.size() * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
-                    cudaMemcpy(smallCtgs_d, smallCtgs_kernel.data(), n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
+                    cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
+                    cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+                    cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
                     get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
                     std::cout << "kernel: " << kernel_cont<< std::endl;
                     seqs_kernel.clear();
-                    smallCtgs_kernel.clear();
-                    seqs_kernel_index.clear();
                     kernel_cont++;
                     cont = 0;
                 }
@@ -289,14 +287,12 @@ int main(int argc, char const *argv[]){
         TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_THREADS * sizeof(double)));
         cudaMalloc(&seqs_d, seqs_kernel.size());
         cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index, seqs_kernel_index.data(), seqs_kernel_index.size() * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
-        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel.data(), gCtgIdx_kernel.size() * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
-        cudaMemcpy(smallCtgs_d, smallCtgs_kernel.data(), n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);                                    // seqs
+        cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);// seqs_index
+        cudaMemcpy(gCtgIdx_d, gCtgIdx_kernel, n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice);                       // gCtgIdx
+        cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);                               // seqs
 
         get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, cont, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, 1);
         seqs_kernel.clear();
-        smallCtgs_kernel.clear();
-        seqs_kernel_index.clear();
         kernel_cont++;
         cont = 0;
 
