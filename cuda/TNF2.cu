@@ -173,9 +173,10 @@ void kernel(){
 }
 
 void save_tnf(){
+    cudaSteam_t 
     //std::cout << "save kernel: " << kernel_cont<< std::endl;
     cudaDeviceSynchronize();
-    cudaFreeAsync(seqs_d);
+    cudaFreeAsync(seqs_d, cudaStream_t stream = 0);
     TNF.emplace_back((double *) malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
     cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 }
