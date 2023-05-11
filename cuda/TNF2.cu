@@ -173,7 +173,6 @@ void kernel(){
 }
 
 void save_tnf(){
-    cudaSteam_t 
     //std::cout << "save kernel: " << kernel_cont<< std::endl;
     cudaDeviceSynchronize();
     cudaFreeAsync(seqs_d, cudaStream_t stream = 0);
