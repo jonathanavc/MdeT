@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono>
 #include "../extra/KseqReader.h"
+#include "cud_runtime.h"
 
 __device__ __constant__ int n_TNF_d = 136;
 
