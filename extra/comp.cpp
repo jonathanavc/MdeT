@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]){
 
     
     while (file2.read((char*)&value, sizeof(double))){
-        TNF1.push_back(value);
+        TNF2.push_back(value);
     }
     file1.close();
     file2.close();
