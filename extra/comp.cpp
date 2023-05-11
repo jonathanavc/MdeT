@@ -27,7 +27,11 @@ int main(int argc, char const *argv[]){
     file1.close();
     file2.close();
 
-    if(TNF1.size()!= TNF2.size()){
+    cout << TNF1.size() << endl; 
+    cout << TNF2.size() << endl;
+
+
+    if(TNF1.size() != TNF2.size()){
         cout << "ERROR TAMAÑO" << endl;
         return 1;
     }
