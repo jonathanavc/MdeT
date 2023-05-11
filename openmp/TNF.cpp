@@ -1,4 +1,4 @@
-//g++ TNF.c++ -lz -fopenmp
+//g++ TNF.cpp -lz -fopenmp
 #include <algorithm>
 #include <iostream>
 #include <vector>
