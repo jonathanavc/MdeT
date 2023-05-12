@@ -6,6 +6,8 @@
 #include <fstream>
 #include <vector>
 #include <chrono>
+#include <unordered_map>
+#include <unordered_set>
 #include "../extra/KseqReader.h"
 
 __device__ __constant__ int n_TNF_d = 136;
@@ -128,8 +130,8 @@ int n_THREADS = 32;
 int n_BLOCKS = 128;
 
 std::vector<std::string> seqs;
-std::vector<size_t> gCtgIdx;
-std::vector<unsigned char> smallCtgs;
+std::unordered_map<size_t, size_t> gCtgIdx;
+std::unordered_set<int> smallCtgs;
 
 const int n_TNF = 136;
 const int n_TNFP = 16;
@@ -243,20 +245,18 @@ int main(int argc, char const *argv[]){
 				if(len >= (int) std::min(minContigByCorr, minContigByCorrForGraph)) {
 					if(len < (int) minContig) {
 						if(len >= (int) minContigByCorr){
-                            smallCtgs.emplace_back(1);
+                            smallCtgs[nobs] = 1;
                             smallCtgs_kernel[nobs_cont] = 1;
                         }
 						else{
-                            smallCtgs.emplace_back(0);
                             smallCtgs_kernel[nobs_cont] = 0;
 							++nresv;
                         }
 					}
                     else{
-                        smallCtgs.emplace_back(0);
                         smallCtgs_kernel[nobs_cont] = 0;
                     }
-					gCtgIdx.emplace_back(seqs.size());
+					gCtgIdx[nobs++] = seqs.size();
                     nobs++;
 
                     seqs_kernel += kseq->seq.s;
