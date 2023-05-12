@@ -245,7 +245,7 @@ int main(int argc, char const *argv[]){
 				if(len >= (int) std::min(minContigByCorr, minContigByCorrForGraph)) {
 					if(len < (int) minContig) {
 						if(len >= (int) minContigByCorr){
-                            smallCtgs[nobs] = 1;
+                            smallCtgs.insert(1);
                             smallCtgs_kernel[nobs_cont] = 1;
                         }
 						else{
