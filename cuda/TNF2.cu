@@ -159,7 +159,7 @@ size_t * gCtgIdx_kernel;
 size_t * seqs_kernel_index;
 unsigned char * smallCtgs_kernel;
 
-void kernel(blkDim, grdDim){
+void kernel(dim3 blkDim, dim3 grdDim){
     //std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d, seqs_kernel.size());
     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
