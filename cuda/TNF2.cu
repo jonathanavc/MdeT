@@ -159,11 +159,8 @@ size_t * gCtgIdx_kernel;
 size_t * seqs_kernel_index;
 unsigned char * smallCtgs_kernel;
 
-void kernel(){
+void kernel(blkDim, grdDim){
     //std::cout << "kernel: " << kernel_cont<< std::endl;
-    dim3 blkDim (n_THREADS, 1, 1);
-    dim3 grdDim (n_BLOCKS, 1, 1);
-
     cudaMalloc(&seqs_d, seqs_kernel.size());
     cudaMemcpy(seqs_d, seqs_kernel.data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
@@ -215,20 +212,23 @@ int main(int argc, char const *argv[]){
     cudaMalloc(&TNPmap_d, 256);
     cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice);   
 
-	size_t nobs = 0;
-
-	int nresv = 0;
-    std::string inFile = "test.gz";
+    dim3 blkDim (n_THREADS, 1, 1);
+    dim3 grdDim (n_BLOCKS, 1, 1);
 
     nobs_cont = 0;
     kernel_cont = 0;
     seqs_kernel_index = (size_t *) malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
     smallCtgs_kernel = (unsigned char *) malloc(n_THREADS * n_BLOCKS);
-   
+
     cudaMalloc(&TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index, n_BLOCKS * n_THREADS * sizeof(size_t));
     cudaMalloc(&gCtgIdx_d, n_BLOCKS * n_THREADS * sizeof(size_t));
     cudaMalloc(&smallCtgs_d, n_BLOCKS * n_THREADS);
+
+    size_t nobs = 0;
+
+	int nresv = 0;
+    std::string inFile = "test.gz";
 
 	gzFile f = gzopen(inFile.c_str(), "r");
 	if (f == NULL) {
@@ -270,7 +270,7 @@ int main(int argc, char const *argv[]){
                     if(kernel_cont != 0 ){
                         save_tnf();
                     }
-                    kernel();
+                    kernel(blkDim, grdDim);
                 }
 			}
 		}
@@ -283,7 +283,7 @@ int main(int argc, char const *argv[]){
     }
     cudaDeviceSynchronize();
     if(nobs_cont != 0){
-        kernel();
+        kernel(blkDim, grdDim);
         save_tnf();
     }
     cudaDeviceSynchronize();
