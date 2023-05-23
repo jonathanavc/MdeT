@@ -18,7 +18,7 @@ for thread in threads:
     tiempos['omp']['n_threads'][str(thread)] = []
     for i in range(1, num_ex):
         print("OMP "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
-        p = subprocess.Popen(['time', './omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=False)
+        p = subprocess.Popen(['time', './omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         err, out = p.communicate()
         tiempos['omp']['n_threads'][str(thread)].append(out)
         print(tiempos)
