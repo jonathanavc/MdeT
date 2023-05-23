@@ -44,21 +44,21 @@ for bloq in cuda_bloqs:
 """
 
 tiempos['cuda2'] = {
-    'n_bloq':{
+    'n_bloqs':{
     }
 }
 for bloq in cuda_bloqs:
-    tiempos['cuda2']['n_bloq'][str(bloq)] = {
+    tiempos['cuda2']['n_bloqs'][str(bloq)] = {
             'n_threads':{
         }
     }
     for thread in cuda_threads: 
-        tiempos['cuda2']['n_bloq'][str(bloq)]['n_thread'][str(thread)] = []
+        tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(1, num_ex):
             print("["+str(thread)+"/"+str(bloq)+"]"+"Cuda2 "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
             p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
-            tiempos['cuda2']['n_bloq'][str(bloq)]['n_thread'][str(thread)].append(out)
+            tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(out)
 
 _json = json.dumps(tiempos)
 
