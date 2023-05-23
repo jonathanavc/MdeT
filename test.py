@@ -20,7 +20,7 @@ for thread in threads:
         print("OMP "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['time', './omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
-        tiempos['omp']['n_threads'][str(thread)].append(out)
+        tiempos['omp']['n_threads'][str(thread)].append(err)
         print(tiempos)
 
 tiempos['cuda'] = {
