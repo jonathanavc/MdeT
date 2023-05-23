@@ -21,7 +21,7 @@ for thread in threads:
         print("["+str(thread)+"]"+"OMP "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['./omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
-        tiempos['omp']['n_threads'][str(thread)].append(out)
+        tiempos['omp']['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out))
         print(tiempos)
 """
 tiempos['cuda'] = {
