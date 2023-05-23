@@ -176,6 +176,7 @@ int main(int argc, char const *argv[]){
 	int nresv = 0;
     std::string inFile = "test.gz";
 
+    auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
 
 	gzFile f = gzopen(inFile.c_str(), "r");
@@ -289,6 +290,10 @@ int main(int argc, char const *argv[]){
     end = std::chrono::system_clock::now();
     duration = end - start;
     //std::cout <<"cudaMemcpy -> host "<< duration.count()/1000.f << "s " << std::endl;
+    
+    auto end_global = std::chrono::system_clock::now();
+    duration = end_global - start_global;
+    std::cout << duration.count()/1000.f << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 	if (out) {

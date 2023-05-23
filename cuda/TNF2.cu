@@ -202,6 +202,7 @@ int main(int argc, char const *argv[]){
         TNPmap[key] = 1;
 	}
 
+    auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
 
     //TNmap
@@ -291,8 +292,11 @@ int main(int argc, char const *argv[]){
     std::chrono::duration<float,std::milli> duration = end - start;
     //std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
 
-    std::ofstream out("TNF.bin", ios::out | ios::binary);
+    auto end_global = std::chrono::system_clock::now();
+    duration = end_global - start_global;
+    std::cout << duration.count()/1000.f << std::endl;
 
+    std::ofstream out("TNF.bin", ios::out | ios::binary);
 	if (out) {
         for(size_t i = 0; i < TNF.size(); i++){
             if(i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS)  == 0)
