@@ -10,7 +10,7 @@ tiempos = {}
 
 print("Compilando archivos...",end='\r')
 try:
-    subprocess.call('sh compilat.sh', stderr=subprocess.DEVNULL,stdout=subprocess.DEVNULL, shell=True)
+    subprocess.call('sh compilat.sh', stderr=subprocess.DEVNULL,stdout=subprocess.DEVNULL)
 except OSError:
     print("Error al compilar, verifique que gcc, cuda(12+) y zlibdev esté instalado", end='\r')
     exit()
