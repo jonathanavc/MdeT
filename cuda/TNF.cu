@@ -155,7 +155,7 @@ int main(int argc, char const *argv[]){
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
     }
-    std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
+    //std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
@@ -222,7 +222,7 @@ int main(int argc, char const *argv[]){
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float,std::milli> duration = end - start;
-    std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
 
     //std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
@@ -237,7 +237,7 @@ int main(int argc, char const *argv[]){
 
     end = std::chrono::system_clock::now();
     duration = end - start;
-    std::cout <<"vector<string> -> string "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"vector<string> -> string "<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
 
@@ -263,7 +263,7 @@ int main(int argc, char const *argv[]){
 
     end = std::chrono::system_clock::now();
     duration = end - start;
-    std::cout <<"cudaMemcpy -> deveice "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"cudaMemcpy -> deveice "<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
 
@@ -277,7 +277,7 @@ int main(int argc, char const *argv[]){
 
     end = std::chrono::system_clock::now();
     duration = end - start;
-    std::cout <<"kernel "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"kernel "<< duration.count()/1000.f << "s " << std::endl;
     start = std::chrono::system_clock::now();
 
     double * TNF = (double *)malloc(nobs * n_TNF * sizeof(double));
@@ -288,16 +288,16 @@ int main(int argc, char const *argv[]){
 
     end = std::chrono::system_clock::now();
     duration = end - start;
-    std::cout <<"cudaMemcpy -> host "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"cudaMemcpy -> host "<< duration.count()/1000.f << "s " << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 	if (out) {
 		out.write((char *) TNF, nobs * n_TNF * sizeof(double));
         out.close();
-        std::cout << "TNF guardado" << std::endl;
+        //std::cout << "TNF guardado" << std::endl;
 	}
     else{
-        std::cout << "Error al guardar" << std::endl;
+        //std::cout << "Error al guardar" << std::endl;
     }
     out.close();
     

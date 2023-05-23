@@ -185,7 +185,7 @@ int main(int argc, char const *argv[]){
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
     }
-    std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
+    //std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 
     // se inicializan los mapas
     for(int i = 0; i < 256; i++){
@@ -289,7 +289,7 @@ int main(int argc, char const *argv[]){
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float,std::milli> duration = end - start;
-    std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
 
@@ -300,10 +300,10 @@ int main(int argc, char const *argv[]){
             else
                 out.write((char *) TNF[i], (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double));
         }
-        std::cout << "TNF guardado" << std::endl;
+        //std::cout << "TNF guardado" << std::endl;
 	}
     else{
-        std::cout << "Error al guardar" << std::endl;
+        //std::cout << "Error al guardar" << std::endl;
     }
     out.close();
 

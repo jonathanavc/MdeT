@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]){
 		n_THREADS = std::min(n_THREADS, (int) omp_get_max_threads());
 	omp_set_num_threads(n_THREADS);
 
-    std::cout << "n°threads:"<< n_THREADS << std::endl;
+    //std::cout << "n°threads:"<< n_THREADS << std::endl;
 
     for(size_t i = 0; i < n_TNF; ++i) {
 		TNmap[TN[i]] = i;
@@ -122,7 +122,7 @@ int main(int argc, char const *argv[]){
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float,std::milli> duration = end - start;
-    std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
 
     start = std::chrono::system_clock::now();
 
@@ -195,7 +195,7 @@ int main(int argc, char const *argv[]){
 
     end = std::chrono::system_clock::now();
     duration = end - start;
-    std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
+    //std::cout <<"Crear matriz TNF "<< duration.count()/1000.f << "s " << std::endl;
 
     /*
     for (int i = 0; i < nobs * n_TNF; i++){
@@ -207,10 +207,10 @@ int main(int argc, char const *argv[]){
 	if (out) {
 		out.write((char *) TNF, nobs * n_TNF * sizeof(double));
         out.close();
-        std::cout << "TNF guardado" << std::endl;
+        //std::cout << "TNF guardado" << std::endl;
 	}
     else{
-        std::cout << "Error al guardar" << std::endl;
+        //std::cout << "Error al guardar" << std::endl;
     }
     out.close();
 
