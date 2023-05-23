@@ -1,5 +1,6 @@
 import subprocess
 import json
+import re
 
 num_ex = 20
 threads = [1,2,4,6,8,10,10]
@@ -20,7 +21,8 @@ for thread in threads:
         print("["+str(thread)+"]"+"OMP "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['time', './omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         err, out = p.communicate()
-        tiempos['omp']['n_threads'][str(thread)].append(out)
+        re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+        tiempos['omp']['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out))
 """
 tiempos['cuda'] = {
     'n_bloq':{
