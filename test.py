@@ -17,7 +17,7 @@ except OSError:
 
 for thead in theads:
     for i in range(1, num_ex):
-        print("OMP "+ (i/num_ex) * 100 + "%", end='\r')
+        print("OMP "+ str((i/num_ex) * 100) + "%", end='\r')
         p = subprocess.call(['time', './omp_ex', thead], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         out = p.communicate()
         tiempos["omp"][thead][i] = out
@@ -25,7 +25,7 @@ for thead in theads:
 for bloq in cuda_bloqs:
     for thead in cuda_threads:
         for i in range(1, num_ex):
-            print("["+thead+"/"+bloq+"]"+"Cuda "+ (i/num_ex) * 100 + "%", end='\r')
+            print("["+str(thead)+"/"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.call(['time','./cuda_ex', bloq, theads], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             out = p.communicate()
             tiempos["cuda"][bloq][thead][i] = out
@@ -33,7 +33,7 @@ for bloq in cuda_bloqs:
 for bloq in cuda_bloqs:
     for thead in cuda_threads: 
         for i in range(1, num_ex):
-            print("["+thead+"/"+bloq+"]"+"Cuda "+ (i/num_ex) * 100 + "%", end='\r')
+            print("["+str(thead)+"/"+str(bloq)+"]"+"Cuda2 "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.call(['time','./cuda2_ex', bloq, theads], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             out = p.communicate()
             tiempos["cuda2"][bloq][thead][i] = out
