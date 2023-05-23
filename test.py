@@ -26,6 +26,7 @@ for thread in threads:
         tiempos['omp']['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out))
 
 #CUDA
+'''
 tiempos['cuda'] = {
     'n_bloqs':{
     }
@@ -42,6 +43,7 @@ for bloq in cuda_bloqs:
             p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(out)
+'''
 
 #CUDA V2
 tiempos['cuda2'] = {
