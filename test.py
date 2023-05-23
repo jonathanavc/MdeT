@@ -19,7 +19,7 @@ for thread in threads:
     tiempos['omp']['n_threads'][str(thread)] = []
     for i in range(1, num_ex):
         print("["+str(thread)+"]"+"OMP "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
-        p = subprocess.Popen(['time', './omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(['./omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         err, out = p.communicate()
         print(out)
         print(re.finditer())
@@ -39,7 +39,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda']['n_bloq'][str(bloq)]['n_thread'][str(thread)] = []
         for i in range(1, num_ex):
             print("["+str(thread)+"/"+str(bloq)+"]"+"Cuda "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['time','./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             err, out = p.communicate()
             tiempos['cuda']['n_bloq'][str(bloq)]['n_thread'][str(thread)].append(out)
 
@@ -56,7 +56,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda2']['n_bloq'][str(bloq)]['n_thread'][str(thread)] = []
         for i in range(1, num_ex):
             print("["+str(thread)+"/"+str(bloq)+"]"+"Cuda2 "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['time','./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             err, out = p.communicate()
             tiempos['cuda2']['n_bloq'][str(bloq)]['n_thread'][str(thread)].append(out)
 """
