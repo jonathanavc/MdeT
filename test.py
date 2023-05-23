@@ -8,13 +8,6 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 
 tiempos = {}
 
-print("Compilando archivos...",end='\r')
-try:
-    subprocess.call('sh compilat.sh', stderr=subprocess.DEVNULL,stdout=subprocess.DEVNULL)
-except OSError:
-    print("Error al compilar, verifique que gcc, cuda(12+) y zlibdev esté instalado", end='\r')
-    exit()
-
 for thead in theads:
     for i in range(1, num_ex):
         print("OMP "+ str((i/num_ex) * 100) + "%", end='\r')
