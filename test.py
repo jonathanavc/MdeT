@@ -3,7 +3,7 @@ import json
 import re
 from datetime import datetime
 
-num_ex = 16
+num_ex = 20
 threads = [1,2,4,6,8,10,12]
 cuda_threads = [16,32,64,128]
 cuda_bloqs = [32,64,128,256,512,1024,2048]
@@ -63,5 +63,5 @@ for bloq in cuda_bloqs:
 
 #GUARDAR
 _json = json.dumps(tiempos)
-with open(datetime.now().strftime("Test_%d/.%m.%Y_H.%M.%S")+".json", "w") as outfile:
+with open(datetime.now().strftime("Test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
     outfile.write(_json)
