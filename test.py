@@ -40,7 +40,7 @@ for bloq in cuda_bloqs:
     for thread in cuda_threads: 
         tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(1, num_ex):
-            print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
+            print("["+str(thread)+"/"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(out)
