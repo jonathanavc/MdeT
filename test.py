@@ -2,7 +2,7 @@ import subprocess
 import json
 
 num_ex = 20
-theads = [1,2,4,6,8,10,10]
+threads = [1,2,4,6,8,10,10]
 cuda_threads = [16,32,64,128]
 cuda_bloqs = [32,64,128,256,512,1024,2048]
 
