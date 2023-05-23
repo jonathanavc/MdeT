@@ -36,9 +36,9 @@ for bloq in cuda_bloqs:
         tiempos['cuda']['n_bloq'][str(bloq)]['n_thread'][str(thread)] = []
         for i in range(1, num_ex):
             print("["+str(thread)+"/"+str(bloq)+"]"+"Cuda "+ str(((i-1)/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['time','./cuda_ex', str(bloq), str(theads)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(['time','./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
-            tiempos['cuda']['n_bloq'][str(bloq)]['n_thread'][str(thread)].append(out)
+            tiempos['cuda']['n_bloq'][str(bloq)]['n_thread'][str(thread)].append(err)
 
 tiempos['cuda2'] = {
     'n_bloq':{
