@@ -13,7 +13,6 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 tiempos = {}
 
 #OMP
-'''
 tiempos['omp'] = {
     'n_threads':{
     }
@@ -25,7 +24,6 @@ for thread in threads:
         p = subprocess.Popen(['./omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         tiempos['omp']['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out))
-'''
 
 #CUDA
 tiempos['cuda'] = {
