@@ -66,8 +66,7 @@ __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index)
 }
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                        const unsigned char *TNmap_eliminar, const unsigned char *TNPmap_eliminar, const unsigned char *smallCtgs,
-                        const size_t *gCtgIdx_d, size_t contigs_per_thread)
+                        const unsigned char *smallCtgs, const size_t *gCtgIdx_d, size_t contigs_per_thread)
 {
 
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -289,11 +288,13 @@ int main(int argc, char const *argv[])
 
     int err = cudaMalloc(&TNF_d, (nobs * n_TNF * sizeof(double))); // memoria para almacenar TNF
 
+    /*
     err += cudaMalloc(&TNmap_d, 256);
     err += cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice); // TNmap
 
     err += cudaMalloc(&TNPmap_d, 256);
     err += cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice); // TNPmap
+    */
 
     err += cudaMalloc(&seqs_d, seqs_h.size());
     err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
@@ -317,7 +318,7 @@ int main(int argc, char const *argv[])
     dim3 blkDim(n_THREADS, 1, 1);
     dim3 grdDim(n_BLOCKS, 1, 1);
 
-    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, TNmap_d, TNPmap_d, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 
     cudaDeviceSynchronize();
 
