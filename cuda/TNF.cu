@@ -7,7 +7,7 @@
 #include <chrono>
 #include "../extra/KseqReader.h"
 
-__device__ __constant__ int n_TNF_d = 136;
+__constant__ int n_TNF_d = 136;
 
 __device__ const char * get_contig_d(int contig_index, const char * seqs_d,const size_t * seqs_d_index){
     size_t contig_beg = 0;
