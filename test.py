@@ -8,8 +8,6 @@ threads = [1,2,4,6,8,10,12]
 cuda_threads = [16,32,64,128]
 cuda_bloqs = [32,64,128,256,512,1024,2048]
 
-
-
 tiempos = {}
 
 #OMP

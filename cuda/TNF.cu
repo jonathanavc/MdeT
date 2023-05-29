@@ -61,8 +61,10 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
     const size_t * gCtgIdx_d, size_t contigs_per_thread){
 
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-
+    //crea un tnf de forma local
+    TNF_temp[n_TNF_d];
     // inicializar valores de vector en 0
+    /*
     for(size_t i = 0; i < contigs_per_thread; i++){ 
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
@@ -70,10 +72,13 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
             TNF_d[contig_index * n_TNF_d + j] = 0;
         }
     }
-
+    */
     //__syncthreads(); 
 
     for(size_t i = 0; i < contigs_per_thread; i++){
+        for(int j = 0; j < n_TNF_d; j++){
+            TNF_temp[j] = 0;
+        }
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if(contig_index >= nobs) break;
         if(smallCtgs[contig_index] == 0){
@@ -86,7 +91,7 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 unsigned char tn = get_tn(contig, j);
                 //SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
                 if(TNmap[tn] != n_TNF_d){
-                    ++TNF_d[contig_index * n_TNF_d + TNmap[tn]];
+                    ++TNF_temp[TNmap[tn]];
                 }
                 
                 tn = get_revComp_tn_d(contig, j);
@@ -94,17 +99,21 @@ __global__ void get_TNF(double * TNF_d , const char * seqs_d, const size_t * seq
                 //SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
                 if (TNPmap[tn] == 0) {
                     if(TNmap[tn] != n_TNF_d){
-                        ++TNF_d[contig_index * n_TNF_d + TNmap[tn]];
+                        ++TNF_temp[TNmap[tn]];
                     }
                 }
             }
             double rsum = 0;
             for(size_t c = 0; c < n_TNF_d; ++c) {
-                rsum += TNF_d[contig_index * n_TNF_d + c] * TNF_d[contig_index * n_TNF_d + c];
+                rsum += TNF_temp[c] * TNF_d[c];
             }
             rsum = sqrt(rsum);
             for(size_t c = 0; c < n_TNF_d; ++c) {
-                TNF_d[contig_index * n_TNF_d + c] /= rsum; //OK
+                TNF_temp[c] /= rsum; //OK
+            }
+            //guardar en la memoria global
+            for(size_t c = 0; c < n_TNF_d; ++c) {
+                TNF_d[contig_index * n_TNF_d + c] = TNF_temp[c];
             }
         }
     }
