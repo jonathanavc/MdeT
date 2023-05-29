@@ -72,17 +72,6 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
     double TNF_temp[136];
-    // inicializar valores de vector en 0
-    /*
-    for(size_t i = 0; i < contigs_per_thread; i++){
-        size_t contig_index = (thead_id * contigs_per_thread) + i;
-        if(contig_index >= nobs) break;
-        for(int j = 0; j < n_TNF_d; j++){
-            TNF_d[contig_index * n_TNF_d + j] = 0;
-        }
-    }
-    */
-    //__syncthreads();
 
     for (size_t i = 0; i < contigs_per_thread; i++)
     {

@@ -180,7 +180,7 @@ void kernel(dim3 blkDim, dim3 grdDim){
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, smallCtgs_d, 1);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, smallCtgs_d, (size_t)1);
     seqs_kernel = "";
     kernel_cont++;
     nobs_cont = 0;
@@ -218,7 +218,7 @@ int main(int argc, char const *argv[]){
 
     auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
-    
+
     dim3 blkDim (n_THREADS, 1, 1);
     dim3 grdDim (n_BLOCKS, 1, 1);
 
