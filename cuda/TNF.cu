@@ -174,8 +174,6 @@ static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 double *TNF_d;
 static char *seqs_d;
 static size_t *seqs_d_index;
-static unsigned char *TNmap_d;
-static unsigned char *TNPmap_d;
 static unsigned char *smallCtgs_d;
 static size_t *gCtgIdx_d;
 
