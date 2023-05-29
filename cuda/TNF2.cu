@@ -64,7 +64,7 @@ __device__ unsigned char get_revComp_tn_d(const char * contig, size_t index){
 }
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                        const unsigned char *smallCtgs, const size_t *gCtgIdx_d, size_t contigs_per_thread)
+                        const unsigned char *smallCtgs, const size_t *gCtgIdx_d, int contigs_per_thread)
 {
 
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -180,7 +180,7 @@ void kernel(dim3 blkDim, dim3 grdDim){
     cudaMemcpy(seqs_d_index, seqs_kernel_index, n_BLOCKS * n_THREADS  * sizeof(size_t), cudaMemcpyHostToDevice);            // seqs_index
     cudaMemcpy(smallCtgs_d, smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, smallCtgs_d, (size_t)1);
+    get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, smallCtgs_d, 1);
     seqs_kernel = "";
     kernel_cont++;
     nobs_cont = 0;
