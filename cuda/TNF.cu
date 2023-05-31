@@ -336,7 +336,7 @@ int main(int argc, char const *argv[])
         // std::cout << "TNF guardado" << std::endl;
     }
     else
-    {
+    {ß
         // std::cout << "Error al guardar" << std::endl;
     }
     out.close();
