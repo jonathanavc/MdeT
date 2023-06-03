@@ -216,7 +216,7 @@ void kernel(dim3 blkDim, dim3 grdDim)
 
     cudaFreeAsync(seqs_d[index], stream);
     cudaMemcpyAsync(TNF[index_tnf], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost, stream);
-
+    std::cout<< "hola" << std::endl;
     seqs_kernel = "";
     kernel_cont++;
     nobs_cont = 0;
