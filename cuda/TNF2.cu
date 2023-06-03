@@ -263,11 +263,11 @@ int main(int argc, char const *argv[])
     auto start = std::chrono::system_clock::now();
 
     //crear streams 
-    streams = new cudaStream_t[nStreams];
+    streams = new cudaStream_t[n_STREAMS];
     for(int i = 0; i < n_STREAMS; i++){
         cudaStreamCreate(&stream[i]);
     }
-    TNF_d = new double * [n_Streams];
+    TNF_d = new double * [n_STREAMS];
     seqs_d = new char *[n_STREAMS];
     seqs_d_index = new size_t *[n_STREAMS];
     smallCtgs_d = new unsigned char *[n_STREAMS];
@@ -280,10 +280,9 @@ int main(int argc, char const *argv[])
     seqs_kernel_index = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
     smallCtgs_kernel = (unsigned char *)malloc(n_THREADS * n_BLOCKS);
 
-    for(int i = 0 i < n_STREAMS; i++){
+    for(int i = 0; i < n_STREAMS; i++){
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * sizeof(size_t));
-        cudaMalloc(&gCtgIdx_d[i], n_BLOCKS * n_THREADS * sizeof(size_t));
         cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS);
     }
 
