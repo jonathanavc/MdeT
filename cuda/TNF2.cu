@@ -207,7 +207,7 @@ void kernel(dim3 blkDim, dim3 grdDim)
         cudaFreeAsync(seqs_d[index], stream);
         cudaMemcpyAsync(TNF[index_tnf], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost, stream);
     }
-    
+
     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
     
     // std::cout << "kernel: " << kernel_cont<< std::endl;
@@ -223,6 +223,7 @@ void kernel(dim3 blkDim, dim3 grdDim)
     kernel_cont++;
     nobs_cont = 0;
 }
+/*
 void save_tnf()
 {
     // std::cout << "save kernel: " << kernel_cont<< std::endl;
@@ -230,7 +231,7 @@ void save_tnf()
     cudaFreeAsync(seqs_d);
     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
     cudaMemcpy(TNF[TNF.size() - 1], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-}
+}*/
 
 int main(int argc, char const *argv[])
 {
