@@ -265,7 +265,7 @@ int main(int argc, char const *argv[])
     //crear streams 
     streams = new cudaStream_t[n_STREAMS];
     for(int i = 0; i < n_STREAMS; i++){
-        cudaStreamCreate(&stream[i]);
+        cudaStreamCreate(&streams[i]);
     }
     TNF_d = new double * [n_STREAMS];
     seqs_d = new char *[n_STREAMS];
