@@ -202,7 +202,7 @@ void kernel(dim3 blkDim, dim3 grdDim)
     cudaStream_t stream = streams[index];
 
     if(kernel_cont/ n_STREAMS > 0){
-        int index_tnf = (kernel_cont - n_STREAMS);
+        int index_tnf = index + (kernel_cont - n_STREAMS);
         cudaStreamSynchronize(stream);
         cudaFreeAsync(seqs_d[index], stream);
         cudaMemcpyAsync(TNF[index_tnf], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost, stream);
