@@ -212,10 +212,10 @@ void kernel(dim3 blkDim, dim3 grdDim)
                cudaMemcpyHostToDevice, stream); // seqs_index
     cudaMemcpyAsync(smallCtgs_d[index], smallCtgs_kernel, n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice, stream);
 
-    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d, seqs_d, seqs_d_index, nobs_cont, smallCtgs_d, 1);
+    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont, smallCtgs_d[index], 1);
 
-    cudaFreeAsync(seqs_d, stream);
-    cudaMemcpyAsync(TNF[index_tnf], TNF_d, n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost, stream);
+    cudaFreeAsync(seqs_d[index], stream);
+    cudaMemcpyAsync(TNF[index_tnf], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost, stream);
 
     seqs_kernel = "";
     kernel_cont++;
@@ -265,9 +265,9 @@ int main(int argc, char const *argv[])
     //crear streams 
     streams = new cudaStream_t[nStreams];
     for(int i = 0; i < n_STREAMS; i++){
-        cudaStreamCreate(&stream[i]) 
+        cudaStreamCreate(&stream[i]);
     }
-    TNF_d = new double * [nStreams];
+    TNF_d = new double * [n_Streams];
     seqs_d = new char *[n_STREAMS];
     seqs_d_index = new size_t *[n_STREAMS];
     smallCtgs_d = new unsigned char *[n_STREAMS];
