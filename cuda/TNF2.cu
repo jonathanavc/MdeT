@@ -97,7 +97,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if (contig_index >= nobs)
             break;
-        for (int j = 0; j < n_TNF_d, j++)
+        for (int j = 0; j < n_TNF_d; j++)
         {
             TNF_d[contig_index * n_TNF_d + j] = 0;
         }
