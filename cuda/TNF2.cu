@@ -337,7 +337,7 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
-                    TNF.emplace_back(NULL);
+                    TNF.emplace_back((double *)0);
                     if (kernel_cont % n_STREAMS < kernel_cont)
                         streams[kernel_cont % n_STREAMS].join();
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
