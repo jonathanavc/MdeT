@@ -193,9 +193,9 @@ size_t nobs_cont;
 size_t kernel_cont;
 std::string *seqs_kernel;
 std::vector<double *> TNF;
-const size_t *gCtgIdx_kernel;
-const size_t *seqs_kernel_index;
-const unsigned char *smallCtgs_kernel;
+size_t *gCtgIdx_kernel;
+size_t *seqs_kernel_index;
+unsigned char *smallCtgs_kernel;
 
 void kernel(dim3 blkDim, dim3 grdDim, int cont)
 {
@@ -257,7 +257,7 @@ int main(int argc, char const *argv[])
     auto start = std::chrono::system_clock::now();
 
     // crear streams
-    streams = std::thread[n_STREAMS];
+    streams = new std::thread[n_STREAMS];
 
     seqs_kernel = new std::string[n_STREAMS];
 
