@@ -300,6 +300,8 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
+                if (kernel_cont % n_STREAMS < kernel_cont)
+                    streams[kernel_cont % n_STREAMS].join();
                 size_t index = (kernel_cont % n_STREAMS) * n_THREADS * n_BLOCKS;
                 if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
@@ -336,8 +338,6 @@ int main(int argc, char const *argv[])
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-                    if (kernel_cont % n_STREAMS < kernel_cont)
-                        streams[kernel_cont % n_STREAMS].join();
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
                     kernel_cont++;
                     nobs_cont = 0;
@@ -350,6 +350,8 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
+        if (kernel_cont % n_STREAMS < kernel_cont)
+            streams[kernel_cont % n_STREAMS].join();
         TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         if (kernel_cont % n_STREAMS < kernel_cont)
             streams[kernel_cont % n_STREAMS].join();
@@ -358,7 +360,8 @@ int main(int argc, char const *argv[])
         nobs_cont = 0;
     }
 
-    for(int i = 0; i < std::min(n_STREAMS, kernel_cont); i++){
+    for (int i = 0; i < std::min(n_STREAMS, kernel_cont); i++)
+    {
         streams[i].join();
     }
 
