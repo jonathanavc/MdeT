@@ -307,14 +307,12 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                std::cout <<"."; 
-                size_t index = (kernel_cont % n_STREAMS) * n_THREADS * n_BLOCKS;
+                size_t index = kernel_cont % n_STREAMS;
                 if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
                 {
                     bool_thread[kernel_cont % n_STREAMS] = 0;
                     streams[kernel_cont % n_STREAMS].join();
                 }
-                std::cout <<","; 
 
                 if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
@@ -323,22 +321,23 @@ int main(int argc, char const *argv[])
                         if (len >= (int)minContigByCorr)
                         {
                             smallCtgs.insert(1);
-                            smallCtgs_kernel[index + nobs_cont] = 1;
+                            smallCtgs_kernel[index * n_BLOCKS * n_THREADS + nobs_cont] = 1;
                         }
                         else
                         {
-                            smallCtgs_kernel[index + nobs_cont] = 0;
+                            smallCtgs_kernel[index * n_BLOCKS * n_THREADS + nobs_cont] = 0;
                             ++nresv;
                         }
                     }
                     else
                     {
-                        smallCtgs_kernel[index + nobs_cont] = 0;
+                        smallCtgs_kernel[index * n_BLOCKS * n_THREADS + nobs_cont] = 0;
                     }
                     gCtgIdx[nobs++] = seqs.size();
 
-                    seqs_kernel[kernel_cont % n_STREAMS] += kseq->seq.s;
-                    seqs_kernel_index[index * sizeof(size_t) + nobs_cont] = seqs_kernel[kernel_cont % n_STREAMS].size();
+                    seqs_kernel[index] += kseq->seq.s;
+                    seqs_kernel_index[index * n_BLOCKS * n_THREADS * sizeof(size_t) + nobs_cont] =
+                        seqs_kernel[kernel_cont % n_STREAMS].size();
                     nobs_cont++;
                 }
                 else
@@ -350,16 +349,14 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
-                    std::cout << "hola:"<< kernel_cont % n_STREAMS<< std::endl;
-                    if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont){
-                        bool_thread[kernel_cont % n_STREAMS] = 0;
-                        streams[kernel_cont % n_STREAMS].join();
-                    }   
+                    if (bool_thread[index] && index < kernel_cont)
+                    {
+                        bool_thread[index] = 0;
+                        streams[index].join();
+                    }
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-                    streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
-                    std::cout << "adios"<< kernel_cont % n_STREAMS<< std::endl;
-                    //bool_thread[kernel_cont % n_STREAMS] = true;
-                    std::cout << "xd";
+                    streams[index] = std::thread(kernel, blkDim, grdDim, kernel_cont);
+                    bool_thread[index] = true;
                     kernel_cont++;
                     nobs_cont = 0;
                 }
