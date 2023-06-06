@@ -339,11 +339,8 @@ int main(int argc, char const *argv[])
                     TNF.emplace_back(NULL);
                     if (kernel_cont % n_STREAMS < kernel_cont)
                         streams[kernel_cont % n_STREAMS]->join();
-                    if (streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont) == 0)
-                    {
-                        fprintf(stderr, "Error creating thread/n");
-                        return 1;
                     }
+                    streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont)
                     kernel_cont++;
                     nobs_cont = 0;
                 }
