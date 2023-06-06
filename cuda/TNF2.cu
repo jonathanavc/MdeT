@@ -202,17 +202,22 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
     cudaStreamCreate(&stream);
 
     int index = cont % n_STREAMS;
-
+    std::cout << "_";
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d[index], seqs_kernel[index].size());
+    std::cout << "_";
     cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel[index].size(), cudaMemcpyHostToDevice);
+    std::cout << "_";
     cudaMemcpy(seqs_d_index[index], &seqs_kernel_index[index * n_THREADS * n_BLOCKS * sizeof(size_t)],
                n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
+    std::cout << "_";
     cudaMemcpy(smallCtgs_d[index], &smallCtgs_kernel[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS,
                cudaMemcpyHostToDevice);
+    std::cout << "_";
 
     get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont,
                                            smallCtgs_d[index], 1);
+    std::cout << "_";
 
     cudaStreamSynchronize(stream);
     cudaFree(seqs_d[index]);
