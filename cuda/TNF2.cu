@@ -169,7 +169,7 @@ int n_STREAMS = 1;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
-std::string seqs;
+std::vector<std::string> seqs;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
 
