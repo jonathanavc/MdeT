@@ -191,9 +191,8 @@ unsigned char **smallCtgs_d;
 
 size_t nobs_cont;
 size_t kernel_cont;
-std::string *seqs_kernel;
+std::vector<std::string> seqs_kernel;
 std::vector<double *> TNF;
-size_t *gCtgIdx_kernel;
 size_t *seqs_kernel_index;
 unsigned char *smallCtgs_kernel;
 
@@ -258,7 +257,7 @@ int main(int argc, char const *argv[])
     // crear streams
     streams = new std::thread[n_STREAMS];
 
-    seqs_kernel = new std::string[n_STREAMS];
+    seqs_kernel = new std::vector<std::string>(n_STREAMS);
 
     TNF_d = new double *[n_STREAMS];
     seqs_d = new char *[n_STREAMS];
