@@ -208,10 +208,10 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
     std::cout << "_";
     cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel[index].size(), cudaMemcpyHostToDevice);
     std::cout << "_";
-    cudaMemcpy(seqs_d_index[index], &seqs_kernel_index[index * n_THREADS * n_BLOCKS * sizeof(size_t)],
+    cudaMemcpy(seqs_d_index[index], seqs_kernel_index + (index * n_THREADS * n_BLOCKS * sizeof(size_t)),
                n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
     std::cout << "_";
-    cudaMemcpy(smallCtgs_d[index], &smallCtgs_kernel[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS,
+    cudaMemcpy(smallCtgs_d[index], smallCtgs_kernel + (index * n_THREADS * n_BLOCKS), n_BLOCKS * n_THREADS,
                cudaMemcpyHostToDevice);
     std::cout << "_";
 
@@ -308,10 +308,10 @@ int main(int argc, char const *argv[])
             if (kseq->name.l > 0)
             {
                 size_t index = kernel_cont % n_STREAMS;
-                if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
+                if (bool_thread[index] && index < kernel_cont)
                 {
-                    bool_thread[kernel_cont % n_STREAMS] = 0;
-                    streams[kernel_cont % n_STREAMS].join();
+                    bool_thread[index] = 0;
+                    streams[index].join();
                 }
 
                 if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
@@ -337,7 +337,7 @@ int main(int argc, char const *argv[])
 
                     seqs_kernel[index] += kseq->seq.s;
                     seqs_kernel_index[index * n_BLOCKS * n_THREADS * sizeof(size_t) + nobs_cont] =
-                        seqs_kernel[kernel_cont % n_STREAMS].size();
+                        seqs_kernel[index].size();
                     nobs_cont++;
                 }
                 else
@@ -356,7 +356,7 @@ int main(int argc, char const *argv[])
                     }
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     streams[index] = std::thread(kernel, blkDim, grdDim, kernel_cont);
-                    bool_thread[index] = true;
+                    bool_thread[index] = 1;
                     kernel_cont++;
                     nobs_cont = 0;
                 }
