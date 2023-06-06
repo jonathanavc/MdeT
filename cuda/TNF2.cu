@@ -7,7 +7,6 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
-#include <algorithm> 
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -266,6 +265,7 @@ int main(int argc, char const *argv[])
     seqs_d_index = new size_t *[n_STREAMS];
     smallCtgs_d = new unsigned char *[n_STREAMS];
 
+    bool bool_thread[n_STREAMS];
     dim3 blkDim(n_THREADS, 1, 1);
     dim3 grdDim(n_BLOCKS, 1, 1);
 
@@ -276,6 +276,7 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < n_STREAMS; i++)
     {
+        bool_thread[i] = 0;
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * sizeof(size_t));
         cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS);
@@ -298,12 +299,17 @@ int main(int argc, char const *argv[])
         int64_t len;
         while ((len = kseq_read(kseq)) > 0)
         {
+
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (kernel_cont % n_STREAMS < kernel_cont)
-                    streams[kernel_cont % n_STREAMS].join();
                 size_t index = (kernel_cont % n_STREAMS) * n_THREADS * n_BLOCKS;
+                if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
+                {
+                    bool_thread[kernel_cont % n_STREAMS] = 0;
+                    streams[kernel_cont % n_STREAMS].join();
+                }
+
                 if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
                     if (len < (int)minContig)
@@ -338,8 +344,11 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
+                    if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
+                        streams[kernel_cont % n_STREAMS].join();
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
+                    bool_thread[kernel_cont % n_STREAMS] = 1;
                     kernel_cont++;
                     nobs_cont = 0;
                 }
@@ -351,11 +360,11 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
-        if (kernel_cont % n_STREAMS < kernel_cont)
+        if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
+        {
             streams[kernel_cont % n_STREAMS].join();
+        }
         TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        if (kernel_cont % n_STREAMS < kernel_cont)
-            streams[kernel_cont % n_STREAMS].join();
         streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
         kernel_cont++;
         nobs_cont = 0;
@@ -363,6 +372,7 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < std::min((size_t)n_STREAMS, kernel_cont); i++)
     {
+        bool_thread[i] = 0;
         streams[i].join();
     }
 
