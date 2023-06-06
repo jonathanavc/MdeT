@@ -191,7 +191,7 @@ unsigned char **smallCtgs_d;
 
 size_t nobs_cont;
 size_t kernel_cont;
-std::vector<std::string> seqs_kernel;
+std::string *seqs_kernel;
 std::vector<double *> TNF;
 size_t *seqs_kernel_index;
 unsigned char *smallCtgs_kernel;
@@ -257,7 +257,7 @@ int main(int argc, char const *argv[])
     // crear streams
     streams = new std::thread[n_STREAMS];
 
-    seqs_kernel = new std::vector<std::string>(n_STREAMS);
+    seqs_kernel = new std::string[n_STREAMS];
 
     TNF_d = new double *[n_STREAMS];
     seqs_d = new char *[n_STREAMS];
@@ -275,6 +275,7 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < n_STREAMS; i++)
     {
+        seqs_kernel[i] = "";
         bool_thread[i] = 0;
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * sizeof(size_t));
