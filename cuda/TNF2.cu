@@ -196,10 +196,11 @@ std::vector<double *> TNF;
 size_t *seqs_kernel_index;
 unsigned char *smallCtgs_kernel;
 
-void kernel(dim3 blkDim, dim3 grdDim, int cont)
+void kernel(dim3 blkDim, dim3 grdDim, int cont, int total)
 {
     cudaStream_t stream;
     cudaStreamCreate(&stream);
+    TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
 
     int index = cont % n_STREAMS;
     std::cout << "_";
@@ -215,7 +216,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
                cudaMemcpyHostToDevice);
     std::cout << "_";
 
-    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont,
+    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], total,
                                            smallCtgs_d[index], 1);
     std::cout << "_";
 
@@ -355,7 +356,7 @@ int main(int argc, char const *argv[])
                         streams[index].join();
                     }
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-                    streams[index] = std::thread(kernel, blkDim, grdDim, kernel_cont);
+                    streams[index] = std::thread(kernel, blkDim, grdDim, kernel_cont, nobs_cont);
                     bool_thread[index] = 1;
                     kernel_cont++;
                     nobs_cont = 0;
@@ -372,8 +373,8 @@ int main(int argc, char const *argv[])
         {
             streams[kernel_cont % n_STREAMS].join();
         }
-        TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
+        TNF.emplace_back((double*)0);
+        streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont, nobs_cont);
         kernel_cont++;
         nobs_cont = 0;
     }
