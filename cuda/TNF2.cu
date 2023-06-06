@@ -3,10 +3,10 @@
 #include "../extra/KseqReader.h"
 #include <algorithm>
 #include <chrono>
-#include <pthread.h>
 #include <cuda_runtime.h>
 #include <fstream>
 #include <iostream>
+#include <pthread.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -183,37 +183,41 @@ static size_t minContig = 2500;               // minimum contig size for binning
 static size_t minContigByCorr = 1000;         // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 
-std::thread * streams;
-double ** TNF_d;
-char ** seqs_d;
-size_t ** seqs_d_index;
-unsigned char ** smallCtgs_d;
+std::thread *streams;
+double **TNF_d;
+char **seqs_d;
+size_t **seqs_d_index;
+unsigned char **smallCtgs_d;
 
 size_t nobs_cont;
 size_t kernel_cont;
-std::string * seqs_kernel;
+std::string *seqs_kernel;
 std::vector<double *> TNF;
 size_t *gCtgIdx_kernel;
 size_t *seqs_kernel_index;
 unsigned char *smallCtgs_kernel;
 
-void kernel(dim3 blkDim, dim3 grdDim, int cont){
+void kernel(dim3 blkDim, dim3 grdDim, int cont)
+{
     int index = cont % n_STREAMS;
 
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-    
+
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d[index], seqs_kernel[index].size());
     cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(seqs_d_index[index], seqs_kernel_index[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
-    cudaMemcpy(smallCtgs_d[index], smallCtgs_kernel[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
+    cudaMemcpy(seqs_d_index[index], seqs_kernel_index[index * n_THREADS * n_BLOCKS],
+               n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
+    cudaMemcpy(smallCtgs_d[index], smallCtgs_kernel[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS,
+               cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont, smallCtgs_d[index], 1);
+    get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont,
+                                           smallCtgs_d[index], 1);
 
     cudaSynchronize();
     cudaFree(seqs_d[index]);
     cudaMemcpy(TNF[cont], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
-    
+
     seqs_kernel[index] = "";
 }
 
@@ -248,12 +252,12 @@ int main(int argc, char const *argv[])
     auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
 
-    //crear streams 
+    // crear streams
     streams = std::thread[n_STREAMS];
 
     seqs_kernel = new std::string[n_STREAMS];
 
-    TNF_d = new double * [n_STREAMS];
+    TNF_d = new double *[n_STREAMS];
     seqs_d = new char *[n_STREAMS];
     seqs_d_index = new size_t *[n_STREAMS];
     smallCtgs_d = new unsigned char *[n_STREAMS];
@@ -266,7 +270,8 @@ int main(int argc, char const *argv[])
     seqs_kernel_index = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t) * n_STREAMS);
     smallCtgs_kernel = (unsigned char *)malloc(n_THREADS * n_BLOCKS * n_STREAMS);
 
-    for(int i = 0; i < n_STREAMS; i++){
+    for (int i = 0; i < n_STREAMS; i++)
+    {
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * sizeof(size_t));
         cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS);
@@ -328,7 +333,7 @@ int main(int argc, char const *argv[])
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
                     TNF.emplace_back(NULL);
-                    if( kernel_cont % n_STREAMS < kernel_cont)
+                    if (kernel_cont % n_STREAMS < kernel_cont)
                         streams[kernel_cont % n_STREAMS]->join();
                     if (streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont) == 0)
                     {
@@ -346,7 +351,16 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
-        kernel(blkDim, grdDim);
+        TNF.emplace_back(NULL);
+        if (kernel_cont % n_STREAMS < kernel_cont)
+            streams[kernel_cont % n_STREAMS]->join();
+        if (streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont) == 0)
+        {
+            fprintf(stderr, "Error creating thread/n");
+            return 1;
+        }
+        kernel_cont++;
+        nobs_cont = 0;
     }
 
     auto end = std::chrono::system_clock::now();
