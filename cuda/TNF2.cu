@@ -207,7 +207,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
 
     // std::cout << "kernel: " << kernel_cont<< std::endl;
-    cudaMalloc(&seqs_d[index], seqs_kernel[index].size(), stream);
+    cudaMalloc(&seqs_d[index], seqs_kernel[index].size());
     cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel[index].size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index[index], seqs_kernel_index[index * n_THREADS * n_BLOCKS * sizeof(size_t)],
                n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
