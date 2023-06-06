@@ -361,7 +361,7 @@ int main(int argc, char const *argv[])
         nobs_cont = 0;
     }
 
-    for (int i = 0; i < std::min(n_STREAMS, kernel_cont); i++)
+    for (int i = 0; i < std::min((size_t)n_STREAMS, kernel_cont); i++)
     {
         streams[i].join();
     }
