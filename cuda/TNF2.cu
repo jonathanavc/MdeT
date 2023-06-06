@@ -216,7 +216,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
 
     get_TNF<<<grdDim, blkDim, 0, stream>>>(TNF_d[index], seqs_d[index], seqs_d_index[index], nobs_cont, smallCtgs_d[index], 1);
 
-    cudaDeviceSynchronizeAsync(stream);
+    cudaStreamSynchronize(stream);
     cudaFree(seqs_d[index]);
     cudaMemcpy(TNF[cont], TNF_d[index], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
 
