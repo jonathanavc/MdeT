@@ -358,7 +358,8 @@ int main(int argc, char const *argv[])
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
                     std::cout << "adios"<< kernel_cont % n_STREAMS<< std::endl;
-                    bool_thread[kernel_cont % n_STREAMS] = 1;
+                    bool_thread[kernel_cont % n_STREAMS] = true;
+                    std::cout << "xd";
                     kernel_cont++;
                     nobs_cont = 0;
                 }
