@@ -200,7 +200,7 @@ const unsigned char *smallCtgs_kernel;
 void kernel(dim3 blkDim, dim3 grdDim, int cont)
 {
     cudaStream_t stream;
-    cudaStreamCreate(&stream)
+    cudaStreamCreate(&stream);
 
     int index = cont % n_STREAMS;
 
