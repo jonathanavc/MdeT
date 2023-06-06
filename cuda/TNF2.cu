@@ -204,8 +204,6 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
 
     int index = cont % n_STREAMS;
 
-    TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d[index], seqs_kernel[index].size());
     cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel[index].size(), cudaMemcpyHostToDevice);
@@ -337,7 +335,7 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
-                    TNF.emplace_back((double *)0);
+                    TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     if (kernel_cont % n_STREAMS < kernel_cont)
                         streams[kernel_cont % n_STREAMS].join();
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
@@ -352,7 +350,7 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
-        TNF.emplace_back((double *)0);
+        TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         if (kernel_cont % n_STREAMS < kernel_cont)
             streams[kernel_cont % n_STREAMS].join();
         streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
