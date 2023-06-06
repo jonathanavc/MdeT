@@ -193,9 +193,9 @@ size_t nobs_cont;
 size_t kernel_cont;
 std::string *seqs_kernel;
 std::vector<double *> TNF;
-size_t *gCtgIdx_kernel;
-size_t *seqs_kernel_index;
-unsigned char *smallCtgs_kernel;
+const size_t *gCtgIdx_kernel;
+const size_t *seqs_kernel_index;
+const unsigned char *smallCtgs_kernel;
 
 void kernel(dim3 blkDim, dim3 grdDim, int cont)
 {
@@ -205,8 +205,8 @@ void kernel(dim3 blkDim, dim3 grdDim, int cont)
 
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d[index], seqs_kernel[index].size());
-    cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel.size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(seqs_d_index[index], seqs_kernel_index[index * n_THREADS * n_BLOCKS],
+    cudaMemcpy(seqs_d[index], seqs_kernel[index].data(), seqs_kernel[index].size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(seqs_d_index[index], seqs_kernel_index[index * n_THREADS * n_BLOCKS * sizeof(size_t)],
                n_BLOCKS * n_THREADS * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
     cudaMemcpy(smallCtgs_d[index], smallCtgs_kernel[index * n_THREADS * n_BLOCKS], n_BLOCKS * n_THREADS,
                cudaMemcpyHostToDevice);
