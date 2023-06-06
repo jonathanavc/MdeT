@@ -302,12 +302,14 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
+                std::cout <<"."; 
                 size_t index = (kernel_cont % n_STREAMS) * n_THREADS * n_BLOCKS;
                 if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
                 {
                     bool_thread[kernel_cont % n_STREAMS] = 0;
                     streams[kernel_cont % n_STREAMS].join();
                 }
+                std::cout <<","; 
 
                 if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
