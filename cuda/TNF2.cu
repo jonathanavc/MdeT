@@ -299,7 +299,6 @@ int main(int argc, char const *argv[])
         int64_t len;
         while ((len = kseq_read(kseq)) > 0)
         {
-
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
@@ -344,8 +343,10 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
-                    if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont)
+                    if (bool_thread[kernel_cont % n_STREAMS] && kernel_cont % n_STREAMS < kernel_cont){
+                        bool_thread[i] = 0;
                         streams[kernel_cont % n_STREAMS].join();
+                    }   
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     streams[kernel_cont % n_STREAMS] = std::thread(kernel, blkDim, grdDim, kernel_cont);
                     bool_thread[kernel_cont % n_STREAMS] = 1;
