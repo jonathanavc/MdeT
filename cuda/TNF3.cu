@@ -302,7 +302,7 @@ int main(int argc, char const *argv[])
                     {
                         smallCtgs_kernel[SUBP_IND][nobs_cont] = 0;
                     }
-
+                    nobs++
                     seqs_kernel[SUBP_IND] += kseq->seq.s;
                     seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
                     nobs_cont++;
@@ -340,6 +340,7 @@ int main(int argc, char const *argv[])
         // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
+        nobs_cont = 0;
     }
     if (SUBPS.joinable())
         SUBPS.join();
