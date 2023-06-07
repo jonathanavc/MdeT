@@ -151,6 +151,69 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
     }
 }
 
+__global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
+                        const unsigned char *smallCtgs, size_t contigs_per_thread)
+{
+    size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    // crea un tnf de forma local
+    double TNF_temp[136];
+
+    for (size_t i = 0; i < contigs_per_thread; i++)
+    {
+        for (int j = 0; j < n_TNF_d; j++)
+        {
+            TNF_temp[j] = 0;
+        }
+        size_t contig_index = (thead_id * contigs_per_thread) + i;
+        if (contig_index >= nobs)
+            break;
+        if (smallCtgs[contig_index] == 0)
+        {
+            const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
+            size_t contig_size = seqs_d_index[contig_index];
+            if (contig_index != 0)
+            {
+                contig_size -= seqs_d_index[contig_index - 1];
+            }
+            for (size_t j = 0; j < contig_size - 3; ++j)
+            {
+                unsigned char tn = get_tn(contig, j);
+                // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí estará
+                if (TNmap_d[tn] != n_TNF_d)
+                {
+                    ++TNF_temp[TNmap_d[tn]];
+                }
+
+                tn = get_revComp_tn_d(contig, j);
+
+                // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
+                if (TNPmap_d[tn] == 0)
+                {
+                    if (TNmap_d[tn] != n_TNF_d)
+                    {
+                        ++TNF_temp[TNmap_d[tn]];
+                    }
+                }
+            }
+            double rsum = 0;
+            for (size_t c = 0; c < n_TNF_d; ++c)
+            {
+                rsum += TNF_temp[c] * TNF_temp[c];
+            }
+            rsum = sqrt(rsum);
+            for (size_t c = 0; c < n_TNF_d; ++c)
+            {
+                TNF_temp[c] /= rsum; // OK
+            }
+        }
+        // guardar en la memoria global
+        for (size_t c = 0; c < n_TNF_d; ++c)
+        {
+            TNF_d[contig_index * n_TNF_d + c] = TNF_temp[c];
+        }
+    }
+}
+
 static const std::string TN[] = {
     "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA", "CCAG", "GGAC", "ATTA", "GATC",
     "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC", "GACC", "GAGA", "ATAG", "ATCA",
@@ -207,7 +270,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                cudaMemcpyHostToDevice); // seqs_index
     cudaMemcpy(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
+    get_TNF_local<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
     cudaStreamSynchronize(_s);
 
     cudaFree(seqs_d);
