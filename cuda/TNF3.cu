@@ -229,7 +229,7 @@ static const std::string TN[] = {
 static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
                                   "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
 
-int contig_per_thread = 2;
+int contig_per_thread = 1;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
