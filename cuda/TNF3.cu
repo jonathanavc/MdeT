@@ -340,7 +340,6 @@ int main(int argc, char const *argv[])
         // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
-        nobs_cont = 0;
     }
     if (SUBPS.joinable())
         SUBPS.join();
