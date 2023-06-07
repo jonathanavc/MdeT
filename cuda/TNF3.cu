@@ -198,6 +198,7 @@ unsigned char *smallCtgs_kernel[2];
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
     cudaStream_t _s;
+    cudaStreamCreate(&_s) 
     static char *seqs_d;
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d, seqs_kernel[SUBP_IND].size());
