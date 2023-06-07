@@ -166,7 +166,6 @@ static const std::string TN[] = {
 static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
                                   "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
 
-int n_SUBP = 1;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
@@ -207,8 +206,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                cudaMemcpyHostToDevice); // seqs_index
     cudaMemcpy(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size,
-                                       smallCtgs_d[SUBP_IND], 1);
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
     cudaStreamSynchronize(_s);
 
     cudaFree(seqs_d);
@@ -218,11 +216,10 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 
 int main(int argc, char const *argv[])
 {
-    if (argc > 3)
+    if (argc > 2)
     {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
-        n_SUBP = atoi(argv[3]);
     }
     // std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 
@@ -323,7 +320,7 @@ int main(int argc, char const *argv[])
                         SUBPS.join();
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
                     SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-                    //kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
+                    // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
                     nobs_cont = 0;
@@ -340,12 +337,13 @@ int main(int argc, char const *argv[])
             SUBPS.join();
         TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
         SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-        //kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
+        // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
         nobs_cont = 0;
     }
-    cudaDeviceSynchronize();
+    if (SUBPS.joinable())
+        SUBPS.join();
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
