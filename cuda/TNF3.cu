@@ -264,7 +264,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     for(int i = 0; i < 3; i++)
         cudaStreamCreate(&_s[i]);
     char *seqs_d;
-    TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
+    TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[0]);
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[0]);
