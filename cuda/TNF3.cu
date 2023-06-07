@@ -302,7 +302,7 @@ int main(int argc, char const *argv[])
                     {
                         smallCtgs_kernel[SUBP_IND][nobs_cont] = 0;
                     }
-                    nobs++
+                    nobs++;
                     seqs_kernel[SUBP_IND] += kseq->seq.s;
                     seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
                     nobs_cont++;
