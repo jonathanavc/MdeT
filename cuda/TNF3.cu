@@ -195,9 +195,9 @@ std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 unsigned char *smallCtgs_kernel[2];
 
-void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont)
+void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
-    stream_t _s;
+    cudaStream_t _s;
     static char *seqs_d;
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMalloc(&seqs_d, seqs_kernel[SUBP_IND].size());
@@ -206,7 +206,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont)
                cudaMemcpyHostToDevice); // seqs_index
     cudaMemcpy(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], nobs_cont[SUBP_IND],
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size,
                                        smallCtgs_d[SUBP_IND], 1);
     cudaStreamSynchronize(_s);
 
@@ -253,9 +253,10 @@ int main(int argc, char const *argv[])
     int SUBP_IND = 0;
     nobs_cont = 0;
     kernel_cont = 0;
-    SUBP_IND
-    seqs_kernel_index = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t) * 2);
-    smallCtgs_kernel = (unsigned char *)malloc(n_THREADS * n_BLOCKS * 2);
+    seqs_kernel_index[0] = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    seqs_kernel_index[1] = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
+    smallCtgs_kernel[0] = (unsigned char *)malloc(n_THREADS * n_BLOCKS);
+    smallCtgs_kernel[1] = (unsigned char *)malloc(n_THREADS * n_BLOCKS);
 
     cudaMalloc(&TNF_d[0], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
     cudaMalloc(&TNF_d[1], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
@@ -320,7 +321,7 @@ int main(int argc, char const *argv[])
                     if (SUBPS.joinable())
                         SUBPS.join();
                     TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-                    SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont);
+                    SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
                     //kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
@@ -337,7 +338,7 @@ int main(int argc, char const *argv[])
         if (SUBPS.joinable())
             SUBPS.join();
         TNF.emplace_back((double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double)));
-        SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont);
+        SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         //kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
