@@ -229,7 +229,7 @@ static const std::string TN[] = {
 static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
                                   "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
 
-int contig_per_thread = 16;
+int contig_per_thread = 2;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
@@ -430,10 +430,10 @@ int main(int argc, char const *argv[])
     {
         for (size_t i = 0; i < TNF.size(); i++)
         {
-            if (i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS) == 0)
-                out.write((char *)TNF[i], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
+            if (i < (TNF.size() - 1) || nobs % (n_BLOCKS * n_THREADS * contig_per_thread) == 0)
+                out.write((char *)TNF[i], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
             else
-                out.write((char *)TNF[i], (nobs % (n_BLOCKS * n_THREADS)) * n_TNF * sizeof(double));
+                out.write((char *)TNF[i], (nobs % (n_BLOCKS * n_THREADS * contig_per_thread)) * n_TNF * sizeof(double));
         }
         // std::cout << "TNF guardado" << std::endl;
     }
