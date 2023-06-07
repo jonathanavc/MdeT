@@ -229,6 +229,7 @@ static const std::string TN[] = {
 static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
                                   "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
 
+int contig_per_thread = 16;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
@@ -267,18 +268,18 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[0]);
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[0]);
-    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND], n_BLOCKS * n_THREADS * sizeof(size_t),
+    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t),
                     cudaMemcpyHostToDevice, _s[1]); // seqs_index
-    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice,
+    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread, cudaMemcpyHostToDevice,
                     _s[2]);
     for(int i = 0; i < 3; i++)
         cudaStreamSynchronize(_s[i]);
 
-    get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
+    get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], contig_per_thread);
     cudaStreamSynchronize(_s[0]);
 
     cudaFreeAsync(seqs_d, _s[0]);
-    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost,
+    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double), cudaMemcpyDeviceToHost,
                     _s[1]);
     for(int i = 0; i < 2; i++)
         cudaStreamSynchronize(_s[i]);
@@ -322,17 +323,17 @@ int main(int argc, char const *argv[])
     int SUBP_IND = 0;
     nobs_cont = 0;
     kernel_cont = 0;
-    seqs_kernel_index[0] = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
-    seqs_kernel_index[1] = (size_t *)malloc(n_THREADS * n_BLOCKS * sizeof(size_t));
-    smallCtgs_kernel[0] = (unsigned char *)malloc(n_THREADS * n_BLOCKS);
-    smallCtgs_kernel[1] = (unsigned char *)malloc(n_THREADS * n_BLOCKS);
+    seqs_kernel_index[0] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
+    seqs_kernel_index[1] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
+    smallCtgs_kernel[0] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
+    smallCtgs_kernel[1] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
 
-    cudaMalloc(&TNF_d[0], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-    cudaMalloc(&TNF_d[1], n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
-    cudaMalloc(&seqs_d_index[0], n_BLOCKS * n_THREADS * sizeof(size_t));
-    cudaMalloc(&seqs_d_index[1], n_BLOCKS * n_THREADS * sizeof(size_t));
-    cudaMalloc(&smallCtgs_d[0], n_BLOCKS * n_THREADS);
-    cudaMalloc(&smallCtgs_d[1], n_BLOCKS * n_THREADS);
+    cudaMalloc(&TNF_d[0], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
+    cudaMalloc(&TNF_d[1], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
+    cudaMalloc(&seqs_d_index[0], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
+    cudaMalloc(&seqs_d_index[1], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
+    cudaMalloc(&smallCtgs_d[0], n_BLOCKS * n_THREADS * contig_per_thread);
+    cudaMalloc(&smallCtgs_d[1], n_BLOCKS * n_THREADS * contig_per_thread);
 
     size_t nobs = 0;
 
@@ -385,7 +386,7 @@ int main(int argc, char const *argv[])
                 // contig_names.push_back(kseq->name.s);
                 seqs.push_back(kseq->seq.s);
 
-                if (nobs_cont == n_BLOCKS * n_THREADS)
+                if (nobs_cont == n_BLOCKS * n_THREADS * contig_per_thread)
                 {
                     if (SUBPS.joinable())
                         SUBPS.join();
