@@ -270,7 +270,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                cudaMemcpyHostToDevice); // seqs_index
     cudaMemcpy(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
 
-    get_TNF_local<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
     cudaStreamSynchronize(_s);
 
     cudaFree(seqs_d);
