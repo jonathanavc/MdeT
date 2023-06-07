@@ -152,7 +152,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
 }
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                        const unsigned char *smallCtgs, size_t contigs_per_thread)
+                              const unsigned char *smallCtgs, size_t contigs_per_thread)
 {
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
@@ -261,20 +261,22 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
     cudaStream_t _s;
     cudaStreamCreate(&_s);
-    static char *seqs_d;
+    char *seqs_d;
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * n_TNF * sizeof(double));
     // std::cout << "kernel: " << kernel_cont<< std::endl;
-    cudaMalloc(&seqs_d, seqs_kernel[SUBP_IND].size());
-    cudaMemcpy(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice);
-    cudaMemcpy(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND], n_BLOCKS * n_THREADS * sizeof(size_t),
-               cudaMemcpyHostToDevice); // seqs_index
-    cudaMemcpy(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice);
+    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s);
+    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s);
+    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND], n_BLOCKS * n_THREADS * sizeof(size_t),
+                    cudaMemcpyHostToDevice, _s); // seqs_index
+    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS, cudaMemcpyHostToDevice,
+                    _s);
 
     get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], 1);
     cudaStreamSynchronize(_s);
 
-    cudaFree(seqs_d);
-    cudaMemcpy(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaFreeAsync(seqs_d, _s);
+    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * n_TNF * sizeof(double), cudaMemcpyDeviceToHost,
+                    _s);
     seqs_kernel[SUBP_IND] = "";
 }
 
