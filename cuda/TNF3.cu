@@ -260,31 +260,24 @@ unsigned char *smallCtgs_kernel[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
-    cudaStream_t _s[3];
-    for (int i = 0; i < 3; i++)
-        cudaStreamCreate(&_s[i]);
+    // std::cout << "kernel: " << kernel_cont<< std::endl;
+    cudaStream_t _s;
+    cudaStreamCreate(&_s);
     char *seqs_d;
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
-    // std::cout << "kernel: " << kernel_cont<< std::endl;
-    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[0]);
-    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[0]);
+    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s);
+    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s);
     cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
                     n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
-                    _s[1]); // seqs_index
+                    _s); // seqs_index
     cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread,
-                    cudaMemcpyHostToDevice, _s[2]);
-    for (int i = 0; i < 3; i++)
-        cudaStreamSynchronize(_s[i]);
-
-    get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
-                                          contig_per_thread);
-    cudaStreamSynchronize(_s[0]);
-
-    cudaFreeAsync(seqs_d, _s[0]);
+                    cudaMemcpyHostToDevice, _s);
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
+                                       contig_per_thread);
+    cudaFreeAsync(seqs_d, _s);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
-                    cudaMemcpyDeviceToHost, _s[1]);
-    for (int i = 0; i < 2; i++)
-        cudaStreamSynchronize(_s[i]);
+                    cudaMemcpyDeviceToHost, _s);
+    cudaStreamSynchronize(_s);
     seqs_kernel[SUBP_IND] = "";
 }
 
@@ -322,13 +315,22 @@ int main(int argc, char const *argv[])
     auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
 
-    std::thread SUBPS;
+    std::thread SUBPS[2];
     dim3 blkDim(n_THREADS, 1, 1);
     dim3 grdDim(n_BLOCKS, 1, 1);
 
     int SUBP_IND = 0;
     nobs_cont = 0;
     kernel_cont = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
+        smallCtgs_kernel[i] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
+        cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
+        cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
+        cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS * contig_per_thread);
+    }
+    /*
     seqs_kernel_index[0] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
     seqs_kernel_index[1] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
     smallCtgs_kernel[0] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
@@ -340,6 +342,7 @@ int main(int argc, char const *argv[])
     cudaMalloc(&seqs_d_index[1], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
     cudaMalloc(&smallCtgs_d[0], n_BLOCKS * n_THREADS * contig_per_thread);
     cudaMalloc(&smallCtgs_d[1], n_BLOCKS * n_THREADS * contig_per_thread);
+    */
 
     size_t nobs = 0;
 
@@ -394,14 +397,23 @@ int main(int argc, char const *argv[])
 
                 if (nobs_cont == n_BLOCKS * n_THREADS * contig_per_thread)
                 {
-                    if (SUBPS.joinable())
-                        SUBPS.join();
+                    /*
+                    if (SUBPS[SUBP_IND].joinable())
+                    {
+                        SUBPS[SUBP_IND].join();
+                    }
+                    */
                     TNF.emplace_back((double *)0);
-                    SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-                    // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
+                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
                     nobs_cont = 0;
+
+                    // si aún no se ha terminado la ejecición la siguiente hebra se espera a ella.
+                    if (SUBPS[SUBP_IND].joinable())
+                    {
+                        SUBPS[SUBP_IND].join();
+                    }
                 }
             }
         }
@@ -411,17 +423,20 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
-        if (SUBPS.joinable())
-            SUBPS.join();
         TNF.emplace_back((double *)0);
-        SUBPS = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-        // kernel(blkDim, grdDim, SUBP_IND, kernel_cont);
+        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
         nobs_cont = 0;
     }
-    if (SUBPS.joinable())
-        SUBPS.join();
+    // se esperan a las hebras restantes
+    for (int i = 0; i < 2; i++)
+    {
+        if (SUBPS[i].joinable())
+        {
+            SUBPS[i].join();
+        }
+    }
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
