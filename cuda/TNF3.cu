@@ -261,27 +261,29 @@ unsigned char *smallCtgs_kernel[2];
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
     cudaStream_t _s[3];
-    for(int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
         cudaStreamCreate(&_s[i]);
     char *seqs_d;
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     // std::cout << "kernel: " << kernel_cont<< std::endl;
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[0]);
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[0]);
-    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t),
-                    cudaMemcpyHostToDevice, _s[1]); // seqs_index
-    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread, cudaMemcpyHostToDevice,
-                    _s[2]);
-    for(int i = 0; i < 3; i++)
+    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
+                    n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
+                    _s[1]); // seqs_index
+    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread,
+                    cudaMemcpyHostToDevice, _s[2]);
+    for (int i = 0; i < 3; i++)
         cudaStreamSynchronize(_s[i]);
 
-    get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND], contig_per_thread);
+    get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
+                                          contig_per_thread);
     cudaStreamSynchronize(_s[0]);
 
     cudaFreeAsync(seqs_d, _s[0]);
-    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double), cudaMemcpyDeviceToHost,
-                    _s[1]);
-    for(int i = 0; i < 2; i++)
+    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
+                    cudaMemcpyDeviceToHost, _s[1]);
+    for (int i = 0; i < 2; i++)
         cudaStreamSynchronize(_s[i]);
     seqs_kernel[SUBP_IND] = "";
 }
@@ -292,6 +294,10 @@ int main(int argc, char const *argv[])
     {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
+        if (argc > 3)
+        {
+            inFile = argv[3];
+        }
     }
     // std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 

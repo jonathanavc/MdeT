@@ -226,6 +226,10 @@ int main(int argc, char const *argv[])
     {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
+        if (argc > 3)
+        {
+            inFile = argv[3];
+        }
     }
     // std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 

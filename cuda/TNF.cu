@@ -1,16 +1,35 @@
 // nvcc TNF.cu -lz
 // ta bien
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <chrono>
 #include "../extra/KseqReader.h"
+#include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 __device__ __constant__ short n_TNF_d = 136;
 
-__device__ __constant__ unsigned char TNmap_d[256] = {2, 21, 31, 115, 101, 119, 67, 50, 135, 126, 69, 92, 116, 88, 8, 78, 47, 96, 3, 70, 106, 38, 48, 83, 16, 22, 136, 114, 5, 54, 107, 120, 72, 41, 44, 26, 27, 23, 136, 53, 12, 81, 136, 127, 30, 110, 136, 80, 132, 123, 71, 102, 79, 1, 35, 124, 29, 4, 136, 34, 91, 17, 136, 52, 9, 77, 136, 117, 76, 93, 136, 65, 6, 73, 136, 68, 28, 94, 136, 113, 121, 36, 136, 10, 103, 99, 136, 87, 129, 14, 136, 136, 98, 19, 136, 97, 15, 56, 136, 131, 57, 46, 136, 136, 122, 60, 136, 136, 42, 62, 136, 136, 7, 130, 136, 51, 133, 20, 136, 134, 89, 86, 136, 136, 104, 95, 136, 136, 49, 136, 136, 136, 105, 136, 136, 136, 33, 136, 136, 136, 43, 136, 136, 136, 55, 136, 136, 136, 112, 136, 136, 136, 136, 136, 136, 136, 75, 136, 136, 136, 32, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 100, 136, 136, 136, 63, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 125, 108, 136, 136, 58, 24, 136, 136, 84, 13, 136, 136, 25, 66, 136, 136, 18, 128, 136, 136, 74, 61, 136, 136, 85, 136, 136, 136, 118, 40, 136, 136, 109, 90, 136, 136, 45, 136, 136, 136, 111, 136, 136, 136, 82, 136, 136, 136, 59, 11, 136, 136, 64, 37, 136, 136, 0, 136, 136, 136, 39, 136, 136, 136};
-__device__ __constant__ unsigned char TNPmap_d[256] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+__device__ __constant__ unsigned char TNmap_d[256] = {
+    2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,
+    48,  83,  16,  22,  136, 114, 5,   54,  107, 120, 72,  41,  44,  26,  27,  23,  136, 53,  12,  81,  136, 127,
+    30,  110, 136, 80,  132, 123, 71,  102, 79,  1,   35,  124, 29,  4,   136, 34,  91,  17,  136, 52,  9,   77,
+    136, 117, 76,  93,  136, 65,  6,   73,  136, 68,  28,  94,  136, 113, 121, 36,  136, 10,  103, 99,  136, 87,
+    129, 14,  136, 136, 98,  19,  136, 97,  15,  56,  136, 131, 57,  46,  136, 136, 122, 60,  136, 136, 42,  62,
+    136, 136, 7,   130, 136, 51,  133, 20,  136, 134, 89,  86,  136, 136, 104, 95,  136, 136, 49,  136, 136, 136,
+    105, 136, 136, 136, 33,  136, 136, 136, 43,  136, 136, 136, 55,  136, 136, 136, 112, 136, 136, 136, 136, 136,
+    136, 136, 75,  136, 136, 136, 32,  136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136,
+    100, 136, 136, 136, 63,  136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 125, 108, 136, 136, 58,  24,
+    136, 136, 84,  13,  136, 136, 25,  66,  136, 136, 18,  128, 136, 136, 74,  61,  136, 136, 85,  136, 136, 136,
+    118, 40,  136, 136, 109, 90,  136, 136, 45,  136, 136, 136, 111, 136, 136, 136, 82,  136, 136, 136, 59,  11,
+    136, 136, 64,  37,  136, 136, 0,   136, 136, 136, 39,  136, 136, 136};
+__device__ __constant__ unsigned char TNPmap_d[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const size_t *seqs_d_index)
 {
@@ -129,19 +148,20 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
     }
 }
 
-static const std::string TN[] = {"GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA",
-                                 "CCAG", "GGAC", "ATTA", "GATC", "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC",
-                                 "GACC", "GAGA", "ATAG", "ATCA", "CAGA", "AGTA", "ATGA", "AAAT", "TTAA", "TATA", "AGTG", "AGCT", "CCAC", "GGCC",
-                                 "ACCC", "GGGA", "GCGC", "ATAC", "CTGA", "TAGA", "ATAT", "GTCA", "CTCC", "ACAA", "ACCT", "TAAA", "AACG", "CGAG",
-                                 "AGGG", "ATCG", "ACGC", "TCAA", "CTAC", "CTCA", "GACA", "GGAA", "CTTC", "GCCC", "CTGC", "TGCA", "GGCA", "CACG",
-                                 "GAGC", "AACT", "CATG", "AATT", "ACAG", "AGAT", "ATAA", "CATC", "GCCA", "TCGA", "CACA", "CAAC", "AAGG", "AGCA",
-                                 "ATGG", "ATTC", "GTGA", "ACCG", "GATA", "GCTA", "CGTC", "CCCG", "AAGC", "CGTA", "GTAC", "AGGA", "AATG", "CACC",
-                                 "CAGC", "CGGC", "ACAC", "CCGG", "CCGA", "CCCC", "TGAA", "AACA", "AGAG", "CCCA", "CGGA", "TACA", "ACCA", "ACGT",
-                                 "GAAC", "GTAA", "ATGC", "GTTA", "TCCA", "CAGG", "ACTG", "AAAG", "AAGA", "CAAG", "GCGA", "AACC", "ACGG", "CCAA",
-                                 "CTTA", "AGAC", "AGCG", "GAAA", "AATC", "ATTG", "GCAC", "CCTA", "CGAC", "CTAG", "AGAA", "CGCA", "CGCG", "AATA"};
+static const std::string TN[] = {
+    "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA", "CCAG", "GGAC", "ATTA", "GATC",
+    "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC", "GACC", "GAGA", "ATAG", "ATCA",
+    "CAGA", "AGTA", "ATGA", "AAAT", "TTAA", "TATA", "AGTG", "AGCT", "CCAC", "GGCC", "ACCC", "GGGA", "GCGC", "ATAC",
+    "CTGA", "TAGA", "ATAT", "GTCA", "CTCC", "ACAA", "ACCT", "TAAA", "AACG", "CGAG", "AGGG", "ATCG", "ACGC", "TCAA",
+    "CTAC", "CTCA", "GACA", "GGAA", "CTTC", "GCCC", "CTGC", "TGCA", "GGCA", "CACG", "GAGC", "AACT", "CATG", "AATT",
+    "ACAG", "AGAT", "ATAA", "CATC", "GCCA", "TCGA", "CACA", "CAAC", "AAGG", "AGCA", "ATGG", "ATTC", "GTGA", "ACCG",
+    "GATA", "GCTA", "CGTC", "CCCG", "AAGC", "CGTA", "GTAC", "AGGA", "AATG", "CACC", "CAGC", "CGGC", "ACAC", "CCGG",
+    "CCGA", "CCCC", "TGAA", "AACA", "AGAG", "CCCA", "CGGA", "TACA", "ACCA", "ACGT", "GAAC", "GTAA", "ATGC", "GTTA",
+    "TCCA", "CAGG", "ACTG", "AAAG", "AAGA", "CAAG", "GCGA", "AACC", "ACGG", "CCAA", "CTTA", "AGAC", "AGCG", "GAAA",
+    "AATC", "ATTG", "GCAC", "CCTA", "CGAC", "CTAG", "AGAA", "CGCA", "CGCG", "AATA"};
 
-static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA", "CGCG",
-                                  "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
+static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
+                                  "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
 
 int n_THREADS = 32;
 int n_BLOCKS = 128;
@@ -168,10 +188,15 @@ static size_t *gCtgIdx_d;
 
 int main(int argc, char const *argv[])
 {
+    std::string inFile = "test.gz";
     if (argc > 2)
     {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
+        if (argc > 3)
+        {
+            inFile = argv[3];
+        }
     }
     // std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS << std::endl;
 
@@ -195,7 +220,6 @@ int main(int argc, char const *argv[])
 
     size_t nobs = 0;
     int nresv = 0;
-    std::string inFile = "test.gz";
 
     auto start_global = std::chrono::system_clock::now();
     auto start = std::chrono::system_clock::now();
@@ -287,7 +311,8 @@ int main(int argc, char const *argv[])
     err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
 
     err += cudaMalloc(&seqs_d_index, seqs_h_index.size() * sizeof(size_t));
-    err += cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
+    err += cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t),
+                      cudaMemcpyHostToDevice); // seqs_index
 
     err += cudaMalloc(&gCtgIdx_d, nobs * sizeof(size_t));
     err += cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice); // gCtgIdx
