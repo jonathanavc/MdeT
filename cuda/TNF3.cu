@@ -283,6 +283,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 
 int main(int argc, char const *argv[])
 {
+    std::string inFile = "test.gz";
     if (argc > 2)
     {
         n_BLOCKS = atoi(argv[1]);
@@ -345,9 +346,7 @@ int main(int argc, char const *argv[])
     */
 
     size_t nobs = 0;
-
     int nresv = 0;
-    std::string inFile = "test.gz";
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)

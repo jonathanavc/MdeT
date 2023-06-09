@@ -222,6 +222,7 @@ void save_tnf()
 
 int main(int argc, char const *argv[])
 {
+    std::string inFile = "test.gz";
     if (argc > 2)
     {
         n_BLOCKS = atoi(argv[1]);
@@ -268,9 +269,7 @@ int main(int argc, char const *argv[])
     cudaMalloc(&smallCtgs_d, n_BLOCKS * n_THREADS);
 
     size_t nobs = 0;
-
     int nresv = 0;
-    std::string inFile = "test.gz";
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
