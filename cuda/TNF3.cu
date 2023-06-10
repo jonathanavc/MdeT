@@ -272,7 +272,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                     _s); // seqs_index
     cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread,
                     cudaMemcpyHostToDevice, _s);
-    get_TNF_local<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
                                        contig_per_thread);
     cudaFreeAsync(seqs_d, _s);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
