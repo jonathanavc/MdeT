@@ -272,7 +272,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                     _s); // seqs_index
     cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread,
                     cudaMemcpyHostToDevice, _s);
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
+    get_TNF_local<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
                                        contig_per_thread);
     cudaFreeAsync(seqs_d, _s);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
@@ -331,19 +331,6 @@ int main(int argc, char const *argv[])
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
         cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS * contig_per_thread);
     }
-    /*
-    seqs_kernel_index[0] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
-    seqs_kernel_index[1] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
-    smallCtgs_kernel[0] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
-    smallCtgs_kernel[1] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
-
-    cudaMalloc(&TNF_d[0], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
-    cudaMalloc(&TNF_d[1], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
-    cudaMalloc(&seqs_d_index[0], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
-    cudaMalloc(&seqs_d_index[1], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
-    cudaMalloc(&smallCtgs_d[0], n_BLOCKS * n_THREADS * contig_per_thread);
-    cudaMalloc(&smallCtgs_d[1], n_BLOCKS * n_THREADS * contig_per_thread);
-    */
 
     size_t nobs = 0;
     int nresv = 0;
