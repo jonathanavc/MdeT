@@ -452,6 +452,13 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < TNF.size(); i++)
         free(TNF[i]);
+    for(int i = 0; i < 2; i++){
+        free(seqs_kernel_index[i]);
+        free(smallCtgs_kernel[i]);
+        cudaFree(TNF_d[i]);
+        cudaFree(seqs_d_index[i]);
+        cudaFree(smallCtgs_d[i]);
+    }
 
     return 0;
 }

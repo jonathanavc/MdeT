@@ -372,6 +372,11 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < TNF.size(); i++)
         free(TNF[i]);
-
+    free(seqs_kernel_index);
+    free(smallCtgs_kernel);
+    cudaFree(TNF_d);
+    cudaFree(seqs_d_index);
+    cudaFree(gCtgIdx_d);
+    cudaFree(smallCtgs_d);
     return 0;
 }
