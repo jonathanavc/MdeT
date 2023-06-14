@@ -41,7 +41,8 @@ for bloq in cuda_bloqs:
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
-            tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
+            valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+            tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
 
 #CUDA V2
 tiempos['cuda2'] = {
@@ -59,9 +60,10 @@ for bloq in cuda_bloqs:
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda2 "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
-            tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
+            valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+            tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
 
-#CUDA V2
+#CUDA V3
 tiempos['cuda3'] = {
     'n_bloqs':{
     }
@@ -77,7 +79,8 @@ for bloq in cuda_bloqs:
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda3 "+ str((i/num_ex) * 100) + "%", end='\r')
             p = subprocess.Popen(['./cuda3_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
-            tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
+            valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+            tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
 
 #GUARDAR
 _json = json.dumps(tiempos)
