@@ -42,7 +42,7 @@ for bloq in cuda_bloqs:
             p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-            tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
+            tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores[0]
 
 #CUDA V2
 tiempos['cuda2'] = {
@@ -61,7 +61,7 @@ for bloq in cuda_bloqs:
             p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-            tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
+            tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores[0]
 
 #CUDA V3
 tiempos['cuda3'] = {
@@ -80,7 +80,7 @@ for bloq in cuda_bloqs:
             p = subprocess.Popen(['./cuda3_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-            tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(valores[0])
+            tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores[0]
 
 #GUARDAR
 _json = json.dumps(tiempos)
