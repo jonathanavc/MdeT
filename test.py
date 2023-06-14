@@ -4,7 +4,7 @@ import json
 import re
 from datetime import datetime
 
-print(sys.argv[0])
+print(sys.argv[1])
 archivo = sys.argv[0]
 num_ex = 10
 threads = [1,2,4,6,8,10,12]
