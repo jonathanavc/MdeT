@@ -277,7 +277,7 @@ int main(int argc, char const *argv[])
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
-    // std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
+    std::cout <<"leer contigs "<< duration.count()/1000.f << "s " << std::endl;
 
     // std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ", gctg:" << gCtgIdx.size() << std::endl;
 
