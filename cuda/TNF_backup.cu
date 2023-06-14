@@ -297,20 +297,28 @@ int main(int argc, char const *argv[])
 
     start = std::chrono::system_clock::now();
 
-    cudaMalloc(&TNF_d, (nobs * n_TNF * sizeof(double))); // memoria para almacenar TNF
+    int err = cudaMalloc(&TNF_d, (nobs * n_TNF * sizeof(double))); // memoria para almacenar TNF
 
-    cudaMalloc(&seqs_d, seqs_h.size());
-    cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
+    /*
+    err += cudaMalloc(&TNmap_d, 256);
+    err += cudaMemcpy(TNmap_d, TNmap, 256, cudaMemcpyHostToDevice); // TNmap
 
-    cudaMalloc(&seqs_d_index, seqs_h_index.size() * sizeof(size_t));
-    cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t),
+    err += cudaMalloc(&TNPmap_d, 256);
+    err += cudaMemcpy(TNPmap_d, TNPmap, 256, cudaMemcpyHostToDevice); // TNPmap
+    */
+
+    err += cudaMalloc(&seqs_d, seqs_h.size());
+    err += cudaMemcpy(seqs_d, seqs_h.data(), seqs_h.size(), cudaMemcpyHostToDevice);
+
+    err += cudaMalloc(&seqs_d_index, seqs_h_index.size() * sizeof(size_t));
+    err += cudaMemcpy(seqs_d_index, seqs_h_index.data(), seqs_h_index.size() * sizeof(size_t),
                       cudaMemcpyHostToDevice); // seqs_index
 
-    cudaMalloc(&gCtgIdx_d, nobs * sizeof(size_t));
-    cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice); // gCtgIdx
+    err += cudaMalloc(&gCtgIdx_d, nobs * sizeof(size_t));
+    err += cudaMemcpy(gCtgIdx_d, gCtgIdx.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice); // gCtgIdx
 
-    cudaMalloc(&smallCtgs_d, nobs);
-    cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice); // seqs
+    err += cudaMalloc(&smallCtgs_d, nobs);
+    err += cudaMemcpy(smallCtgs_d, smallCtgs.data(), nobs, cudaMemcpyHostToDevice); // seqs
 
     end = std::chrono::system_clock::now();
     duration = end - start;
@@ -321,7 +329,6 @@ int main(int argc, char const *argv[])
     size_t contigs_per_thread = 1 + ((nobs - 1) / (n_THREADS * n_BLOCKS));
     dim3 blkDim(n_THREADS, 1, 1);
     dim3 grdDim(n_BLOCKS, 1, 1);
-    
 
     get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, smallCtgs_d, gCtgIdx_d, contigs_per_thread);
 

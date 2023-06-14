@@ -11,6 +11,7 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 tiempos = {}
 
 #OMP
+'''
 tiempos['omp'] = {
     'n_threads':{
     }
@@ -22,6 +23,7 @@ for thread in threads:
         p = subprocess.Popen(['./omp_ex', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         tiempos['omp']['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
+'''
 
 #CUDA
 tiempos['cuda'] = {
@@ -58,6 +60,24 @@ for bloq in cuda_bloqs:
             p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
+
+#CUDA V2
+tiempos['cuda3'] = {
+    'n_bloqs':{
+    }
+}
+for bloq in cuda_bloqs:
+    tiempos['cuda3']['n_bloqs'][str(bloq)] = {
+            'n_threads':{
+        }
+    }
+    for thread in cuda_threads: 
+        tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
+        for i in range(0, num_ex):
+            print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda3 "+ str((i/num_ex) * 100) + "%", end='\r')
+            p = subprocess.Popen(['./cuda3_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            out, err = p.communicate()
+            tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)].append(re.findall(r"[-+]?(?:\d*\.*\d+)", out)[0])
 
 #GUARDAR
 _json = json.dumps(tiempos)
