@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 print(sys.argv[1])
-archivo = sys.argv[0]
+archivo = sys.argv[1]
 num_ex = 10
 threads = [1,2,4,6,8,10,12]
 cuda_threads = [16,32,64,128]
