@@ -1,14 +1,18 @@
+import sys
 import subprocess
 import json
 import re
 from datetime import datetime
 
+archivo = sys.argv[0]
 num_ex = 10
 threads = [1,2,4,6,8,10,12]
 cuda_threads = [16,32,64,128]
 cuda_bloqs = [32,64,128,256,512,1024,2048]
 
 tiempos = {}
+
+
 
 #OMP
 '''
@@ -39,7 +43,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(0, num_ex):
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./cuda_ex', str(bloq), str(thread), archivo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
             tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores
@@ -58,7 +62,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(0, num_ex):
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda2 "+ str((i/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./cuda2_ex', str(bloq), str(thread), archivo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
             tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores
@@ -77,7 +81,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(0, num_ex):
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda3 "+ str((i/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['./cuda3_ex', str(bloq), str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./cuda3_ex', str(bloq), str(thread), archivo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
             tiempos['cuda3']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores
