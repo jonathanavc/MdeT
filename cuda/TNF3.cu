@@ -89,8 +89,10 @@ __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index)
 }
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                        const unsigned char *smallCtgs, size_t contigs_per_thread)
+                        size_t contigs_per_thread)
 {
+    size_t minContig = 2500;
+    size_t minContigByCorr = 1000;
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     for (size_t i = 0; i < contigs_per_thread; i++)
@@ -99,9 +101,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         if (contig_index >= nobs)
             break;
         for (int j = 0; j < n_TNF_d; j++)
-        {
             TNF_d[contig_index * n_TNF_d + j] = 0;
-        }
     }
 
     for (size_t i = 0; i < contigs_per_thread; i++)
@@ -109,14 +109,12 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if (contig_index >= nobs)
             break;
-        if (smallCtgs[contig_index] == 0)
+        size_t contig_size = seqs_d_index[contig_index];
+        if (contig_index != 0)
+            contig_size -= seqs_d_index[contig_index - 1];
+        if (contig_size < minContig && contig_size >= minContigByCorr)
         {
             const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
-            size_t contig_size = seqs_d_index[contig_index];
-            if (contig_index != 0)
-            {
-                contig_size -= seqs_d_index[contig_index - 1];
-            }
             for (size_t j = 0; j < contig_size - 3; ++j)
             {
                 unsigned char tn = get_tn(contig, j);
@@ -152,8 +150,10 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
 }
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                              const unsigned char *smallCtgs, size_t contigs_per_thread)
+                              size_t contigs_per_thread)
 {
+    size_t minContig = 2500;
+    size_t minContigByCorr = 1000;     
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
     double TNF_temp[136];
@@ -167,14 +167,12 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
         size_t contig_index = (thead_id * contigs_per_thread) + i;
         if (contig_index >= nobs)
             break;
-        if (smallCtgs[contig_index] == 0)
+        size_t contig_size = seqs_d_index[contig_index];
+        if (contig_index != 0)
+            contig_size -= seqs_d_index[contig_index - 1];
+        if (contig_size < minContig && contig_size >= minContigByCorr)
         {
             const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
-            size_t contig_size = seqs_d_index[contig_index];
-            if (contig_index != 0)
-            {
-                contig_size -= seqs_d_index[contig_index - 1];
-            }
             for (size_t j = 0; j < contig_size - 3; ++j)
             {
                 unsigned char tn = get_tn(contig, j);
@@ -249,14 +247,12 @@ static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 
 double *TNF_d[2];
 static size_t *seqs_d_index[2];
-static unsigned char *smallCtgs_d[2];
 
 size_t nobs_cont;
 size_t kernel_cont;
 std::vector<double *> TNF;
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
-unsigned char *smallCtgs_kernel[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
@@ -270,10 +266,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
                     n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
                     _s); // seqs_index
-    cudaMemcpyAsync(smallCtgs_d[SUBP_IND], smallCtgs_kernel[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread,
-                    cudaMemcpyHostToDevice, _s);
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, smallCtgs_d[SUBP_IND],
-                                       contig_per_thread);
+    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
     cudaFreeAsync(seqs_d, _s);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
                     cudaMemcpyDeviceToHost, _s);
@@ -326,10 +319,8 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < 2; i++)
     {
         seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
-        smallCtgs_kernel[i] = (unsigned char *)malloc(n_THREADS * n_BLOCKS * contig_per_thread);
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
-        cudaMalloc(&smallCtgs_d[i], n_BLOCKS * n_THREADS * contig_per_thread);
     }
 
     size_t nobs = 0;
@@ -357,17 +348,11 @@ int main(int argc, char const *argv[])
                         if (len >= (int)minContigByCorr)
                         {
                             smallCtgs.insert(1);
-                            smallCtgs_kernel[SUBP_IND][nobs_cont] = 1;
                         }
                         else
                         {
-                            smallCtgs_kernel[SUBP_IND][nobs_cont] = 0;
                             ++nresv;
                         }
-                    }
-                    else
-                    {
-                        smallCtgs_kernel[SUBP_IND][nobs_cont] = 0;
                     }
                     nobs++;
                     seqs_kernel[SUBP_IND] += kseq->seq.s;
@@ -452,12 +437,11 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < TNF.size(); i++)
         free(TNF[i]);
-    for(int i = 0; i < 2; i++){
+    for (int i = 0; i < 2; i++)
+    {
         free(seqs_kernel_index[i]);
-        free(smallCtgs_kernel[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
-        cudaFree(smallCtgs_d[i]);
     }
 
     return 0;
