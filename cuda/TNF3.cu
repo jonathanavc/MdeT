@@ -112,6 +112,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         size_t contig_size = seqs_d_index[contig_index];
         if (contig_index != 0)
             contig_size -= seqs_d_index[contig_index - 1];
+        //tengo dudas sobre esta parte ------------------------
         if (contig_size > minContig || contig_size < minContigByCorr)
         {
             const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
@@ -170,6 +171,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
         size_t contig_size = seqs_d_index[contig_index];
         if (contig_index != 0)
             contig_size -= seqs_d_index[contig_index - 1];
+        //tengo dudas sobre esta parte ------------------------
         if (contig_size < minContig || contig_size < minContigByCorr)
         {
             const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
