@@ -341,7 +341,7 @@ int main(int argc, char const *argv[])
     else
     {
         const size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
-        //const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
+        // const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
         kseq_t *kseq = kseq_init(f);
         int64_t len;
 
