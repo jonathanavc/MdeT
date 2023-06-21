@@ -279,7 +279,6 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        const size_t contigs_target = n_BLOCKS * n_THREADS;
         kseq_t *kseq = kseq_init(f);
         int64_t len;
         while ((len = kseq_read(kseq)) > 0)
@@ -306,7 +305,8 @@ int main(int argc, char const *argv[])
                     {
                         smallCtgs_kernel[nobs_cont] = 0;
                     }
-                    //gCtgIdx[nobs++] = seqs.size();
+                    gCtgIdx[nobs++] = seqs.size();
+
                     seqs_kernel += kseq->seq.s;
                     seqs_kernel_index[nobs_cont] = seqs_kernel.size();
                     nobs_cont++;
@@ -318,7 +318,7 @@ int main(int argc, char const *argv[])
                 // contig_names.push_back(kseq->name.s);
                 seqs.push_back(kseq->seq.s);
 
-                if (nobs_cont == contigs_target)
+                if (nobs_cont == n_BLOCKS * n_THREADS)
                 {
                     if (kernel_cont != 0)
                     {
