@@ -350,11 +350,11 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
+                if (len >= std::min(minContigByCorr, minContigByCorrForGraph))
                 {
-                    if (len < (int)minContig)
+                    if (len < minContig)
                     {
-                        if (len >= (int)minContigByCorr)
+                        if (len >= minContigByCorr)
                         {
                             // smallCtgs.insert(1);
                         }
