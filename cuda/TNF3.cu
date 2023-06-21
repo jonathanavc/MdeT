@@ -95,7 +95,6 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
     size_t minContigByCorr = 1000;
     size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-    /*
     for (size_t i = 0; i < contigs_per_thread; i++)
     {
         size_t contig_index = (thead_id * contigs_per_thread) + i;
@@ -104,7 +103,6 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         for (int j = 0; j < n_TNF_d; j++)
             TNF_d[contig_index * n_TNF_d + j] = 0;
     }
-    */
 
     for (size_t i = 0; i < contigs_per_thread; i++)
     {
@@ -265,7 +263,6 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     cudaMallocHost((void **)&TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
-    cudaMemset(TNF_d[SUBP_IND], 0, n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
                     _s[SUBP_IND]);
     cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
