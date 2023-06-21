@@ -382,7 +382,7 @@ int main(int argc, char const *argv[])
                 if (vec_seqs_kernel[SUBP_IND].size() == contigs_target)
                 {
                     TNF.emplace_back((double *)0);
-                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND]);
+                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND].size());
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
 
@@ -396,10 +396,10 @@ int main(int argc, char const *argv[])
         kseq = NULL;
         gzclose(f);
     }
-    if (vec_seqs_kernel[SUBP_IND] != 0)
+    if (vec_seqs_kernel[SUBP_IND].size() != 0)
     {
         TNF.emplace_back((double *)0);
-        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND]);
+        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND].size());
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
     }
