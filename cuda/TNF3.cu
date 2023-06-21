@@ -395,9 +395,9 @@ int main(int argc, char const *argv[])
     }
     if (nobs_cont != 0)
     {
-        TNF.emplace_back((double *)0);
+        TNF.push_back((double *)0);
         SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-        SUBP_IND = (SUBP_IND + 1) % 2;
+        SUBP_IND = (SUBP_IND + 1) & 2;
         kernel_cont++;
         nobs_cont = 0;
     }
