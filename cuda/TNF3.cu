@@ -260,7 +260,7 @@ size_t *seqs_kernel_index[2];
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
     char *seqs_d;
-    cudaMallocHost((void**) TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
+    cudaMallocHost((void**) &TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     //TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
