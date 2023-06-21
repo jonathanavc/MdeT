@@ -250,7 +250,6 @@ static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 double *TNF_d[2];
 static size_t *seqs_d_index[2];
 
-size_t nobs_cont;
 size_t kernel_cont;
 std::vector<double *> TNF;
 cudaStream_t _s[2];
@@ -327,7 +326,6 @@ int main(int argc, char const *argv[])
     dim3 grdDim(n_BLOCKS, 1, 1);
 
     int SUBP_IND = 0;
-    nobs_cont = 0;
     kernel_cont = 0;
     size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
 
@@ -372,10 +370,7 @@ int main(int argc, char const *argv[])
                         }
                     }
                     nobs++;
-                    nobs_cont++;
                     vec_seqs_kernel[SUBP_IND].emplace_back(kseq->seq.s);
-                    // seqs_kernel[SUBP_IND] += kseq->seq.s;
-                    // seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
                 }
                 else
                 {
@@ -384,13 +379,12 @@ int main(int argc, char const *argv[])
                 // contig_names.push_back(kseq->name.s);
                 seqs.push_back(kseq->seq.s);
 
-                if (nobs_cont == contigs_target)
+                if (vec_seqs_kernel[SUBP_IND].size() == contigs_target)
                 {
                     TNF.emplace_back((double *)0);
-                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
+                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND]);
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
-                    nobs_cont = 0;
 
                     // si aún no se ha terminado la ejecición la siguiente hebra se espera a ella.
                     if (SUBPS[SUBP_IND].joinable())
@@ -402,13 +396,12 @@ int main(int argc, char const *argv[])
         kseq = NULL;
         gzclose(f);
     }
-    if (nobs_cont != 0)
+    if (vec_seqs_kernel[SUBP_IND] != 0)
     {
         TNF.emplace_back((double *)0);
-        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
+        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND]);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
-        nobs_cont = 0;
     }
     // se esperan a las hebras restantes
     for (int i = 0; i < 2; i++)
