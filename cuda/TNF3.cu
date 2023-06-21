@@ -373,11 +373,11 @@ int main(int argc, char const *argv[])
                     // ignored[kseq->name.s] = seqs.size();
                 }
                 // contig_names.push_back(kseq->name.s);
-                seqs.emplace_back(kseq->seq.s);
+                seqs.push_back(kseq->seq.s);
 
                 if (nobs_cont == contigs_target)
                 {
-                    TNF.emplace_back((double *)0);
+                    TNF.push_back((double *)0);
                     SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
                     SUBP_IND = (SUBP_IND + 1) & 1;
                     kernel_cont++;
