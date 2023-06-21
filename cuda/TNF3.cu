@@ -265,12 +265,12 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     cudaMalloc(&seqs_d, seqs_kernel[SUBP_IND].size());
     cudaMemcpy(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice);
     cudaMemcpy(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-               n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice, ); // seqs_index
+               n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice); // seqs_index
     get_TNF<<<grdDim, blkDim>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
     cudaFree(seqs_d);
     cudaMemcpy(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
                cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize(0);
+    cudaDeviceSynchronize();
     // más eficiente que asignación
     seqs_kernel[SUBP_IND].clear();
 }
