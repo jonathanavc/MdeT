@@ -329,7 +329,7 @@ int main(int argc, char const *argv[])
 
     size_t nobs = 0;
     int nresv = 0;
-    int aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
+    
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
@@ -339,7 +339,8 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
+        const size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
+        const int aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
         kseq_t *kseq = kseq_init(f);
         int64_t len;
 
