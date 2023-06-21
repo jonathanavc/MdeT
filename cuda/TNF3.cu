@@ -253,27 +253,23 @@ static size_t *seqs_d_index[2];
 size_t nobs_cont;
 size_t kernel_cont;
 std::vector<double *> TNF;
-cudaStream_t _s[2];
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
-    char *seqs_d;
+    char * seqs_d;
     cudaMallocHost((void **)&TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
-    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
-    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
-                    _s[SUBP_IND]);
-    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                    n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
-                    _s[SUBP_IND]); // seqs_index
-    get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size,
-                                                 contig_per_thread);
-    cudaFreeAsync(seqs_d, _s[SUBP_IND]);
-    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
-                    cudaMemcpyDeviceToHost, _s[SUBP_IND]);
-    cudaStreamSynchronize(_s[SUBP_IND]);
+    cudaMalloc(&seqs_d, seqs_kernel[SUBP_IND].size());
+    cudaMemcpy(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
+               n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice, ); // seqs_index
+    get_TNF<<<grdDim, blkDim>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
+    cudaFree(seqs_d);
+    cudaMemcpy(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
+               cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize(0);
     // más eficiente que asignación
     seqs_kernel[SUBP_IND].clear();
 }
@@ -322,7 +318,6 @@ int main(int argc, char const *argv[])
     kernel_cont = 0;
     for (int i = 0; i < 2; i++)
     {
-        cudaStreamCreate(&_s[i]);
         cudaMallocHost((void **)&seqs_kernel_index[i], n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
         // seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
@@ -341,7 +336,7 @@ int main(int argc, char const *argv[])
     else
     {
         const size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
-        //const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
+        // const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
         kseq_t *kseq = kseq_init(f);
         int64_t len;
 
