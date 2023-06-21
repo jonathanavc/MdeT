@@ -329,6 +329,7 @@ int main(int argc, char const *argv[])
 
     size_t nobs = 0;
     int nresv = 0;
+    int aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
@@ -336,7 +337,6 @@ int main(int argc, char const *argv[])
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
     }
-    int aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
     else
     {
         size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
