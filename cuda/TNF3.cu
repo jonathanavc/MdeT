@@ -336,18 +336,19 @@ int main(int argc, char const *argv[])
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
     }
+    int aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
     else
     {
         size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
         kseq_t *kseq = kseq_init(f);
         int64_t len;
-        //int _min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
+
         while ((len = kseq_read(kseq)) > 0)
         {
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
+                if (len >= aux_min)
                 {
                     if (len < (int)minContig)
                     {
@@ -376,7 +377,7 @@ int main(int argc, char const *argv[])
                 {
                     TNF.emplace_back((double *)0);
                     SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-                    SUBP_IND = (SUBP_IND + 1) % 2;
+                    SUBP_IND = (SUBP_IND + 1) & 1;
                     kernel_cont++;
                     nobs_cont = 0;
 
