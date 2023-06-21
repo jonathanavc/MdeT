@@ -260,10 +260,12 @@ size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
+    size_t i = 0;
     for (std::string const &contig : vec_seqs_kernel[SUBP_IND])
     {
         seqs_kernel[SUBP_IND] += contig;
-        seqs_kernel_index[SUBP_IND].emplace_back(seqs_kernel[SUBP_IND].size());
+        seqs_kernel_index[SUBP_IND][i] = seqs_kernel[SUBP_IND].size();
+        i++;
     }
 
     char *seqs_d;
@@ -282,7 +284,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     cudaStreamSynchronize(_s[SUBP_IND]);
     // más eficiente que asignación
     seqs_kernel[SUBP_IND].clear();
-    vec_seqs_kernel.clear();
+    vec_seqs_kernel[SUBP_IND].clear();
 }
 
 int main(int argc, char const *argv[])
