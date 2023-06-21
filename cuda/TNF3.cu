@@ -350,11 +350,11 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= std::min(minContigByCorr, minContigByCorrForGraph))
+                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
-                    if (len < minContig)
+                    if (len < (int)minContig)
                     {
-                        if (len >= minContigByCorr)
+                        if (len >= (int)minContigByCorr)
                         {
                             // smallCtgs.insert(1);
                         }
@@ -373,7 +373,7 @@ int main(int argc, char const *argv[])
                     // ignored[kseq->name.s] = seqs.size();
                 }
                 // contig_names.push_back(kseq->name.s);
-                seqs.push_back(kseq->seq.s);
+                seqs.emplace_back(kseq->seq.s);
 
                 if (nobs_cont == contigs_target)
                 {
