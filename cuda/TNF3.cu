@@ -259,21 +259,21 @@ size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
-    cudaStream_t _s[4];
-    for (int i = 0; i < 4; i++)
+    cudaStream_t _s[3];
+    for (int i = 0; i < 3; i++)
         cudaStreamCreate(&_s[i]);
     char *seqs_d;
-    cudaMallocHostAsync((void **)&TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double), _s[0]);
+    cudaMallocHost((void **)&TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
-    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[1]);
-    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[2]);
+    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[0]);
+    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s[1]);
     cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
                     n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
-                    _s[3]); // seqs_index
-    for (int i = 0; i < 4; i++)
+                    _s[2]); // seqs_index
+    for (int i = 0; i < 3; i++)
         cudaStreamSynchronize(_s[i]);
     get_TNF<<<grdDim, blkDim, 0, _s[0]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
-    cudaStreamSynchronize(&_s[0]);
+    cudaStreamSynchronize(_s[0]);
     cudaFreeAsync(seqs_d, _s[0]);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
                     cudaMemcpyDeviceToHost, _s[1]);
