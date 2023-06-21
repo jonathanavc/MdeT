@@ -331,6 +331,7 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < 2; i++)
     {
+        vec_seqs_kernel[i].reserve(contigs_target);
         cudaStreamCreate(&_s[i]);
         seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
