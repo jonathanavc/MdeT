@@ -341,7 +341,6 @@ int main(int argc, char const *argv[])
     else
     {
         const size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
-        const int _min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
         //const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
         kseq_t *kseq = kseq_init(f);
         int64_t len;
@@ -351,7 +350,7 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= _min)
+                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
                     if (len < (int)minContig)
                     {
