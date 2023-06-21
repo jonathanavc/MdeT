@@ -341,13 +341,13 @@ int main(int argc, char const *argv[])
         size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
         kseq_t *kseq = kseq_init(f);
         int64_t len;
-        int _min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
+        //int _min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
         while ((len = kseq_read(kseq)) > 0)
         {
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= _min)
+                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
                 {
                     if (len < (int)minContig)
                     {
