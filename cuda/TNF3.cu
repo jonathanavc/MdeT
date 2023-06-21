@@ -252,7 +252,7 @@ static size_t *seqs_d_index[2];
 
 size_t nobs_cont;
 size_t kernel_cont;
-size_t global_contigs_target;
+static size_t global_contigs_target;
 std::vector<double *> TNF;
 cudaStream_t _s[2];
 std::string seqs_kernel[2];
