@@ -442,7 +442,7 @@ int main(int argc, char const *argv[])
         cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++)
     {
-        free(seqs_kernel_index[i]);
+        cudaFreeHost(seqs_kernel_index[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
     }
