@@ -438,7 +438,7 @@ int main(int argc, char const *argv[])
     out.close();
 
     for (int i = 0; i < TNF.size(); i++)
-        free(TNF[i]);
+        cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++)
     {
         free(seqs_kernel_index[i]);
