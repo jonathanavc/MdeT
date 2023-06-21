@@ -260,8 +260,8 @@ size_t *seqs_kernel_index[2];
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
     char *seqs_d;
-    cudaMallocHost((void**) &TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
-    //TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
+    cudaMallocHost((void **)&TNF[cont], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
+    // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
     cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
                     _s[SUBP_IND]);
@@ -269,7 +269,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
                     n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
                     _s[SUBP_IND]); // seqs_index
     get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size,
-                                                       contig_per_thread);
+                                                 contig_per_thread);
     cudaFreeAsync(seqs_d, _s[SUBP_IND]);
     cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
                     cudaMemcpyDeviceToHost, _s[SUBP_IND]);
@@ -323,15 +323,14 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < 2; i++)
     {
         cudaStreamCreate(&_s[i]);
-        cudaMallocHost((void**)&seqs_kernel_index[i], n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
-        //seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
+        cudaMallocHost((void **)&seqs_kernel_index[i], n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
+        // seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
         cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
     }
 
     size_t nobs = 0;
     int nresv = 0;
-    
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
@@ -342,6 +341,7 @@ int main(int argc, char const *argv[])
     else
     {
         const size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
+        const size_t min_comp = std::min(minContigByCorr, minContigByCorrForGraph);
         kseq_t *kseq = kseq_init(f);
         int64_t len;
 
@@ -350,11 +350,11 @@ int main(int argc, char const *argv[])
             std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
             if (kseq->name.l > 0)
             {
-                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
+                if (len >= min_comp)
                 {
-                    if (len < (int)minContig)
+                    if (len < minContig)
                     {
-                        if (len >= (int)minContigByCorr)
+                        if (len >= minContigByCorr)
                         {
                             // smallCtgs.insert(1);
                         }
@@ -385,9 +385,7 @@ int main(int argc, char const *argv[])
 
                     // si aún no se ha terminado la ejecición la siguiente hebra se espera a ella.
                     if (SUBPS[SUBP_IND].joinable())
-                    {
                         SUBPS[SUBP_IND].join();
-                    }
                 }
             }
         }
