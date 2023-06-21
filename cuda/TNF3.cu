@@ -318,7 +318,7 @@ int main(int argc, char const *argv[])
     dim3 blkDim(n_THREADS, 1, 1);
     dim3 grdDim(n_BLOCKS, 1, 1);
 
-    global_contigs_target = contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
+    global_contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
 
     int SUBP_IND = 0;
     nobs_cont = 0;
