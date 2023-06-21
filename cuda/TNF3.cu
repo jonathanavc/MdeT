@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <fstream>
 #include <iostream>
+#include <pthread.h>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
