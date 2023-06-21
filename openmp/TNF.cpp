@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
         n_THREADS = atoi(argv[1]);
         if (argc > 2)
         {
-            inFile = argv[3];
+            inFile = argv[2];
         }
     }
 

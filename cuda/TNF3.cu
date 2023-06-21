@@ -349,7 +349,7 @@ int main(int argc, char const *argv[])
                     {
                         if (len >= (int)minContigByCorr)
                         {
-                            smallCtgs.insert(1);
+                            //smallCtgs.insert(1);
                         }
                         else
                         {
