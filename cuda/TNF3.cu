@@ -250,23 +250,15 @@ static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 double *TNF_d[2];
 static size_t *seqs_d_index[2];
 
+size_t nobs_cont;
 size_t kernel_cont;
 std::vector<double *> TNF;
 cudaStream_t _s[2];
-std::vector<std::string> vec_seqs_kernel[2];
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
 {
-    size_t i = 0;
-    for (std::string const &contig : vec_seqs_kernel[SUBP_IND])
-    {
-        seqs_kernel[SUBP_IND] += contig;
-        seqs_kernel_index[SUBP_IND][i] = seqs_kernel[SUBP_IND].size();
-        i++;
-    }
-
     char *seqs_d;
     TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
     cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
@@ -283,7 +275,6 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
     cudaStreamSynchronize(_s[SUBP_IND]);
     // más eficiente que asignación
     seqs_kernel[SUBP_IND].clear();
-    vec_seqs_kernel[SUBP_IND].clear();
 }
 
 int main(int argc, char const *argv[])
@@ -326,12 +317,10 @@ int main(int argc, char const *argv[])
     dim3 grdDim(n_BLOCKS, 1, 1);
 
     int SUBP_IND = 0;
+    nobs_cont = 0;
     kernel_cont = 0;
-    size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
-
     for (int i = 0; i < 2; i++)
     {
-        vec_seqs_kernel[i].reserve(contigs_target);
         cudaStreamCreate(&_s[i]);
         seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
         cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
@@ -339,7 +328,7 @@ int main(int argc, char const *argv[])
     }
 
     size_t nobs = 0;
-    int nresv = 0;    
+    int nresv = 0;
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
@@ -349,7 +338,7 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        
+        size_t contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
         kseq_t *kseq = kseq_init(f);
         int64_t len;
         while ((len = kseq_read(kseq)) > 0)
@@ -370,8 +359,10 @@ int main(int argc, char const *argv[])
                             ++nresv;
                         }
                     }
+                    seqs_kernel[SUBP_IND] += kseq->seq.s;
+                    seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
                     nobs++;
-                    vec_seqs_kernel[SUBP_IND].emplace_back(kseq->seq.s);
+                    nobs_cont++;
                 }
                 else
                 {
@@ -380,16 +371,19 @@ int main(int argc, char const *argv[])
                 // contig_names.push_back(kseq->name.s);
                 seqs.push_back(kseq->seq.s);
 
-                if (vec_seqs_kernel[SUBP_IND].size() == contigs_target)
+                if (nobs_cont == contigs_target)
                 {
                     TNF.emplace_back((double *)0);
-                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND].size());
+                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
                     SUBP_IND = (SUBP_IND + 1) % 2;
                     kernel_cont++;
+                    nobs_cont = 0;
 
                     // si aún no se ha terminado la ejecición la siguiente hebra se espera a ella.
                     if (SUBPS[SUBP_IND].joinable())
+                    {
                         SUBPS[SUBP_IND].join();
+                    }
                 }
             }
         }
@@ -397,12 +391,13 @@ int main(int argc, char const *argv[])
         kseq = NULL;
         gzclose(f);
     }
-    if (vec_seqs_kernel[SUBP_IND].size() != 0)
+    if (nobs_cont != 0)
     {
         TNF.emplace_back((double *)0);
-        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, vec_seqs_kernel[SUBP_IND].size());
+        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         SUBP_IND = (SUBP_IND + 1) % 2;
         kernel_cont++;
+        nobs_cont = 0;
     }
     // se esperan a las hebras restantes
     for (int i = 0; i < 2; i++)
