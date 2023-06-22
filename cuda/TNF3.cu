@@ -77,7 +77,7 @@ __device__ __host__ int get_tn(const char *contig, size_t index) {
 }
 //esto mejoró bastante 
 ///*
-__device__ unsigned char get_revComp_tn_d(int tn) {
+__device__ int get_revComp_tn_d(int tn) {
   unsigned char comp = 192;
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
@@ -85,6 +85,7 @@ __device__ unsigned char get_revComp_tn_d(int tn) {
     rctn += tn & comp;
     tn = tn << 2;
   }
+  return rctn;
 }
 //*/
 
@@ -138,6 +139,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
           ++TNF_d[contig_index * n_TNF_d + TNmap_d[tn]];
+          continue;
         }
 
         //tn = get_revComp_tn_d(contig, j);
