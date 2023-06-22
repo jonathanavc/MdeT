@@ -135,7 +135,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
           ++TNF_d[contig_index * n_TNF_d + TNmap_d[tn]];
         }
 
-        tn = get_revComp_tn_d(contig, j);
+        tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
