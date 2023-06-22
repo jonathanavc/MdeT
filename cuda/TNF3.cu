@@ -79,9 +79,9 @@ __device__ unsigned char get_revComp_tn_d(const char tn) {
   unsigned char comp = 192;
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
-    rctn >> 2;
-    rctn += tn && 192;
-    tn << 2;
+    rctn = rctn >> 2;
+    rctn += tn && comp;
+    tn = tn << 2;
   }
 }
 
