@@ -78,7 +78,6 @@ __device__ __host__ int get_tn(const char *contig, size_t index) {
 //esto mejoró bastante 
 ///*
 __device__ short get_revComp_tn_d(short tn) {
-  unsigned char nucl;
   unsigned char comp = 3;
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
