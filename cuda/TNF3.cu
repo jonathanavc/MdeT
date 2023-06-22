@@ -56,8 +56,8 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
   return seqs_d + contig_beg;
 }
 
-__device__ __host__ int get_tn(const char *contig, size_t index) {
-  unsigned char tn = 0;
+__device__ __host__ short get_tn(const char *contig, size_t index) {
+  short tn = 0;
   for (short i = 0; i < 4; i++) {
     char N = contig[index + i];
     if (N == 'A')
@@ -75,20 +75,15 @@ __device__ __host__ int get_tn(const char *contig, size_t index) {
   }
   return tn;
 }
-// esto mejoró bastante
-///*
-__device__ int get_revComp_tn_d(int tn) {
-  //unsigned char nucl;
-  unsigned char comp = 3;
+// esto mejoró bastante el rendimento
+__device__ short get_revComp_tn_d(short tn) {
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
-    // rctn = rctn << 2;
-    rctn = (rctn << 2) + (((tn & comp) + 2) % 4);
+    rctn = (rctn << 2) + (((tn & 3) + 2) % 4);
     tn = tn >> 2;
   }
   return rctn;
 }
-//*/
 
 /*
 __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
@@ -133,7 +128,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        int tn = get_tn(contig, j);
+        short tn = get_tn(contig, j);
         if (tn == 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
@@ -186,7 +181,8 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        unsigned char tn = get_tn(contig, j);
+        short tn = get_tn(contig, j);
+        if (tn == 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
