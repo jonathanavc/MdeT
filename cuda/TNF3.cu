@@ -95,12 +95,14 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
+    const size_t tnf_index = contig_index * n_TNF_d;
     if (contig_index >= nobs) break;
-    for (int j = 0; j < n_TNF_d; j++) TNF_d[contig_index * n_TNF_d + j] = 0;
+    for (int j = 0; j < n_TNF_d; j++) TNF_d[tnf_index + j] = 0;
   }
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
+    const size_t tnf_index = contig_index * n_TNF_d;
     if (contig_index >= nobs) break;
     size_t contig_size = seqs_d_index[contig_index];
     if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
@@ -113,7 +115,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
-          ++TNF_d[contig_index * n_TNF_d + TNmap_d[tn]];
+          ++TNF_d[tnf_index + TNmap_d[tn]];
           continue;
         }
 
@@ -123,18 +125,18 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
           if (TNmap_d[tn] != n_TNF_d) {
-            ++TNF_d[contig_index * n_TNF_d + TNmap_d[tn]];
+            ++TNF_d[tnf_index + TNmap_d[tn]];
           }
         }
       }
       double rsum = 0;
       for (size_t c = 0; c < n_TNF_d; ++c) {
-        rsum += TNF_d[contig_index * n_TNF_d + c] *
-                TNF_d[contig_index * n_TNF_d + c];
+        rsum += TNF_d[tnf_index + c] *
+                TNF_d[tnf_index + c];
       }
       rsum = sqrt(rsum);
       for (size_t c = 0; c < n_TNF_d; ++c) {
-        TNF_d[contig_index * n_TNF_d + c] /= rsum;  // OK
+        TNF_d[tnf_index + c] /= rsum;  // OK
       }
     }
   }
