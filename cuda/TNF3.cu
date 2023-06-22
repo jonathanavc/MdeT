@@ -76,6 +76,7 @@ __device__ __host__ unsigned char get_tn(const char *contig, size_t index) {
   return tn;
 }
 //esto mejoró bastante 
+/*
 __device__ unsigned char get_revComp_tn_d(unsigned char tn) {
   unsigned char comp = 192;
   unsigned char rctn = 0;
@@ -85,8 +86,8 @@ __device__ unsigned char get_revComp_tn_d(unsigned char tn) {
     tn = tn << 2;
   }
 }
+*/
 
-/*
 __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
   unsigned char tn = 0;
   for (int i = 3; i >= 0; i--) {
@@ -105,7 +106,6 @@ __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
   }
   return tn;
 }
-*/
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
@@ -136,7 +136,8 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
           ++TNF_d[contig_index * n_TNF_d + TNmap_d[tn]];
         }
 
-        tn = get_revComp_tn_d(tn);
+        tn = get_revComp_tn_d(contig, j);
+        //tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
@@ -186,7 +187,8 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
           ++TNF_temp[TNmap_d[tn]];
         }
 
-        tn = get_revComp_tn_d(tn);
+        tn = get_revComp_tn_d(contig, j);
+        //tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
