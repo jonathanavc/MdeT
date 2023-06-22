@@ -75,7 +75,17 @@ __device__ __host__ unsigned char get_tn(const char *contig, size_t index) {
   }
   return tn;
 }
+__device__ unsigned char get_revComp_tn_d(const char tn) {
+  unsigned char comp = 192;
+  unsigned char rctn = 0;
+  for(i = 0; i< 4; i++){
+    rctn>>2;
+    rctn += tn && 192;
+    tn<<2;
+  }
+}
 
+/*
 __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
   unsigned char tn = 0;
   for (int i = 3; i >= 0; i--) {
@@ -94,6 +104,7 @@ __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
   }
   return tn;
 }
+*/
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
