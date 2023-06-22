@@ -56,7 +56,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
   return seqs_d + contig_beg;
 }
 
-__device__ __host__ short get_tn(const char *contig, size_t index) {
+__device__ __host__ short get_tn(const char *contig, const size_t index) {
   short tn = 0;
   for (short i = 0; i < 4; i++) {
     char N = contig[index + i];
@@ -85,27 +85,6 @@ __device__ short get_revComp_tn_d(short tn) {
   }
   return rctn;
 }
-
-/*
-__device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
-  unsigned char tn = 0;
-  for (int i = 3; i >= 0; i--) {
-    char N = contig[index + i];
-    if (N == 'A')
-      N = 2;
-    else if (N == 'C')
-      N = 3;
-    else if (N == 'T')
-      N = 0;
-    else if (N == 'G')
-      N = 1;
-    else
-      return 170;  // no existe en TNmap[]
-    tn = (tn << 2) + N;
-  }
-  return tn;
-}
-*/
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
