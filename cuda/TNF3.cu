@@ -185,7 +185,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
           ++TNF_temp[TNmap_d[tn]];
         }
 
-        tn = get_revComp_tn_d(contig, j);
+        tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
