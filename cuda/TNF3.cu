@@ -77,7 +77,7 @@ __device__ __host__ int get_tn(const char *contig, size_t index) {
 }
 //esto mejoró bastante 
 ///*
-__device__ int get_revComp_tn_d(int tn) {
+__device__ short get_revComp_tn_d(short tn) {
   unsigned char nucl;
   unsigned char comp = 3;
   unsigned char rctn = 0;
@@ -133,7 +133,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        int tn = get_tn(contig, j);
+        short tn = get_tn(contig, j);
         if(tn == 256)
           continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
@@ -187,7 +187,9 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        unsigned char tn = get_tn(contig, j);
+        int tn = get_tn(contig, j);
+        if(tn == 256)
+          continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
