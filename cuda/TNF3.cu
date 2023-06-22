@@ -75,7 +75,7 @@ __device__ __host__ int get_tn(const char *contig, size_t index) {
   }
   return tn;
 }
-//esto mejoró bastante 
+// esto mejoró bastante
 ///*
 __device__ int get_revComp_tn_d(int tn) {
   unsigned char nucl;
@@ -83,7 +83,16 @@ __device__ int get_revComp_tn_d(int tn) {
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
     rctn = rctn << 2;
-    rctn = (tn & comp + 2) % 4;
+    nucl = tn & comp;
+    if (nucl == 0) {
+      rctn += 2;
+    } else if (nucl == 1) {
+      rctn += 3;
+    } else if (nucl == 2) {
+      rctn += 0;
+    } else {
+      rctn += 1;
+    }
     tn = tn >> 2;
   }
   return rctn;
@@ -134,8 +143,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
         int tn = get_tn(contig, j);
-        if(tn == 256)
-          continue;
+        if (tn == 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
@@ -143,7 +151,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
           continue;
         }
 
-        //tn = get_revComp_tn_d(contig, j);
+        // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
@@ -194,7 +202,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
           ++TNF_temp[TNmap_d[tn]];
         }
 
-        //tn = get_revComp_tn_d(contig, j);
+        // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
