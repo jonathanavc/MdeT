@@ -71,7 +71,7 @@ __device__ __host__ short get_tn(const char *contig, size_t index) {
     else
       return 256;  // no existe en TNmap[]
 
-    tn = (tn << 2) + N;
+    tn = (tn << 2) | N;
   }
   return tn;
 }
@@ -80,7 +80,7 @@ __device__ __host__ short get_tn(const char *contig, size_t index) {
 __device__ short get_revComp_tn_d(short tn) {
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
-    rctn = (rctn << 2) + (((tn & 3) + 2) % 4);
+    rctn = (rctn << 2) | (((tn & 3) + 2) % 4);
     tn = tn >> 2;
   }
   return rctn;
