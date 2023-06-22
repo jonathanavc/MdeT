@@ -60,18 +60,20 @@ __device__ __host__ short get_tn(const char *contig, size_t index) {
   short tn = 0;
   for (short i = 0; i < 4; i++) {
     char N = contig[index + i];
-    if (N == 'A')
-      N = 0;
+    if (N == 'A') tn = (tn << 2);
+    // N = 0;
     else if (N == 'C')
-      N = 1;
+      tn = (tn << 2) | 1;
+    // N = 1;
     else if (N == 'T')
-      N = 2;
+      tn = (tn << 2) | 2;
+    // N = 2;
     else if (N == 'G')
-      N = 3;
+      tn = (tn << 2) | 3;
+    // N = 3;
     else
       return 256;  // no existe en TNmap[]
-
-    tn = (tn << 2) + N;
+    // tn = (tn << 2) + N;
   }
   return tn;
 }
