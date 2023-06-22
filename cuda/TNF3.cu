@@ -76,6 +76,27 @@ __device__ __host__ short get_tn(const char *contig, size_t index) {
   return tn;
 }
 // esto mejoró bastante el rendimento
+__device__ int get_revComp_tn_d(int tn) {
+  unsigned char nucl;
+  unsigned char rctn = 0;
+  for (short i = 0; i < 4; i++) {
+    rctn = rctn << 2;
+    nucl = tn & comp;
+    if (nucl == 0) {
+      rctn += 2;
+    } else if (nucl == 1) {
+      rctn += 3;
+    } else if (nucl == 2) {
+      rctn += 0;
+    } else {
+      rctn += 1;
+    }
+    tn = tn >> 2;
+  }
+  return rctn;
+}
+
+/*
 __device__ short get_revComp_tn_d(short tn) {
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
@@ -84,6 +105,7 @@ __device__ short get_revComp_tn_d(short tn) {
   }
   return rctn;
 }
+*/
 
 /*
 __device__ unsigned char get_revComp_tn_d(const char *contig, size_t index) {
