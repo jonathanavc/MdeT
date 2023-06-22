@@ -89,18 +89,16 @@ __device__ short get_revComp_tn_d(short tn) {
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
                         size_t contigs_per_thread) {
-  size_t minContig = 2500;
-  size_t minContigByCorr = 1000;
-  size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+  const size_t minContig = 2500;
+  const size_t minContigByCorr = 1000;
+  const size_t contig_index = ((threadIdx.x + blockIdx.x * blockDim.x) * contigs_per_thread) + i;
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
-    size_t contig_index = (thead_id * contigs_per_thread) + i;
     if (contig_index >= nobs) break;
     for (int j = 0; j < n_TNF_d; j++) TNF_d[contig_index * n_TNF_d + j] = 0;
   }
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
-    size_t contig_index = (thead_id * contigs_per_thread) + i;
     if (contig_index >= nobs) break;
     size_t contig_size = seqs_d_index[contig_index];
     if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
