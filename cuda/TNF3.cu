@@ -83,7 +83,7 @@ __device__ int get_revComp_tn_d(int tn) {
   unsigned char rctn = 0;
   for (short i = 0; i < 4; i++) {
     // rctn = rctn << 2;
-    rctn = (rctn << 2) + (((tn & comp) + 2) % 4);
+    rctn += (rctn << 2) + (((tn & comp) + 2) % 4);
     tn = tn >> 2;
   }
   return rctn;
