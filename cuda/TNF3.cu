@@ -327,7 +327,7 @@ int main(int argc, char const *argv[]) {
         // contig_names.push_back(kseq->name.s);
         seqs.push_back(kseq->seq.s);
 
-        if (nobs_cont == contigs_target) {
+        if (nobs_cont & contigs_target) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
                                         kernel_cont, nobs_cont);
