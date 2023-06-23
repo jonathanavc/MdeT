@@ -216,10 +216,10 @@ cudaStream_t _s[2];
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
-void kernel(const dim3 blkDim, const dim3 grdDim, const int SUBP_IND,
-            const int cont, const int size, const size_t contigs_target) {
+void kernel(const dim3 blkDim, const dim3 grdDim, const int SUBP_IND, const int cont, const int size) {
   char *seqs_d;
-  cudaMallocHost((void **)&TNF[cont], contigs_target * n_TNF * sizeof(double));
+  cudaMallocHost((void **)&TNF[cont],
+                 global_contigs_target * n_TNF * sizeof(double));
   // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread *
   // n_TNF * sizeof(double));
   cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
@@ -227,13 +227,14 @@ void kernel(const dim3 blkDim, const dim3 grdDim, const int SUBP_IND,
                   seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
                   _s[SUBP_IND]);
   cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                  contigs_target * sizeof(size_t), cudaMemcpyHostToDevice,
+                  global_contigs_target * sizeof(size_t),
+                  cudaMemcpyHostToDevice,
                   _s[SUBP_IND]);  // seqs_index
   get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
   cudaFreeAsync(seqs_d, _s[SUBP_IND]);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
-                  contigs_target * n_TNF * sizeof(double),
+                  global_contigs_target * n_TNF * sizeof(double),
                   cudaMemcpyDeviceToHost, _s[SUBP_IND]);
   cudaStreamSynchronize(_s[SUBP_IND]);
   // más eficiente que asignación
@@ -327,7 +328,7 @@ int main(int argc, char const *argv[]) {
         if (nobs_cont & contigs_target) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                        kernel_cont, nobs_cont, contigs_target);
+                                        kernel_cont, nobs_cont);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
           nobs_cont = 0;
@@ -344,8 +345,8 @@ int main(int argc, char const *argv[]) {
   }
   if (nobs_cont != 0) {
     TNF.push_back((double *)0);
-    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont,
-                                  nobs_cont, global_contigs_target);
+    SUBPS[SUBP_IND] =
+        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     SUBP_IND = (SUBP_IND + 1) & 2;
     kernel_cont++;
     nobs_cont = 0;
