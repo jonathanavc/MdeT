@@ -68,7 +68,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
   return seqs_d + contig_beg;
 }
 
-__device__ __host__ short get_tn_d(const char *contig, const size_t index) {
+__device__ short get_tn_d(const char *contig, const size_t index) {
   short tn = 0;
   for (short i = 0; i < 4; i++) {
     char N = BN[contig[index + i]];
