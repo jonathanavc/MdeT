@@ -13,7 +13,7 @@
 
 #include "../extra/KseqReader.h"
 
-__device__ __constant__ const int n_TNF_d = 136;
+__device__ __constant__ int n_TNF_d = 136;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,
@@ -149,9 +149,9 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
                               const size_t *seqs_d_index, size_t nobs,
                               size_t contigs_per_thread) {
-  size_t minContig = 2500;
-  size_t minContigByCorr = 1000;
-  size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+  const size_t minContig = 2500;
+  const size_t minContigByCorr = 1000;
+  const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
   // crea un tnf de forma local
   double TNF_temp[136];
 
@@ -159,7 +159,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     for (int j = 0; j < n_TNF_d; j++) {
       TNF_temp[j] = 0;
     }
-    size_t contig_index = (thead_id * contigs_per_thread) + i;
+    const size_t contig_index = (thead_id * contigs_per_thread) + i;
     if (contig_index >= nobs) break;
     size_t contig_size = seqs_d_index[contig_index];
     if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
@@ -267,7 +267,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
                   global_contigs_target * sizeof(size_t),
                   cudaMemcpyHostToDevice,
                   _s[SUBP_IND]);  // seqs_index
-  get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
+  get_TNF_local<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
   cudaFreeAsync(seqs_d, _s[SUBP_IND]);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
