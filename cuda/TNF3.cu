@@ -48,7 +48,7 @@ __device__ __constant__ unsigned char TNPmap_d[256] = {
 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 */
-__device__ __constant__ char BN[256] = {
+__device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
@@ -135,7 +135,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        short tn = get_tn(contig, j);
+        short tn = get_tn_d(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         if (TNmap_d[tn] != n_TNF_d) {
@@ -192,7 +192,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        short tn = get_tn(contig, j);
+        short tn = get_tn_d(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
