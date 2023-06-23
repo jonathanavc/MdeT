@@ -13,7 +13,7 @@
 
 #include "../extra/KseqReader.h"
 
-__device__ __constant__ int n_TNF_d = 136;
+__device__ __constant__ const int n_TNF_d = 136;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,
@@ -127,7 +127,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         short tn = get_tn(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
-        if (TNmap_d[tn] != n_TNF_d) {
+        if (!(TNmap_d[tn] == n_TNF_d)) {
           ++TNF_d[tnf_index + TNmap_d[tn]];
           continue;
         }
@@ -135,7 +135,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
-        if (TNmap_d[tn] != n_TNF_d) {
+        if (!(TNmap_d[tn] == n_TNF_d)) {
           ++TNF_d[tnf_index + TNmap_d[tn]];
         }
 
