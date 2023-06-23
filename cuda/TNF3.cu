@@ -301,18 +301,15 @@ int main(int argc, char const *argv[]) {
     return 1;
   } else {
     const size_t contigs_target = global_contigs_target;
-    // const size_t min_comp = std::min(minContigByCorr,
-    // minContigByCorrForGraph);
     kseq_t *kseq = kseq_init(f);
-    int64_t len;
-    int64_t aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
+    size_t len;
 
     while ((len = kseq_read(kseq)) > 0) {
       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
       if (kseq->name.l > 0) {
-        if (len >= aux_min) {
-          if (len < (int)minContig) {
-            if (len >= (int)minContigByCorr) {
+        if (len >= std::min(minContigByCorr, minContigByCorrForGraph)) {
+          if (len < minContig) {
+            if (len >= minContigByCorr) {
               // smallCtgs.insert(1);
             } else {
               ++nresv;
