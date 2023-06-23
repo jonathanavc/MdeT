@@ -118,21 +118,26 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
           ++TNF_d[tnf_index + TNmap_d[tn]];
           continue;
         }
-
+        
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
+        if (TNmap_d[tn] != n_TNF_d) {
+          ++TNF_d[tnf_index + TNmap_d[tn]];
+        }
+
+        /*
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
           if (TNmap_d[tn] != n_TNF_d) {
             ++TNF_d[tnf_index + TNmap_d[tn]];
           }
         }
+        */
       }
       double rsum = 0;
       for (size_t c = 0; c < n_TNF_d; ++c) {
-        rsum += TNF_d[tnf_index + c] *
-                TNF_d[tnf_index + c];
+        rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
       }
       rsum = sqrt(rsum);
       for (size_t c = 0; c < n_TNF_d; ++c) {
