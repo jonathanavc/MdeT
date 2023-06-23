@@ -46,7 +46,7 @@ __device__ __constant__ unsigned char TNPmap_d[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-__device__ __host__ __constant__ unsigned char BN[4] = {
+__device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
@@ -68,7 +68,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
   return seqs_d + contig_beg;
 }
 
-__device__ __host__ short get_tn(const char *contig, const size_t index) {
+__device__ __host__ short get_tn_d(const char *contig, const size_t index) {
   short tn = 0;
   for (short i = 0; i < 4; i++) {
     char N = BN[contig[index + i]];
@@ -78,7 +78,6 @@ __device__ __host__ short get_tn(const char *contig, const size_t index) {
   return tn;
 }
 
-/*
 __device__ __host__ short get_tn(const char *contig, const size_t index) {
   short tn = 0;
   for (short i = 0; i < 4; i++) {
@@ -98,7 +97,6 @@ __device__ __host__ short get_tn(const char *contig, const size_t index) {
   }
   return tn;
 }
-*/
 
 // esto mejoró "bastante" el rendimento
 __device__ short get_revComp_tn_d(short tn) {
@@ -134,7 +132,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        short tn = get_tn(contig, j);
+        short tn = get_tn_d(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         if (TNmap_d[tn] != n_TNF_d) {
@@ -191,7 +189,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
-        short tn = get_tn(contig, j);
+        short tn = get_tn_d(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
