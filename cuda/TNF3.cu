@@ -329,7 +329,7 @@ int main(int argc, char const *argv[]) {
         if (nobs % contigs_target == 0) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                        kernel_cont, nobs_cont);
+                                        kernel_cont, nobs % contigs_target);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
           //nobs_cont = 0;
@@ -347,7 +347,7 @@ int main(int argc, char const *argv[]) {
   if (nobs % global_contigs_target != 0) {
     TNF.push_back((double *)0);
     SUBPS[SUBP_IND] =
-        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
+        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs % contigs_target);
     SUBP_IND = (SUBP_IND + 1) & 2;
     kernel_cont++;
     //nobs_cont = 0;
