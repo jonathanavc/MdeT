@@ -13,8 +13,7 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 
 tiempos = {}
 
-
-
+'''
 #OMP
 tiempos['omp'] = {
     'n_threads':{
@@ -65,6 +64,8 @@ for bloq in cuda_bloqs:
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
             tiempos['cuda2']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores
+
+'''
 
 #CUDA V3
 tiempos['cuda3'] = {
