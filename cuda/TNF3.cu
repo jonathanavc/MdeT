@@ -230,18 +230,16 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
   cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(),
                   seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
                   _s[SUBP_IND][0]);
-  for (int i = 0; i < 2; i++)
-    cudaStreamSynchronize(_s[SUBP_IND][i]);
-  
+  for (int i = 0; i < 2; i++) cudaStreamSynchronize(_s[SUBP_IND][i]);
+
   get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND][0]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
                   global_contigs_target * n_TNF * sizeof(double),
                   cudaMemcpyDeviceToHost, _s[SUBP_IND][0]);
   cudaFreeAsync(seqs_d, _s[SUBP_IND][1]);
-  
-  for (int i = 0; i < 2; i++)
-    cudaStreamSynchronize(_s[SUBP_IND][i]);
+
+  for (int i = 0; i < 2; i++) cudaStreamSynchronize(_s[SUBP_IND][i]);
   // más eficiente que asignación
   seqs_kernel[SUBP_IND].clear();
 }
@@ -288,8 +286,7 @@ int main(int argc, char const *argv[]) {
   nobs_cont = 0;
   kernel_cont = 0;
   for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 2; j++)
-      cudaStreamCreate(&_s[i][j]);
+    for (int j = 0; j < 2; j++) cudaStreamCreate(&_s[i][j]);
     cudaMallocHost((void **)&seqs_kernel_index[i],
                    global_contigs_target * sizeof(size_t));
     cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
@@ -392,8 +389,7 @@ int main(int argc, char const *argv[]) {
     cudaFreeHost(seqs_kernel_index[i]);
     cudaFree(TNF_d[i]);
     cudaFree(seqs_d_index[i]);
-    for (int j = 0; j < 2; j++)
-      cudaStreamDestroy(_s[i][j]);
+    for (int j = 0; j < 2; j++) cudaStreamDestroy(_s[i][j]);
   }
   return 0;
 }
