@@ -212,31 +212,36 @@ size_t nobs_cont;
 size_t kernel_cont;
 static size_t global_contigs_target;
 std::vector<double *> TNF;
-cudaStream_t _s[2];
+cudaStream_t _s[2][2];
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
-void kernel(const dim3 blkDim, const dim3 grdDim, const int SUBP_IND, const int cont, const int size) {
+void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
   char *seqs_d;
   cudaMallocHost((void **)&TNF[cont],
                  global_contigs_target * n_TNF * sizeof(double));
   // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread *
   // n_TNF * sizeof(double));
-  cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
-  cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(),
-                  seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
-                  _s[SUBP_IND]);
+  cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND][0]);
   cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
                   global_contigs_target * sizeof(size_t),
                   cudaMemcpyHostToDevice,
-                  _s[SUBP_IND]);  // seqs_index
-  get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
+                  _s[SUBP_IND][1]);  // seqs_index
+  cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(),
+                  seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
+                  _s[SUBP_IND][0]);
+  for (int i = 0; i < 2; i++)
+    cudaStreamSynchronize(_s[SUBP_IND][i]);
+  
+  get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND][0]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
-  cudaFreeAsync(seqs_d, _s[SUBP_IND]);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
                   global_contigs_target * n_TNF * sizeof(double),
-                  cudaMemcpyDeviceToHost, _s[SUBP_IND]);
-  cudaStreamSynchronize(_s[SUBP_IND]);
+                  cudaMemcpyDeviceToHost, _s[SUBP_IND][0]);
+  cudaFreeAsync(seqs_d, _s[SUBP_IND][1]);
+  
+  for (int i = 0; i < 2; i++)
+    cudaStreamSynchronize(_s[SUBP_IND][i]);
   // más eficiente que asignación
   seqs_kernel[SUBP_IND].clear();
 }
@@ -283,7 +288,8 @@ int main(int argc, char const *argv[]) {
   nobs_cont = 0;
   kernel_cont = 0;
   for (int i = 0; i < 2; i++) {
-    cudaStreamCreate(&_s[i]);
+    for (int j = 0; j < 2; j++)
+      cudaStreamCreate(&_s[i][j]);
     cudaMallocHost((void **)&seqs_kernel_index[i],
                    global_contigs_target * sizeof(size_t));
     // seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS *
