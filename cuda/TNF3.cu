@@ -302,14 +302,14 @@ int main(int argc, char const *argv[]) {
   } else {
     const size_t contigs_target = global_contigs_target;
     kseq_t *kseq = kseq_init(f);
-    size_t len;
+    int64_t len;
 
     while ((len = kseq_read(kseq)) > 0) {
       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
       if (kseq->name.l > 0) {
-        if (len >= std::min(minContigByCorr, minContigByCorrForGraph)) {
-          if (len < minContig) {
-            if (len >= minContigByCorr) {
+        if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph)) {
+          if (len < (int)minContig) {
+            if (len >= (int)minContigByCorr) {
               // smallCtgs.insert(1);
             } else {
               ++nresv;
