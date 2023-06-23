@@ -305,11 +305,12 @@ int main(int argc, char const *argv[]) {
     // minContigByCorrForGraph);
     kseq_t *kseq = kseq_init(f);
     int64_t len;
+    int64_t aux_min = (int)std::min(minContigByCorr, minContigByCorrForGraph);
 
     while ((len = kseq_read(kseq)) > 0) {
       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
       if (kseq->name.l > 0) {
-        if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph)) {
+        if (len >= aux_min) {
           if (len < (int)minContig) {
             if (len >= (int)minContigByCorr) {
               // smallCtgs.insert(1);
