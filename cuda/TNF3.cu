@@ -13,8 +13,6 @@
 
 #include "../extra/KseqReader.h"
 
-__device__ __constant__ const int n_TNF_d = 136;
-
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,
     78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,  136, 114, 5,   54,
@@ -109,14 +107,14 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
-    const size_t tnf_index = contig_index * n_TNF_d;
+    const size_t tnf_index = contig_index * 136;
     if (contig_index >= nobs) break;
-    for (int j = 0; j < n_TNF_d; j++) TNF_d[tnf_index + j] = 0;
+    for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
   }
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
-    const size_t tnf_index = contig_index * n_TNF_d;
+    const size_t tnf_index = contig_index * 136;
     if (contig_index >= nobs) break;
     size_t contig_size = seqs_d_index[contig_index];
     if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
@@ -127,7 +125,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         short tn = get_tn(contig, j);
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
-        if (!(TNmap_d[tn] == n_TNF_d)) {
+        if (!(TNmap_d[tn] == 136)) {
           ++TNF_d[tnf_index + TNmap_d[tn]];
           continue;
         }
@@ -135,25 +133,25 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
-        if (!(TNmap_d[tn] == n_TNF_d)) {
+        if (!(TNmap_d[tn] == 136)) {
           ++TNF_d[tnf_index + TNmap_d[tn]];
         }
 
         /*
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         if (TNPmap_d[tn] == 0) {
-          if (TNmap_d[tn] != n_TNF_d) {
+          if (TNmap_d[tn] != 136) {
             ++TNF_d[tnf_index + TNmap_d[tn]];
           }
         }
         */
       }
       double rsum = 0;
-      for (size_t c = 0; c < n_TNF_d; ++c) {
+      for (size_t c = 0; c < 136; ++c) {
         rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
       }
       rsum = sqrt(rsum);
-      for (size_t c = 0; c < n_TNF_d; ++c) {
+      for (size_t c = 0; c < 136; ++c) {
         TNF_d[tnf_index + c] /= rsum;  // OK
       }
     }
@@ -170,7 +168,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
   double TNF_temp[136];
 
   for (size_t i = 0; i < contigs_per_thread; i++) {
-    for (int j = 0; j < n_TNF_d; j++) {
+    for (int j = 0; j < 136; j++) {
       TNF_temp[j] = 0;
     }
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
@@ -185,7 +183,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
         if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
-        if (TNmap_d[tn] != n_TNF_d) {
+        if (TNmap_d[tn] != 136) {
           ++TNF_temp[TNmap_d[tn]];
           continue;
         }
@@ -193,31 +191,31 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
-        if (TNmap_d[tn] != n_TNF_d) {
+        if (TNmap_d[tn] != 136) {
           ++TNF_temp[TNmap_d[tn]];
         }
 
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
         /*
         if (TNPmap_d[tn] == 0) {
-          if (TNmap_d[tn] != n_TNF_d) {
+          if (TNmap_d[tn] != 136) {
             ++TNF_temp[TNmap_d[tn]];
           }
         }
         */
       }
       double rsum = 0;
-      for (size_t c = 0; c < n_TNF_d; ++c) {
+      for (size_t c = 0; c < 136; ++c) {
         rsum += TNF_temp[c] * TNF_temp[c];
       }
       rsum = sqrt(rsum);
-      for (size_t c = 0; c < n_TNF_d; ++c) {
+      for (size_t c = 0; c < 136; ++c) {
         TNF_temp[c] /= rsum;  // OK
       }
     }
     // guardar en la memoria global
-    for (size_t c = 0; c < n_TNF_d; ++c) {
-      TNF_d[contig_index * n_TNF_d + c] = TNF_temp[c];
+    for (size_t c = 0; c < 136; ++c) {
+      TNF_d[contig_index * 136 + c] = TNF_temp[c];
     }
   }
 }
