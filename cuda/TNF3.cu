@@ -60,6 +60,17 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
+__device__ short get_tn_d(const char *contig, const size_t index) {
+  short tn = 0;
+  for (short i = 0; i < 4; i++) {
+    char N = BN[contig[index + i]];
+    if (N == 4) return 256;
+    tn = (tn << 2) | N;
+  }
+  return tn;
+}
+*/
+
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
                                     const size_t *seqs_d_index) {
   size_t contig_beg = 0;
@@ -67,17 +78,6 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
     contig_beg = seqs_d_index[contig_index - 1];
   }
   return seqs_d + contig_beg;
-}
-*/
-
-__device__ short get_tn_d(const char *contig, const size_t index) {
-  short tn = 0;
-  for (short i = 0; i < 4; i++) {
-    char N = BN[contig[index + i]];
-    if(N == 4) return 256;
-    tn = (tn << 2) | N;
-  }
-  return tn;
 }
 
 __device__ __host__ short get_tn(const char *contig, const size_t index) {
