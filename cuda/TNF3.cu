@@ -315,24 +315,24 @@ int main(int argc, char const *argv[]) {
               ++nresv;
             }
           }
-          //más eficiente que seqs_kernel[SUBP_IND] += kseq->seq.s
           seqs_kernel[SUBP_IND].append(kseq->seq.s);
-          seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
+          seqs_kernel_index[SUBP_IND][nobs % contigs_target] = seqs_kernel[SUBP_IND].size();
           nobs++;
-          nobs_cont++;
+          //nobs_cont++;
         } else {
           // ignored[kseq->name.s] = seqs.size();
         }
         // contig_names.push_back(kseq->name.s);
         seqs.push_back(kseq->seq.s);
 
-        if (nobs_cont & contigs_target) {
+        //if (nobs_cont & contigs_target) {
+        if (nobs % contigs_target == 0) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
                                         kernel_cont, nobs_cont);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
-          nobs_cont = 0;
+          //nobs_cont = 0;
 
           // si aún no se ha terminado la ejecición la siguiente hebra se espera
           // a ella.
@@ -344,13 +344,13 @@ int main(int argc, char const *argv[]) {
     kseq = NULL;
     gzclose(f);
   }
-  if (nobs_cont != 0) {
+  if (nobs % global_contigs_target != 0) {
     TNF.push_back((double *)0);
     SUBPS[SUBP_IND] =
         std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     SUBP_IND = (SUBP_IND + 1) & 2;
     kernel_cont++;
-    nobs_cont = 0;
+    //nobs_cont = 0;
   }
   // se esperan a las hebras restantes
   for (int i = 0; i < 2; i++) {
