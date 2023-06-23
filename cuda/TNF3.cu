@@ -76,28 +76,6 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
   return seqs_d + contig_beg;
 }
 
-/*
-__device__ __host__ short get_tn(const char *contig, const size_t index) {
-  short tn = 0;
-  for (short i = 0; i < 4; i++) {
-    char N = contig[index + i];
-    if (N == 'A')
-      N = 0;
-    else if (N == 'C')
-      N = 1;
-    else if (N == 'T')
-      N = 2;
-    else if (N == 'G')
-      N = 3;
-    else
-      return 256;  // no existe en TNmap[]
-
-    tn = (tn << 2) | N;
-  }
-  return tn;
-}
-*/
-
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
                         size_t contigs_per_thread) {
@@ -124,33 +102,10 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
       for (size_t j = 0; j < contig_size - 3; ++j) {
         short tn = get_tn(contig, j);
         if (tn & 256) continue;
-        ///*
         if (TNmap_d[tn] == 136) {
           tn = get_revComp_tn_d(tn);
         }
         ++TNF_d[tnf_index + TNmap_d[tn]];
-        //*/
-
-        /*
-        if (TNmap_d[tn] != 136) {
-          ++TNF_d[tnf_index + TNmap_d[tn]];
-          continue;
-        }
-        tn = get_revComp_tn_d(tn);
-
-        if (TNmap_d[tn] != 136) {
-          ++TNF_d[tnf_index + TNmap_d[tn]];
-        }
-        */
-
-        /*
-        // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
-        if (TNPmap_d[tn] == 0) {
-          if (TNmap_d[tn] != 136) {
-            ++TNF_d[tnf_index + TNmap_d[tn]];
-          }
-        }
-        */
       }
       double rsum = 0;
       for (size_t c = 0; c < 136; ++c) {
@@ -187,28 +142,11 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
       for (size_t j = 0; j < contig_size - 3; ++j) {
         short tn = get_tn(contig, j);
         if (tn & 256) continue;
-        // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
-        // estará
-        if (TNmap_d[tn] != 136) {
-          ++TNF_temp[TNmap_d[tn]];
+        if (TNmap_d[tn] == 136) {
+          tn = get_revComp_tn_d(tn);
           continue;
         }
-
-        // tn = get_revComp_tn_d(contig, j);
-        tn = get_revComp_tn_d(tn);
-
-        if (TNmap_d[tn] != 136) {
-          ++TNF_temp[TNmap_d[tn]];
-        }
-
-        // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
-        /*
-        if (TNPmap_d[tn] == 0) {
-          if (TNmap_d[tn] != 136) {
-            ++TNF_temp[TNmap_d[tn]];
-          }
-        }
-        */
+        ++TNF_temp[TNmap_d[tn]];
       }
       double rsum = 0;
       for (size_t c = 0; c < 136; ++c) {
