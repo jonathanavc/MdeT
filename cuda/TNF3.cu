@@ -315,8 +315,8 @@ int main(int argc, char const *argv[]) {
               ++nresv;
             }
           }
-          seqs_kernel->append(kseq->seq.s);
-          //seqs_kernel[SUBP_IND] += kseq->seq.s;
+          //más eficiente que seqs_kernel[SUBP_IND] += kseq->seq.s
+          seqs_kernel[SUBP_IND]->append(kseq->seq.s);
           seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
           nobs++;
           nobs_cont++;
