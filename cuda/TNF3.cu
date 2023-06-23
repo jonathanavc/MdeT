@@ -292,8 +292,6 @@ int main(int argc, char const *argv[]) {
       cudaStreamCreate(&_s[i][j]);
     cudaMallocHost((void **)&seqs_kernel_index[i],
                    global_contigs_target * sizeof(size_t));
-    // seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS *
-    // contig_per_thread * sizeof(size_t));
     cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index[i], global_contigs_target * sizeof(size_t));
   }
