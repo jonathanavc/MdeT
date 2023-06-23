@@ -216,10 +216,10 @@ cudaStream_t _s[2];
 std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
-void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
+void kernel(const dim3 blkDim, const dim3 grdDim, const int SUBP_IND,
+            const int cont, const int size, const size_t contigs_target) {
   char *seqs_d;
-  cudaMallocHost((void **)&TNF[cont],
-                 global_contigs_target * n_TNF * sizeof(double));
+  cudaMallocHost((void **)&TNF[cont], contigs_target * n_TNF * sizeof(double));
   // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread *
   // n_TNF * sizeof(double));
   cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND]);
@@ -227,14 +227,13 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
                   seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
                   _s[SUBP_IND]);
   cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                  global_contigs_target * sizeof(size_t),
-                  cudaMemcpyHostToDevice,
+                  contigs_target * sizeof(size_t), cudaMemcpyHostToDevice,
                   _s[SUBP_IND]);  // seqs_index
   get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
   cudaFreeAsync(seqs_d, _s[SUBP_IND]);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
-                  global_contigs_target * n_TNF * sizeof(double),
+                  contigs_target * n_TNF * sizeof(double),
                   cudaMemcpyDeviceToHost, _s[SUBP_IND]);
   cudaStreamSynchronize(_s[SUBP_IND]);
   // más eficiente que asignación
@@ -316,23 +315,22 @@ int main(int argc, char const *argv[]) {
             }
           }
           seqs_kernel[SUBP_IND].append(kseq->seq.s);
-          seqs_kernel_index[SUBP_IND][nobs % contigs_target] = seqs_kernel[SUBP_IND].size();
+          seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
           nobs++;
-          //nobs_cont++;
+          nobs_cont++;
         } else {
           // ignored[kseq->name.s] = seqs.size();
         }
         // contig_names.push_back(kseq->name.s);
         seqs.push_back(kseq->seq.s);
 
-        //if (nobs_cont & contigs_target) {
-        if (nobs % contigs_target == 0) {
+        if (nobs_cont & contigs_target) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                        kernel_cont, nobs % contigs_target);
+                                        kernel_cont, nobs_cont, contigs_target);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
-          //nobs_cont = 0;
+          nobs_cont = 0;
 
           // si aún no se ha terminado la ejecición la siguiente hebra se espera
           // a ella.
@@ -344,13 +342,13 @@ int main(int argc, char const *argv[]) {
     kseq = NULL;
     gzclose(f);
   }
-  if (nobs % global_contigs_target != 0) {
+  if (nobs_cont != 0) {
     TNF.push_back((double *)0);
-    SUBPS[SUBP_IND] =
-        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs % contigs_target);
+    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont,
+                                  nobs_cont, contigs_target);
     SUBP_IND = (SUBP_IND + 1) & 2;
     kernel_cont++;
-    //nobs_cont = 0;
+    nobs_cont = 0;
   }
   // se esperan a las hebras restantes
   for (int i = 0; i < 2; i++) {
