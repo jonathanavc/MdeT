@@ -111,14 +111,14 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
         short tn = get_tn(contig, j);
-        if (tn == 256) continue;
+        if (tn & 256) continue;
         // SI tn NO SE ENCUENTRA EN TNmap el complemento del palindromo sí
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
           ++TNF_d[tnf_index + TNmap_d[tn]];
           continue;
         }
-        
+
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
