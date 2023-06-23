@@ -173,17 +173,24 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
         // estará
         if (TNmap_d[tn] != n_TNF_d) {
           ++TNF_temp[TNmap_d[tn]];
+          continue;
         }
 
         // tn = get_revComp_tn_d(contig, j);
         tn = get_revComp_tn_d(tn);
 
+        if (TNmap_d[tn] != n_TNF_d) {
+          ++TNF_temp[TNmap_d[tn]];
+        }
+
         // SALTA EL PALINDROMO PARA NO INSERTARLO NUEVAMENTE
+        /*
         if (TNPmap_d[tn] == 0) {
           if (TNmap_d[tn] != n_TNF_d) {
             ++TNF_temp[TNmap_d[tn]];
           }
         }
+        */
       }
       double rsum = 0;
       for (size_t c = 0; c < n_TNF_d; ++c) {
