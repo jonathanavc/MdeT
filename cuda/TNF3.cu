@@ -446,7 +446,7 @@ int main(int argc, char const *argv[]) {
     cudaFreeHost(seqs_kernel_index[i]);
     cudaFree(TNF_d[i]);
     cudaFree(seqs_d_index[i]);
+    cudaStreamDestroy(_s[i]);
   }
-
   return 0;
 }
