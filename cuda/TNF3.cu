@@ -51,8 +51,8 @@ __device__ __constant__ unsigned char TNPmap_d[256] = {
 __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -70,6 +70,16 @@ __device__ short get_tn(const char *contig, const size_t index) {
     tn = (tn << 2) | N;
   }
   return tn;
+}
+
+// esto mejoró "bastante" el rendimento
+__device__ short get_revComp_tn_d(short tn) {
+  unsigned char rctn = 0;
+  for (short i = 0; i < 4; i++) {
+    rctn = (rctn << 2) | (((tn & 3) + 2) % 4);
+    tn = tn >> 2;
+  }
+  return rctn;
 }
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
@@ -102,17 +112,6 @@ __device__ __host__ short get_tn(const char *contig, const size_t index) {
   return tn;
 }
 */
-
-
-// esto mejoró "bastante" el rendimento
-__device__ short get_revComp_tn_d(short tn) {
-  unsigned char rctn = 0;
-  for (short i = 0; i < 4; i++) {
-    rctn = (rctn << 2) | (((tn & 3) + 2) % 4);
-    tn = tn >> 2;
-  }
-  return rctn;
-}
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
