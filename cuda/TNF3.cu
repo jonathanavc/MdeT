@@ -48,8 +48,7 @@ __device__ __constant__ unsigned char TNPmap_d[256] = {
 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 */
-/*
-__device__ __constant__ unsigned char BN[256] = {
+__device__ __constant__ char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 2,
@@ -63,15 +62,15 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 __device__ short get_tn_d(const char *contig, const size_t index) {
+  unsigned char N;
   short tn = 0;
   for (short i = 0; i < 4; i++) {
-    char N = BN[contig[index + i]];
+    N = BN[contig[index + i]];
     if (N == 4) return 256;
     tn = (tn << 2) | N;
   }
   return tn;
 }
-*/
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
                                     const size_t *seqs_d_index) {
