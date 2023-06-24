@@ -304,11 +304,11 @@ int main(int argc, char const *argv[]) {
     auto _start = std::chrono::system_clock::now();
     {
       gzFile infilez = gzopen(inFile.c_str(), "r");
-      char unzipbuffer[8192];
+      char unzipbuffer[8192*2];
       size_t unzippedbytes;
       std::string data;
       while (1) {
-        unzippedbytes = gzread(infilez, unzipbuffer, 8192);
+        unzippedbytes = gzread(infilez, unzipbuffer, 8192 * 2);
         if (unzippedbytes > 0) {
         } else
           break;
