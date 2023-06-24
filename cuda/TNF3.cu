@@ -308,6 +308,7 @@ int main(int argc, char const *argv[]) {
     std::ifstream file(inFile.c_str(), std::ios::binary);
     std::string compressed_data(
         (std::istream_iterator<char>(file)), (std::istream_iterator<char>()));
+    std::cout << compressed_data.size() << std::endl;
     std::string uncompressed_data(2<<10, '\0');
     size_t uncompressed_size = compressed_data.size();
 
