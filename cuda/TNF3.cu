@@ -309,7 +309,7 @@ int main(int argc, char const *argv[]) {
     std::string compressed_data((std::istream_iterator<char>(file)),
                                 (std::istream_iterator<char>()));
     std::cout << compressed_data.size() << std::endl;
-    std::string uncompressed_data(compressed_data.size(), '\n');
+    std::string uncompressed_data(compressed_data.size() * 5, '\n');
     size_t uncompressed_size = compressed_data.size();
     int result;
     do {
