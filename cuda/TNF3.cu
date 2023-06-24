@@ -301,22 +301,29 @@ int main(int argc, char const *argv[]) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
     return 1;
   } else {
+    ////////////////////
     auto _start = std::chrono::system_clock::now();
-    {
-      gzFile infilez = gzopen(inFile.c_str(), "r");
-      char unzipbuffer[8192*2];
-      size_t unzippedbytes;
-      std::string data;
-      while (1) {
-        unzippedbytes = gzread(infilez, unzipbuffer, 8192 * 2);
-        if (unzippedbytes > 0) {
-        } else
-          break;
-      }
+
+    std::ifstream file(inFile.c_str(), std::ios::binary);
+    std::string compressed_data(
+        (std::istream_iterator<char>(file), std::istream_iterator<char>()));
+    std::string uncompressed_data(1000, '\0');
+    size_t uncompressed_size = compressed_data.size();
+
+    int result =
+        uncompress((Bytef *)uncompressed_data, &uncompressed_size,
+                   (const Bytef *)compressed_data, compressed_data.size());
+
+    if (result == Z_OK) {
+      std::count << uncompressed_data.size() << std::endl;
+      uncompressed_data.resize(uncompressed_size);
+      std::count << uncompressed_size << std::endl;
     }
+
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
     std::cout << _duration.count() / 1000.f << std::endl;
+    ////////////////////
 
     const size_t contigs_target = global_contigs_target;
     kseq_t *kseq = kseq_init(f);
