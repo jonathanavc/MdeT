@@ -313,6 +313,7 @@ int main(int argc, char const *argv[]) {
     size_t uncompressed_size = compressed_data.size();
     int result;
     do {
+      std::cout << "aumentando buffer" << std::endl;
       uncompressed_data.resize(uncompressed_data.size() * 2);
       result = uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
                           (const Bytef *)compressed_data.data(),
