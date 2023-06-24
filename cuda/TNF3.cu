@@ -310,9 +310,6 @@ int main(int argc, char const *argv[]) {
       while (1) {
         unzippedbytes = gzread(infilez, unzipbuffer, 8192);
         if (unzippedbytes > 0) {
-          for (int i = 0; i < unzippedbytes; i++) {
-            data.append(1, unzipbuffer[i]);
-          }
         } else
           break;
       }
