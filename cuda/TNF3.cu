@@ -301,6 +301,26 @@ int main(int argc, char const *argv[]) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
     return 1;
   } else {
+    auto _start = std::chrono::system_clock::now();
+    {
+      gzFile infilez = gzopen(inFile.c_str(), "r");
+      char unzipbuffer[8192];
+      size_t unzippedbytes;
+      std::string data;
+      while (1) {
+        unzippedbytes = gzread(infilez, unzipbuffer, 8192);
+        if (unzippedbytes > 0) {
+          for (int i = 0; i < unzippedbytes; i++) {
+            data.append(unzipbuffer[i]);
+          }
+        } else
+          break;
+      }
+    }
+    auto _end = std::chrono::system_clock::now();
+    std::chrono::duration<float, std::milli> _duration = _end - _start;
+    std::cout << _duration.count() / 1000.f << std::endl;
+
     const size_t contigs_target = global_contigs_target;
     kseq_t *kseq = kseq_init(f);
     int64_t len;

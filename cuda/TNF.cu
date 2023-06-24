@@ -230,10 +230,6 @@ int main(int argc, char const *argv[]) {
   } else {
     start = std::chrono::system_clock::now();
     kseq_t *kseq = kseq_init(f);
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> duration = end - start;
-    std::cout << "kseq_t init:" << duration.count() / 1000.f << "s "
-              << std::endl;
     int64_t len;
     while ((len = kseq_read(kseq)) > 0) {
       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
