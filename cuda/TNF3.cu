@@ -6,11 +6,11 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <iterator>
 
 #include "../extra/KseqReader.h"
 
@@ -306,22 +306,24 @@ int main(int argc, char const *argv[]) {
     auto _start = std::chrono::system_clock::now();
 
     std::ifstream file(inFile.c_str(), std::ios::binary);
-    std::string compressed_data(
-        (std::istream_iterator<char>(file)), (std::istream_iterator<char>()));
+    std::string compressed_data((std::istream_iterator<char>(file)),
+                                (std::istream_iterator<char>()));
     std::cout << compressed_data.size() << std::endl;
-    std::string uncompressed_data(2<<10, '\0');
+    std::string uncompressed_data(compressed_data.size());
     size_t uncompressed_size = compressed_data.size();
-
-    int result =
-        uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
-                   (const Bytef *)compressed_data.data(), compressed_data.size());
+    int result;
+    do {
+      uncompressed_data.resize(uncompressed_data.size() * 2);
+      result = uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
+                          (const Bytef *)compressed_data.data(),
+                          compressed_data.size());
+    } while (result == Z_MEM_ERROR);
 
     if (result == Z_OK) {
       std::cout << uncompressed_data.size() << std::endl;
       uncompressed_data.resize(uncompressed_size);
       std::cout << uncompressed_size << std::endl;
-    }
-    else{
+    } else {
       std::cout << "error" << std::endl;
     }
 
