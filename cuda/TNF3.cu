@@ -312,8 +312,8 @@ int main(int argc, char const *argv[]) {
     size_t uncompressed_size = compressed_data.size();
 
     int result =
-        uncompress((Bytef *)uncompressed_data, &uncompressed_size,
-                   (const Bytef *)compressed_data, compressed_data.size());
+        uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
+                   (const Bytef *)compressed_data.data(), compressed_data.size());
 
     if (result == Z_OK) {
       std::cout << uncompressed_data.size() << std::endl;
