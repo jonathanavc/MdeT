@@ -308,7 +308,7 @@ int main(int argc, char const *argv[]) {
     std::ifstream file(inFile.c_str(), std::ios::binary);
     std::string compressed_data(
         (std::istream_iterator<char>(file)), (std::istream_iterator<char>()));
-    std::string uncompressed_data(1000, '\0');
+    std::string uncompressed_data(2<<10, '\0');
     size_t uncompressed_size = compressed_data.size();
 
     int result =
@@ -319,6 +319,9 @@ int main(int argc, char const *argv[]) {
       std::cout << uncompressed_data.size() << std::endl;
       uncompressed_data.resize(uncompressed_size);
       std::cout << uncompressed_size << std::endl;
+    }
+    else{
+      std::cout << "error" << std::endl;
     }
 
     auto _end = std::chrono::system_clock::now();
