@@ -306,7 +306,7 @@ int main(int argc, char const *argv[]) {
 
     std::ifstream file(inFile.c_str(), std::ios::binary);
     std::string compressed_data(
-        (std::istream_iterator<char>(file), std::istream_iterator<char>()));
+        (std::istream_iterator<char>(file)), (std::istream_iterator<char>()));
     std::string uncompressed_data(1000, '\0');
     size_t uncompressed_size = compressed_data.size();
 
@@ -315,9 +315,9 @@ int main(int argc, char const *argv[]) {
                    (const Bytef *)compressed_data, compressed_data.size());
 
     if (result == Z_OK) {
-      std::count << uncompressed_data.size() << std::endl;
+      std::cout << uncompressed_data.size() << std::endl;
       uncompressed_data.resize(uncompressed_size);
-      std::count << uncompressed_size << std::endl;
+      std::cout << uncompressed_size << std::endl;
     }
 
     auto _end = std::chrono::system_clock::now();
