@@ -325,7 +325,8 @@ int main(int argc, char const *argv[]) {
       uncompressed_data.resize(uncompressed_size);
       std::cout << uncompressed_size << std::endl;
     } else {
-      std::cout << "error" << std::endl;
+
+      std::cout << "error:" << result << std::endl;
     }
 
     auto _end = std::chrono::system_clock::now();
