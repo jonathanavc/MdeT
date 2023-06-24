@@ -318,7 +318,7 @@ int main(int argc, char const *argv[]) {
       result = uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
                           (const Bytef *)compressed_data.data(),
                           compressed_data.size());
-    } while (result == Z_MEM_ERROR);
+    } while (result != Z_MEM_ERROR);
 
     if (result == Z_OK) {
       std::cout << uncompressed_data.size() << std::endl;
