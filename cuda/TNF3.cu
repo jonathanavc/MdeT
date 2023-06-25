@@ -302,6 +302,17 @@ int main(int argc, char const *argv[]) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
     return 1;
   } else {
+    auto _start = std::chrono::system_clock::now();
+    std::ifstream file(inFile.c_str(), std::ios::binary);
+    std::string compressed_data((std::istream_iterator<char>(file)),
+                                (std::istream_iterator<char>()));
+    std::cout << compressed_data.size() << std::endl;
+
+    std::chrono::duration<float, std::milli> _duration = _end - _start;
+    std::cout <<"cargar archivo descomprimidO"<< _duration.count() / 1000.f << std::endl;
+
+
+    // no funciona bien cargar comprimido y descomprimir en memoria
     /*
     ////////////////////
     auto _start = std::chrono::system_clock::now();
