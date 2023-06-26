@@ -1,6 +1,9 @@
 // nvcc TNF.cu -lz
 // ta bien
 #include <cuda_runtime.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -314,7 +317,7 @@ int main(int argc, char const *argv[]) {
     int nth = 1;
     int fpint = -1;
 
-    FILE * fp = fopen(inFile.c_str(), "r");
+    FILE *fp = fopen(inFile.c_str(), "r");
     fseek(fp, 0L, SEEK_END);   // seek to the EOF
     size_t fsize = ftell(fp);  // get the current position
     fclose(fp);
