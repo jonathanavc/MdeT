@@ -353,6 +353,7 @@ int main(int argc, char const *argv[]) {
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         if (_s != "") contigs.push_back(_s);
+        std::cout << contigs.size() << std::endl;
         while (_mem[i] != '\n') i++;
         continue;
       }
