@@ -324,6 +324,8 @@ int main(int argc, char const *argv[]) {
 
     fpint =
         open(argv[1], O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+        
+    thread readerThreads[nth];
 
     for (int i = 0; i < nth; i++) {
       size_t _size;
