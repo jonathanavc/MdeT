@@ -356,7 +356,7 @@ int main(int argc, char const *argv[]) {
           contigs.push_back(_s);
           _s.clear();
         } 
-        while (_mem[i] != "\n"){
+        while (_mem[i] != '\n'){
           i++;
         }
       }
