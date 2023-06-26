@@ -365,8 +365,7 @@ int main(int argc, char const *argv[]) {
     }
     if (_s != "") contigs.push_back(_s);
     std::cout << "tam strings:" << contigs.size() << std::endl;
-
-    // std::cout << contigs.at(contigs.size() - 1) << std::endl;
+    std::cout << contigs.at(contigs.size() - 1) << std::endl;
 
     close(fpint);
 
