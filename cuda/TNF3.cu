@@ -315,7 +315,7 @@ int main(int argc, char const *argv[]) {
   } else {
     auto _start = std::chrono::system_clock::now();
 
-    int nth = 1;
+    int nth = 4;
     int fpint = -1;
 
     FILE *fp = fopen(inFile.c_str(), "r");
@@ -351,7 +351,7 @@ int main(int argc, char const *argv[]) {
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout << "cargar archivo descomprimidO" << _duration.count() / 1000.f
+    std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
               << std::endl;
 
     // tambien lento en secuencial 26s
