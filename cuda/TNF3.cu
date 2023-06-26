@@ -313,6 +313,7 @@ int main(int argc, char const *argv[]) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
     return 1;
   } else {
+    // Esto si es rapido
     auto _start = std::chrono::system_clock::now();
 
     int nth = 4;
@@ -328,8 +329,8 @@ int main(int argc, char const *argv[]) {
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
 
-    fpint =
-        open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+    fpint = open(inFile.c_str(), O_RDWR | O_CREAT,
+                 S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
     thread readerThreads[nth];
 
@@ -346,6 +347,11 @@ int main(int argc, char const *argv[]) {
     for (int i = 0; i < nth; i++) {
       readerThreads[i].join();
     }
+
+    for (size_t i = 0; i < fsize; i++){
+      std::cout << _mem[i] << std::endl;
+    }
+    
 
     close(fpint);
 
