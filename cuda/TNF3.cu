@@ -245,6 +245,12 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
   seqs_kernel[SUBP_IND].clear();
 }
 
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
+  int readSz = pread(fpint, _mem, _size, id * chunk);
+  if (readSz < chunk)
+    cout << " error en lectura readSz " << readSz << " chunk " << chunk << endl;
+}
+
 int main(int argc, char const *argv[]) {
   std::string inFile = "test.gz";
   if (argc > 2) {
@@ -302,6 +308,40 @@ int main(int argc, char const *argv[]) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
     return 1;
   } else {
+    auto _start = std::chrono::system_clock::now();
+
+    int nth = 1;
+
+    fp = fopen(inFile.c_str(), "r");
+    fseek(fp, 0L, SEEK_END);   // seek to the EOF
+    size_t fsize = ftell(fp);  // get the current position
+    fclose(fp);
+    int chunk = fsize / nth;
+    char *_mem = (char *)malloc(fsize);
+
+    std::cout << "tamaño total" << fsize << std::endl;
+    std::cout << "chunk" << chunk << std::endl;
+
+    fpint =
+        open(argv[1], O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+
+    for (int i = 0; i < nth; i++) {
+      size_t _size;
+      if (i == nth - 1) _size = chunk else _size = chunk + fsize % nth;
+      std::cout << "tamaño _size" << _size << std::endl;
+      readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
+    }
+
+    for (int i = 0; i < nth; i++) {
+      readerThreads[i].join();
+    }
+
+    close(fpint);
+
+    auto _end = std::chrono::system_clock::now();
+    std::chrono::duration<float, std::milli> _duration = _end - _start;
+    std::cout << "cargar archivo descomprimidO" << _duration.count() / 1000.f
+              << std::endl;
 
     // tambien lento en secuencial 26s
     /*
@@ -314,7 +354,8 @@ int main(int argc, char const *argv[]) {
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout <<"cargar archivo descomprimidO"<< _duration.count() / 1000.f << std::endl;
+    std::cout <<"cargar archivo descomprimidO"<< _duration.count() / 1000.f <<
+    std::endl;
     */
 
     // no funciona bien cargar comprimido y descomprimir en memoria
