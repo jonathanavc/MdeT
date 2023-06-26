@@ -351,10 +351,13 @@ int main(int argc, char const *argv[]) {
 
     std::string _s = "";
     for (size_t i = 0; i < 10; i++) {
-      cout << _mem[i] << "[" << int(_mem[i]) << "]" << endl;
+      if (_mem[i] < 65) {
+        if (_s != "") contigs.push_back(_s);
+        while (_mem[i] != '\n') i++;
+        continue;
+      }
+      _s.push_back(_mem[i]);
     }
-
-    _s.push_back(0);
     if (_s != "") contigs.push_back(_s);
     std::cout << "tam strings:" << contigs.size() << std::endl;
     std::cout << contigs.at(contigs.size() - 1) << std::endl;
