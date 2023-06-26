@@ -297,6 +297,7 @@ int main(int argc, char const *argv[]) {
   int SUBP_IND = 0;
   nobs_cont = 0;
   kernel_cont = 0;
+
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) cudaStreamCreate(&_s[i][j]);
     cudaMallocHost((void **)&seqs_kernel_index[i],
@@ -304,10 +305,7 @@ int main(int argc, char const *argv[]) {
     cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index[i], global_contigs_target * sizeof(size_t));
   }
-
   size_t nobs = 0;
-  int nresv = 0;
-
   gzFile f = gzopen(inFile.c_str(), "r");
   if (f == NULL) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -343,15 +341,26 @@ int main(int argc, char const *argv[]) {
     for (int i = 0; i < nth; i++) {
       readerThreads[i].join();
     }
+
     close(fpint);
 
+    auto _end = std::chrono::system_clock::now();
+    std::chrono::duration<float, std::milli> _duration = _end - _start;
+    std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
+              << std::endl;
+
+    _start = std::chrono::system_clock::now();
+
     std::string _s = "";
+    size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
+
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        if (_s.length() >= std::min(minContigByCorr, minContigByCorrForGraph)) {
+        if (_s.length() >= __min) {
           seqs_kernel[SUBP_IND] += _s;
           seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
           nobs_cont++;
+          // nobs++;
 
           if (nobs_cont == global_contigs_target) {
             TNF.push_back((double *)0);
@@ -363,7 +372,7 @@ int main(int argc, char const *argv[]) {
             if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
           }
         }
-        while (_mem[i] != '\n') i++;
+        while (!(_mem[i] == 10)) i++;
         _s.clear();
         continue;
       }
@@ -380,10 +389,9 @@ int main(int argc, char const *argv[]) {
           std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
 
-    auto _end = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
-              << std::endl;
+    _end = std::chrono::system_clock::now();
+    _duration = _end - _start;
+    std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
 
     // tambien lento en secuencial 26s
     /*
