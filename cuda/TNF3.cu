@@ -359,6 +359,7 @@ int main(int argc, char const *argv[]) {
         while (_mem[i] != '\n') {
           i++;
         }
+        continue;
       }
       _s.push_back(_mem[i]);
     }
