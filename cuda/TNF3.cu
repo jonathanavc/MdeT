@@ -250,7 +250,7 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
 }
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
-  size_t readSz = pread(fpint, _mem, _size, id * chunk);
+  size_t readSz = pread(fpint, _mem + id * chunk, _size, id * chunk);
   if (readSz < _size) {
     cout << " error en lectura readSz " << readSz << " chunk " << _size << endl;
   }
