@@ -325,16 +325,12 @@ int main(int argc, char const *argv[]) {
     fclose(fp);
     size_t chunk = fsize / nth;
     char *_mem = (char *)malloc(fsize);
-    
-
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
 
     fpint = open(inFile.c_str(), O_RDWR | O_CREAT,
                  S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-
     thread readerThreads[nth];
-
     for (int i = 0; i < nth; i++) {
       size_t _size;
       if (i == nth - 1)
@@ -344,31 +340,43 @@ int main(int argc, char const *argv[]) {
       std::cout << "tamaño _size:" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
-
     for (int i = 0; i < nth; i++) {
       readerThreads[i].join();
     }
+    close(fpint);
 
     std::string _s = "";
-
-    std::vector<std::string> contigs;
-    size_t cont;
-
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        if (_s.length() >= std::min(minContigByCorr, minContigByCorrForGraph)) contigs.push_back(_s);
-        std::cout << contigs.size() << std::endl;
+        if (_s.length() >= std::min(minContigByCorr, minContigByCorrForGraph)) {
+          seqs_kernel[SUBP_IND] += _s;
+          seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
+          nobs_cont++;
+
+          if (nobs_cont & contigs_target) {
+            TNF.push_back((double *)0);
+            SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
+                                          kernel_cont, nobs_cont);
+            SUBP_IND = (SUBP_IND + 1) & 1;
+            kernel_cont++;
+            nobs_cont = 0;
+            if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
+          }
+        }
         while (_mem[i] != '\n') i++;
         _s.clear();
         continue;
       }
       _s.push_back(_mem[i]);
     }
-    if (_s != "") contigs.push_back(_s);
-    std::cout << "tam strings:" << contigs.size() << std::endl;
-    std::cout << contigs.at(contigs.size() - 1) << std::endl;
-
-    close(fpint);
+    if (_s != "") {
+      seqs_kernel[SUBP_IND] += _s;
+      seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
+      nobs_cont++;
+      TNF.push_back((double *)0);
+      SUBPS[SUBP_IND] =
+          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
+    }
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
@@ -426,49 +434,49 @@ int main(int argc, char const *argv[]) {
     std::cout << _duration.count() / 1000.f << std::endl;
     ////////////////////
     */
+    /*
+     const size_t contigs_target = global_contigs_target;
+     kseq_t *kseq = kseq_init(f);
+     int64_t len;
 
-    const size_t contigs_target = global_contigs_target;
-    kseq_t *kseq = kseq_init(f);
-    int64_t len;
+     while ((len = kseq_read(kseq)) > 0) {
+       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
+       if (kseq->name.l > 0) {
+         if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph)) {
+           if (len < (int)minContig) {
+             if (len >= (int)minContigByCorr) {
+               // smallCtgs.insert(1);
+             } else {
+               ++nresv;
+             }
+           }
+           seqs_kernel[SUBP_IND].append(kseq->seq.s);
+           seqs_kernel_index[SUBP_IND][nobs_cont] =
+     seqs_kernel[SUBP_IND].size(); nobs++; nobs_cont++; } else {
+           // ignored[kseq->name.s] = seqs.size();
+         }
+         // contig_names.push_back(kseq->name.s);
+         seqs.push_back(kseq->seq.s);
 
-    while ((len = kseq_read(kseq)) > 0) {
-      std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
-      if (kseq->name.l > 0) {
-        if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph)) {
-          if (len < (int)minContig) {
-            if (len >= (int)minContigByCorr) {
-              // smallCtgs.insert(1);
-            } else {
-              ++nresv;
-            }
-          }
-          seqs_kernel[SUBP_IND].append(kseq->seq.s);
-          seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
-          nobs++;
-          nobs_cont++;
-        } else {
-          // ignored[kseq->name.s] = seqs.size();
-        }
-        // contig_names.push_back(kseq->name.s);
-        seqs.push_back(kseq->seq.s);
+         if (nobs_cont & contigs_target) {
+           TNF.push_back((double *)0);
+           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
+                                         kernel_cont, nobs_cont);
+           SUBP_IND = (SUBP_IND + 1) & 1;
+           kernel_cont++;
+           nobs_cont = 0;
 
-        if (nobs_cont & contigs_target) {
-          TNF.push_back((double *)0);
-          SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                        kernel_cont, nobs_cont);
-          SUBP_IND = (SUBP_IND + 1) & 1;
-          kernel_cont++;
-          nobs_cont = 0;
-
-          // si aún no se ha terminado la ejecición la siguiente hebra se espera
-          // a ella.
-          if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
-        }
-      }
-    }
-    kseq_destroy(kseq);
-    kseq = NULL;
-    gzclose(f);
+           // si aún no se ha terminado la ejecición la siguiente hebra se
+     espera
+           // a ella.
+           if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
+         }
+       }
+     }
+     kseq_destroy(kseq);
+     kseq = NULL;
+     gzclose(f);
+     */
   }
   if (nobs_cont != 0) {
     TNF.push_back((double *)0);
