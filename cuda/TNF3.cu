@@ -311,7 +311,8 @@ int main(int argc, char const *argv[]) {
     auto _start = std::chrono::system_clock::now();
 
     int nth = 1;
-
+    int fpint = -1;
+    
     fp = fopen(inFile.c_str(), "r");
     fseek(fp, 0L, SEEK_END);   // seek to the EOF
     size_t fsize = ftell(fp);  // get the current position
@@ -324,7 +325,7 @@ int main(int argc, char const *argv[]) {
 
     fpint =
         open(argv[1], O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-        
+
     thread readerThreads[nth];
 
     for (int i = 0; i < nth; i++) {
