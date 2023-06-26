@@ -251,8 +251,9 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
   int readSz = pread(fpint, _mem, _size, id * chunk);
-  if (readSz < chunk)
+  if (readSz < chunk) {
     cout << " error en lectura readSz " << readSz << " chunk " << chunk << endl;
+  }
 }
 
 int main(int argc, char const *argv[]) {
@@ -328,7 +329,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "chunk:" << chunk << std::endl;
 
     fpint =
-        open(argv[1], O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+        open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
     thread readerThreads[nth];
 
