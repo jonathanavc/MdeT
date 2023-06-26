@@ -509,7 +509,7 @@ int main(int argc, char const *argv[]) {
   std::ofstream out("TNF.bin", ios::out | ios::binary);
   if (out) {
     for (size_t i = 0; i < TNF.size(); i++) {
-      if (i < (TNF.size() - 1) || nobs % (global_contigs_target) == 0)
+      if (i < TNF.size() - 1)
         out.write((char *)TNF[i],
                   global_contigs_target * n_TNF * sizeof(double));
       else
