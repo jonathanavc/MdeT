@@ -351,18 +351,20 @@ int main(int argc, char const *argv[]) {
 
     std::string _s = "";
     for (size_t i = 0; i < fsize; i++) {
-      if(_mem[i] == '>' || _mem[i] == '@'){
-        if(_s != ""){
+      if (_mem[i] == '>' || _mem[i] == '@') {
+        if (_s != "") {
           contigs.push_back(_s);
           _s.clear();
-        } 
-        while (_mem[i] != '\n'){
+        }
+        while (_mem[i] != '\n') {
           i++;
         }
       }
       _s.push_back(_mem[i]);
     }
     std::cout << "tam strings:" << contigs.size() << std::endl;
+
+    std::cout << contigs.at(contigs.size() - 1) << std::endl;
 
     close(fpint);
 
