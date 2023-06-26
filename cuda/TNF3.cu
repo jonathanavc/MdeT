@@ -350,7 +350,7 @@ int main(int argc, char const *argv[]) {
     }
 
     std::string _s = "";
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         if (_s != "") contigs.push_back(_s);
         while (_mem[i] != '\n') i++;
