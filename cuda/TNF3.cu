@@ -373,10 +373,10 @@ int main(int argc, char const *argv[]) {
       seqs_kernel[SUBP_IND] += _s;
       seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
       nobs_cont++;
-      TNF.push_back((double *)0);
-      SUBPS[SUBP_IND] =
-          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
+    TNF.push_back((double *)0);
+    SUBPS[SUBP_IND] =
+        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
