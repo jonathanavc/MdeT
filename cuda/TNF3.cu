@@ -350,20 +350,10 @@ int main(int argc, char const *argv[]) {
     }
 
     std::string _s = "";
-    for (size_t i = 0; i < fsize; i++) {
-      if (_mem[i] < 65) {
-        if (_s != "") {
-          _s.push_back(0);
-          contigs.push_back(_s);
-          _s.clear();
-        }
-        while (_mem[i] != '\n') {
-          i++;
-        }
-        continue;
-      }
-      _s.push_back(_mem[i]);
+    for (size_t i = 0; i < 10; i++) {
+      cout << _mem[i] << "[" << int(_mem[i]) << "]" << endl;
     }
+
     _s.push_back(0);
     if (_s != "") contigs.push_back(_s);
     std::cout << "tam strings:" << contigs.size() << std::endl;
