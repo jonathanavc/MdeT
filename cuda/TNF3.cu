@@ -321,7 +321,7 @@ int main(int argc, char const *argv[]) {
     fseek(fp, 0L, SEEK_END);   // seek to the EOF
     size_t fsize = ftell(fp);  // get the current position
     fclose(fp);
-    int chunk = fsize / (size_t)nth;
+    size_t chunk = fsize / nth;
     char *_mem = (char *)malloc(fsize);
 
     std::cout << "tamaño total:" << fsize << std::endl;
