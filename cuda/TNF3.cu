@@ -351,7 +351,7 @@ int main(int argc, char const *argv[]) {
 
     std::string _s = "";
     for (size_t i = 0; i < fsize; i++) {
-      if (_mem[i] == '>' || _mem[i] == '@' || _mem[i] == '+') {
+      if (_mem[i] < 65) {
         if (_s != "") {
           contigs.push_back(_s);
           _s.clear();
