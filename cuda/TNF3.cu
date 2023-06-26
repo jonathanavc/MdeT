@@ -325,7 +325,7 @@ int main(int argc, char const *argv[]) {
     fclose(fp);
     size_t chunk = fsize / nth;
     char *_mem = (char *)malloc(fsize);
-    char *_mem2 = (char *)malloc(fsize);
+    std::vector<std::string> contigs;
 
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
@@ -349,9 +349,20 @@ int main(int argc, char const *argv[]) {
       readerThreads[i].join();
     }
 
+    std::string _s = "";
     for (size_t i = 0; i < fsize; i++) {
-      if (_mem[i] == 'A') _mem2[i] = _mem[i];
+      if(_mem[i] == '>' || _mem[i] == '@'){
+        if(_s != ""){
+          contigs.push_back(_s);
+          _s.clear();
+        } 
+        while (_mem[i] != "\n"){
+          i++;
+        }
+      }
+      _s.push_back(_mem[i]);
     }
+    std::cout << "tam strings:" << contigs.size() << std::endl;
 
     close(fpint);
 
