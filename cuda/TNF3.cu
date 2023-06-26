@@ -312,7 +312,7 @@ int main(int argc, char const *argv[]) {
 
     int nth = 1;
     int fpint = -1;
-    
+
     fp = fopen(inFile.c_str(), "r");
     fseek(fp, 0L, SEEK_END);   // seek to the EOF
     size_t fsize = ftell(fp);  // get the current position
@@ -330,7 +330,10 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < nth; i++) {
       size_t _size;
-      if (i == nth - 1) _size = chunk else _size = chunk + fsize % nth;
+      if (i == nth - 1)
+        _size = chunk;
+      else
+        _size = chunk + fsize % nth;
       std::cout << "tamaño _size" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
