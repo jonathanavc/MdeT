@@ -269,8 +269,8 @@ int main(int argc, char const *argv[]) {
   std::cout << "leer contigs " << duration.count() / 1000.f << "s "
             << std::endl;
 
-  // std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size() << ",
-  // gctg:" << gCtgIdx.size() << std::endl;
+  std::cout << "nobs: " << nobs << ", small: " << smallCtgs.size()
+            << ",gctg:" << gCtgIdx.size() << std::endl;
 
   start = std::chrono::system_clock::now();
 
