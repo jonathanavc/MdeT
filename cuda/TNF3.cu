@@ -325,7 +325,7 @@ int main(int argc, char const *argv[]) {
     fclose(fp);
     size_t chunk = fsize / nth;
     char *_mem = (char *)malloc(fsize);
-    std::vector<std::string> contigs;
+    
 
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
@@ -350,11 +350,16 @@ int main(int argc, char const *argv[]) {
     }
 
     std::string _s = "";
+
+    std::vector<std::string> contigs;
+    size_t cont;
+
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         if (_s != "") contigs.push_back(_s);
         std::cout << contigs.size() << std::endl;
         while (_mem[i] != '\n') i++;
+        _s.clear();
         continue;
       }
       _s.push_back(_mem[i]);
