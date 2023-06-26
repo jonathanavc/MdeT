@@ -1,6 +1,7 @@
 // nvcc TNF.cu -lz
 // ta bien
 #include <cuda_runtime.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <chrono>
