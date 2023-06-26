@@ -353,7 +353,7 @@ int main(int argc, char const *argv[]) {
           seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
           nobs_cont++;
 
-          if (nobs_cont & contigs_target) {
+          if (nobs_cont & global_contigs_target) {
             TNF.push_back((double *)0);
             SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
                                           kernel_cont, nobs_cont);
@@ -367,7 +367,7 @@ int main(int argc, char const *argv[]) {
         _s.clear();
         continue;
       }
-      _s.push_back(_mem[i]);
+      _s.push_back(std::toupper(_mem[i]));
     }
     if (_s != "") {
       seqs_kernel[SUBP_IND] += _s;
@@ -478,6 +478,7 @@ int main(int argc, char const *argv[]) {
      gzclose(f);
      */
   }
+  /*
   if (nobs_cont != 0) {
     TNF.push_back((double *)0);
     SUBPS[SUBP_IND] =
@@ -486,6 +487,7 @@ int main(int argc, char const *argv[]) {
     kernel_cont++;
     nobs_cont = 0;
   }
+  */
   // se esperan a las hebras restantes
   for (int i = 0; i < 2; i++) {
     if (SUBPS[i].joinable()) {
