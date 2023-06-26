@@ -321,11 +321,11 @@ int main(int argc, char const *argv[]) {
     fseek(fp, 0L, SEEK_END);   // seek to the EOF
     size_t fsize = ftell(fp);  // get the current position
     fclose(fp);
-    int chunk = fsize / nth;
+    int chunk = fsize / (size_t)nth;
     char *_mem = (char *)malloc(fsize);
 
-    std::cout << "tamaño total" << fsize << std::endl;
-    std::cout << "chunk" << chunk << std::endl;
+    std::cout << "tamaño total:" << fsize << std::endl;
+    std::cout << "chunk:" << chunk << std::endl;
 
     fpint =
         open(argv[1], O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
@@ -338,7 +338,7 @@ int main(int argc, char const *argv[]) {
         _size = chunk;
       else
         _size = chunk + fsize % nth;
-      std::cout << "tamaño _size" << _size << std::endl;
+      std::cout << "tamaño _size:" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
 
