@@ -511,8 +511,7 @@ int main(int argc, char const *argv[]) {
         out.write((char *)TNF[i],
                   global_contigs_target * n_TNF * sizeof(double));
       else
-        out.write((char *)TNF[i],
-                  (nobs % global_contigs_target) * n_TNF * sizeof(double));
+        out.write((char *)TNF[i], nobs_cont * n_TNF * sizeof(double));
     }
     // std::cout << "TNF guardado" << std::endl;
   } else {
