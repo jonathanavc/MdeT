@@ -315,7 +315,7 @@ int main(int argc, char const *argv[]) {
   } else {
     auto _start = std::chrono::system_clock::now();
 
-    int nth = 1;
+    int nth = 2;
     int fpint = -1;
 
     FILE *fp = fopen(inFile.c_str(), "r");
