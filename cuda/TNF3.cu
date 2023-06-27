@@ -43,32 +43,19 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-__device__ __constant__ unsigned char BN2[256] =
-    {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-__device__ short
-get_tn(const char *contig, const size_t index) {
+__device__ short get_tn(const char *contig, const size_t index) {
   unsigned char N;
   short tn = 0;
   for (short i = 0; i < 4; i++) {
-    N = BN2[contig[index + i]];
+    N = BN[contig[index + i]];
     if (N & 4) return 256;
     tn = (tn << 2) | N;
   }
@@ -320,7 +307,7 @@ int main(int argc, char const *argv[]) {
     size_t fsize = ftell(fp);  // get the current position
     fclose(fp);
     size_t chunk = fsize / nth;
-    char *_mem = (char *)malloc(fsize);
+    cudaMallocHost((void **)&_mem, fsize);
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
 
@@ -394,124 +381,7 @@ int main(int argc, char const *argv[]) {
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
     std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
-
-    // tambien lento en secuencial 26s
-    /*
-    auto _start = std::chrono::system_clock::now();
-
-    std::ifstream file(inFile.c_str(), std::ios::);
-    std::string compressed_data((std::istream_iterator<char>(file)),
-                                (std::istream_iterator<char>()));
-    std::cout << compressed_data.size() << std::endl;
-
-    auto _end = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout <<"cargar archivo descomprimidO"<< _duration.count() / 1000.f <<
-    std::endl;
-    */
-
-    // no funciona bien cargar comprimido y descomprimir en memoria
-    /*
-    ////////////////////
-    auto _start = std::chrono::system_clock::now();
-
-    std::ifstream file(inFile.c_str(), std::ios::binary);
-    std::string compressed_data((std::istream_iterator<char>(file)),
-                                (std::istream_iterator<char>()));
-    std::cout << compressed_data.size() << std::endl;
-    std::string uncompressed_data(compressed_data.size() * 5, '\n');
-    size_t uncompressed_size = compressed_data.size();
-    int result;
-    do {
-      result = uncompress((Bytef *)uncompressed_data.data(), &uncompressed_size,
-                          (const Bytef *)compressed_data.data(),
-                          compressed_data.size());
-      if(result == Z_MEM_ERROR){
-        std::cout << "aumentando buffer" << std::endl;
-        uncompressed_data.resize(uncompressed_data.size() * 2);
-      }
-    } while (result != Z_MEM_ERROR);
-
-    if (result == Z_OK) {
-      std::cout << uncompressed_data.size() << std::endl;
-      uncompressed_data.resize(uncompressed_size);
-      std::cout << uncompressed_size << std::endl;
-    } else {
-
-      std::cout << "error:" << result << std::endl;
-    }
-
-    auto _end = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout << _duration.count() / 1000.f << std::endl;
-    ////////////////////
-    */
-    /*
-     const size_t contigs_target = global_contigs_target;
-     kseq_t *kseq = kseq_init(f);
-     int64_t len;
-
-     while ((len = kseq_read(kseq)) > 0) {
-       std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
-       if (kseq->name.l > 0) {
-         if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph)) {
-           if (len < (int)minContig) {
-             if (len >= (int)minContigByCorr) {
-               // smallCtgs.insert(1);
-             } else {
-               ++nresv;
-             }
-           }
-           seqs_kernel[SUBP_IND].append(kseq->seq.s);
-           seqs_kernel_index[SUBP_IND][nobs_cont] =
-     seqs_kernel[SUBP_IND].size(); nobs++; nobs_cont++; } else {
-           // ignored[kseq->name.s] = seqs.size();
-         }
-         // contig_names.push_back(kseq->name.s);
-         seqs.push_back(kseq->seq.s);
-
-         if (nobs_cont & contigs_target) {
-           TNF.push_back((double *)0);
-           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                         kernel_cont, nobs_cont);
-           SUBP_IND = (SUBP_IND + 1) & 1;
-           kernel_cont++;
-           nobs_cont = 0;
-
-           // si aún no se ha terminado la ejecición la siguiente hebra se
-     espera
-           // a ella.
-           if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
-         }
-       }
-     }
-     kseq_destroy(kseq);
-     kseq = NULL;
-     gzclose(f);
-     */
   }
-  /*
-  if (nobs_cont != 0) {
-    TNF.push_back((double *)0);
-    SUBPS[SUBP_IND] =
-        std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-    SUBP_IND = (SUBP_IND + 1) & 2;
-    kernel_cont++;
-    nobs_cont = 0;
-  }
-  // se esperan a las hebras restantes
-  for (int i = 0; i < 2; i++) {
-    if (SUBPS[i].joinable()) {
-      SUBPS[i].join();
-    }
-  }
-
-  // auto end = std::chrono::system_clock::now();
-  // std::chrono::duration<float, std::milli> duration = end - start;
-  */
-
-  // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s
-  // " << std::endl;
 
   auto end_global = std::chrono::system_clock::now();
   std::chrono::duration<float, std::milli> duration = end_global - start_global;
