@@ -372,7 +372,7 @@ int main(int argc, char const *argv[]) {
             else
               nresv++;
 
-            lCtgIdx[std::string(contig_name_s, contig_name_e)] = nobs;
+            // lCtgIdx[std::string(contig_name_s, contig_name_e)] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
