@@ -389,6 +389,12 @@ int main(int argc, char const *argv[]) {
           std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
 
+    for (int i = 0; i < 2; i++) {
+      if (SUBPS[i].joinable()) {
+        SUBPS[i].join();
+      }
+    }
+
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
     std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
@@ -497,7 +503,6 @@ int main(int argc, char const *argv[]) {
     kernel_cont++;
     nobs_cont = 0;
   }
-  */
   // se esperan a las hebras restantes
   for (int i = 0; i < 2; i++) {
     if (SUBPS[i].joinable()) {
@@ -505,9 +510,11 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  auto end = std::chrono::system_clock::now();
-  std::chrono::duration<float, std::milli> duration = end - start;
-  // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s
+  // auto end = std::chrono::system_clock::now();
+  // std::chrono::duration<float, std::milli> duration = end - start;
+  */
+
+   // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s
   // " << std::endl;
 
   auto end_global = std::chrono::system_clock::now();
