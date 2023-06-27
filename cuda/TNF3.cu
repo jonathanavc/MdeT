@@ -319,18 +319,21 @@ int main(int argc, char const *argv[]) {
     fpint = open(inFile.c_str(), O_RDWR | O_CREAT,
                  S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
     thread readerThreads[nth];
+    size_t total = 0;
     for (int i = 0; i < nth; i++) {
       size_t _size;
       if (i == nth - 1)
         _size = chunk;
       else
         _size = chunk + fsize % nth;
+      total+= size;
       std::cout << "tamaño chunk:" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
     for (int i = 0; i < nth; i++) {
       readerThreads[i].join();
     }
+    std::cout << "total:" << total << std::endl;
 
     close(fpint);
 
