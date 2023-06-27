@@ -514,11 +514,11 @@ int main(int argc, char const *argv[]) {
   // std::chrono::duration<float, std::milli> duration = end - start;
   */
 
-   // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s
+  // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s
   // " << std::endl;
 
   auto end_global = std::chrono::system_clock::now();
-  duration = end_global - start_global;
+  std::chrono::duration<float, std::milli> duration = end_global - start_global;
   std::cout << duration.count() / 1000.f << std::endl;
 
   std::ofstream out("TNF.bin", ios::out | ios::binary);
