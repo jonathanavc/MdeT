@@ -385,15 +385,9 @@ int main(int argc, char const *argv[]) {
             TNF.push_back((double *)0);
             SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         }
-        std::cout << seqs.size();
-        std::cout << std::endl;
+        cudaFreeHost(_mem);
         seqs.shrink_to_fit();
-        std::cout << seqs.size();
-        std::cout << std::endl;
         contig_names.shrink_to_fit();
-
-        std::cout << seqs.size();
-        std::cout << std::endl;
 
         for (int i = 0; i < 2; i++) {
             if (SUBPS[i].joinable()) SUBPS[i].join();
@@ -402,9 +396,6 @@ int main(int argc, char const *argv[]) {
         _end = std::chrono::system_clock::now();
         _duration = _end - _start;
         std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
-
-        std::cout << seqs.size();
-        std::cout << std::endl;
     }
 
     auto end_global = std::chrono::system_clock::now();
@@ -432,7 +423,6 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++) {
-        cudaFreeHost(_mem);
         cudaFreeHost(seqs_kernel_index[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
