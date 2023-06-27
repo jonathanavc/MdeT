@@ -340,6 +340,8 @@ int main(int argc, char const *argv[]) {
     cudaMalloc(&seqs_d, fsize);
     cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
 
+    std::vector<std::string> seqs;
+
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
     std::cout << "archivo a memoria de gpu:" << _duration.count() / 1000.f
@@ -359,6 +361,7 @@ int main(int argc, char const *argv[]) {
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
+          seqs.emplace_back(&_mem + i, &_mem + i + contig_size);
         }
         i += contig_size;
         contig_size = 0;
