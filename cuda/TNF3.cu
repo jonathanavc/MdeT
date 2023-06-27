@@ -408,6 +408,9 @@ int main(int argc, char const *argv[]) {
     std::chrono::duration<float, std::milli> duration = end_global - start_global;
     std::cout << duration.count() / 1000.f << std::endl;
 
+    std::cout << seqs.size();
+    std::cout << std::endl;
+
     std::cout << seqs.at(0) << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
