@@ -74,7 +74,11 @@ __device__ short get_revComp_tn_d(short tn) {
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
                                     const size_t *seqs_d_index) {
-  return seqs_d + seqs_d_index[contig_index];
+  size_t contig_beg = 0;
+  if (contig_index != 0) {
+    contig_beg = seqs_d_index[contig_index - 1];
+  }
+  return seqs_d + contig_beg;
 }
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
@@ -95,8 +99,8 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
     const size_t tnf_index = contig_index * 136;
     if (contig_index >= nobs) break;
-    size_t contig_size = seqs_d_index[contig_index + global_contigs_target] -
-                         seqs_d_index[contig_index];
+    size_t contig_size = seqs_d_index[contig_index];
+    if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
     // tengo dudas sobre esta parte ------------------------
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
@@ -122,8 +126,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d,
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
                               const size_t *seqs_d_index, size_t nobs,
-                              const size_t contigs_per_thread,
-                              const size_t global_contigs_target) {
+                              const size_t contigs_per_thread) {
   const size_t minContig = 2500;
   const size_t minContigByCorr = 1000;
   const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -136,8 +139,9 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d,
     }
     const size_t contig_index = (thead_id * contigs_per_thread) + i;
     if (contig_index >= nobs) break;
-    size_t contig_size = seqs_d_index[contig_index + global_contigs_target] -
-                         seqs_d_index[contig_index];
+    size_t contig_size = seqs_d_index[contig_index];
+    if (contig_index != 0) contig_size -= seqs_d_index[contig_index - 1];
+    // tengo dudas sobre esta parte ------------------------
     if (contig_size >= minContig || contig_size < minContigByCorr) {
       const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
       for (size_t j = 0; j < contig_size - 3; ++j) {
@@ -206,7 +210,6 @@ static size_t minContigByCorr =
     1000;  // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 
-char *seqs_d;
 double *TNF_d[2];
 static size_t *seqs_d_index[2];
 
@@ -214,22 +217,36 @@ size_t nobs_cont;
 size_t kernel_cont;
 static size_t global_contigs_target;
 std::vector<double *> TNF;
-cudaStream_t _s[2];
+cudaStream_t _s[2][2];
+std::string seqs_kernel[2];
 size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
+  char *seqs_d;
   cudaMallocHost((void **)&TNF[cont],
                  global_contigs_target * n_TNF * sizeof(double));
+  // TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread *
+  // n_TNF * sizeof(double));
+  cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s[SUBP_IND][0]);
   cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                  global_contigs_target * 2 * sizeof(size_t),
-                  cudaMemcpyHostToDevice, _s[SUBP_IND]);
+                  global_contigs_target * sizeof(size_t),
+                  cudaMemcpyHostToDevice,
+                  _s[SUBP_IND][1]);  // seqs_index
+  cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(),
+                  seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice,
+                  _s[SUBP_IND][0]);
+  for (int i = 0; i < 2; i++) cudaStreamSynchronize(_s[SUBP_IND][i]);
 
-  get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
+  get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND][0]>>>(
       TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
                   global_contigs_target * n_TNF * sizeof(double),
-                  cudaMemcpyDeviceToHost, _s[SUBP_IND]);
-  cudaStreamSynchronize(_s[SUBP_IND]);
+                  cudaMemcpyDeviceToHost, _s[SUBP_IND][0]);
+  cudaFreeAsync(seqs_d, _s[SUBP_IND][1]);
+
+  for (int i = 0; i < 2; i++) cudaStreamSynchronize(_s[SUBP_IND][i]);
+  // más eficiente que asignación
+  seqs_kernel[SUBP_IND].clear();
 }
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
@@ -282,11 +299,11 @@ int main(int argc, char const *argv[]) {
   kernel_cont = 0;
 
   for (int i = 0; i < 2; i++) {
-    cudaStreamCreate(&_s[i]);
+    for (int j = 0; j < 2; j++) cudaStreamCreate(&_s[i][j]);
     cudaMallocHost((void **)&seqs_kernel_index[i],
-                   global_contigs_target * 2 * sizeof(size_t));
+                   global_contigs_target * sizeof(size_t));
     cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
-    cudaMalloc(&seqs_d_index[i], global_contigs_target * 2 * sizeof(size_t));
+    cudaMalloc(&seqs_d_index[i], global_contigs_target * sizeof(size_t));
   }
   size_t nobs = 0;
   gzFile f = gzopen(inFile.c_str(), "r");
@@ -326,9 +343,7 @@ int main(int argc, char const *argv[]) {
     }
 
     close(fpint);
-    cudaMalloc(&seqs_d, fsize);
-    cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
-    
+
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
     std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
@@ -338,38 +353,40 @@ int main(int argc, char const *argv[]) {
 
     std::string _s = "";
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
-    size_t contig_size = 0;
+
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        while (!(_mem[i] == 10)) i++;
-        i++;
-        while (i + contig_size < fsize && !(_mem[i + contig_size] == 10))
-          contig_size++;
-        if (contig_size >= __min) {
-          seqs_kernel_index[SUBP_IND][nobs_cont] = i;
-          seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
-              i + contig_size;
+        if (_s.length() >= __min) {
+          seqs_kernel[SUBP_IND] += _s;
+          seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
           nobs_cont++;
+          // nobs++;
+
+          if (nobs_cont == global_contigs_target) {
+            TNF.push_back((double *)0);
+            SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
+                                          kernel_cont, nobs_cont);
+            SUBP_IND = (SUBP_IND + 1) & 1;
+            kernel_cont++;
+            nobs_cont = 0;
+            if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
+          }
         }
-        i += contig_size;
-        contig_size = 0;
-        if (nobs_cont == global_contigs_target) {
-          TNF.push_back((double *)0);
-          SUBPS[SUBP_IND] =
-              std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont,
-                          nobs_cont, global_contigs_target);
-          SUBP_IND = (SUBP_IND + 1) & 1;
-          kernel_cont++;
-          nobs_cont = 0;
-          if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
-        }
+        while (!(_mem[i] == 10)) i++;
+        _s.clear();
+        continue;
       }
+      _s.push_back(std::toupper(_mem[i]));
+    }
+    if (_s != "") {
+      seqs_kernel[SUBP_IND] += _s;
+      seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
+      nobs_cont++;
     }
     if (nobs_cont != 0) {
       TNF.push_back((double *)0);
       SUBPS[SUBP_IND] =
-          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont,
-                      global_contigs_target);
+          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
 
     for (int i = 0; i < 2; i++) {
