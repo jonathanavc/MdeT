@@ -194,6 +194,7 @@ int n_BLOCKS = 128;
 
 std::vector<std::string> seqs;
 std::unordered_map<size_t, size_t> gCtgIdx;
+std::unordered_map<std::string, size_t> lCtgIdx;
 std::unordered_set<int> smallCtgs;
 
 const int n_TNF = 136;
@@ -366,6 +367,7 @@ int main(int argc, char const *argv[]) {
               smallCtgs.insert(nobs);
             else
               nresv++;
+            //lCtgIdx[kseq->name.s] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;

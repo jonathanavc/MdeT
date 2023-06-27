@@ -30,6 +30,7 @@ int n_THREADS = 32;
 
 std::vector<std::string> seqs;
 static std::unordered_map<size_t, size_t> gCtgIdx;
+static std::unordered_map<std::string, size_t> lCtgIdx;
 static std::unordered_set<size_t> smallCtgs;
 
 const int n_TNF = 136;
@@ -121,6 +122,7 @@ int main(int argc, char const *argv[])
                         else
                             ++nresv;
                     }
+                    std::cout << kseq->name.s << std::endl;
                     // lCtgIdx[kseq->name.s] = nobs;
                     /////// cambio para facilitar la transferencia de gCtgIdx
                     gCtgIdx[nobs++] = seqs.size(); // global index
