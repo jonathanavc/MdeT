@@ -353,17 +353,17 @@ int main(int argc, char const *argv[]) {
 
     _start = std::chrono::system_clock::now();
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
+    std::string contig_name;
     size_t contig_size = 0;
-    size_t contig_name_s = 0;
-    size_t contig_name_e = 0;
+    size_t contig_name_size = 0;
     seqs.reserve(fsize % __min);
     lCtgIdx.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         contig_name_s = i;
-        while (_mem[i] != 10) i++;
-        contig_name_e = i;
-        i++;
+        while (_mem[i + contig_name_size] != 10) contig_name_size++;
+        contig_name = str::string(i, i + contig_name_size);
+        i += contig_name_size + 1;
         while (i + contig_size < fsize && _mem[i + contig_size] != 10)
           contig_size++;
         if (contig_size >= __min) {
@@ -373,7 +373,7 @@ int main(int argc, char const *argv[]) {
             else
               nresv++;
 
-            // lCtgIdx[std::string(contig_name_s, contig_name_e)] = nobs;
+            lCtgIdx[contig_name] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
