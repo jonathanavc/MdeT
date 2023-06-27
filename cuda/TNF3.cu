@@ -344,7 +344,9 @@ int main(int argc, char const *argv[]) {
 
     size_t nobs = 0;
     std::vector<std::string> seqs;
+    std::vector<std::string> contig_names;
     std::unordered_set<size_t> smallCtgs;
+    std::unordered_map<std::string, size_t> ignored;
 
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
@@ -358,7 +360,10 @@ int main(int argc, char const *argv[]) {
     size_t contig_name_e;
     size_t contig_i;
     size_t contig_e;
-    size_t contig_size = 0 seqs.reserve(fsize % __min);
+    size_t contig_size;
+    seqs.reserve(fsize % __min);
+    ignored.reserve(fsize % __min);
+    contig_names.reserve(fsize % __min);
     lCtgIdx.reserve(fsize % __min);
     gCtgIdx.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
@@ -391,13 +396,13 @@ int main(int argc, char const *argv[]) {
               contig_e;
           nobs_cont++;
         } else
-          ignored[kseq->name.s] = seqs.size();
+          ignored[std::string(_mem + contig_name_i, _mem + contig_name_e)] =
+              seqs.size();
         // necesario??????????? creo que si
         contig_names.push_back((const char *)(_mem + contig_name_i),
                                (const char *)(_mem + contig_name_e));
-        seqs.emplace_back((const char *)(_mem + i),
-                          (const char *)(_mem + i + contig_size));
-        contig_name.clear();
+        seqs.emplace_back((const char *)(_mem + contig_i),
+                          (const char *)(_mem + contig_e));
         if (nobs_cont == global_contigs_target) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
