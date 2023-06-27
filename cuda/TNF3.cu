@@ -303,7 +303,7 @@ int main(int argc, char const *argv[]) {
     // Esto si es rapido
     auto _start = std::chrono::system_clock::now();
 
-    int nth = 10;
+    int nth = std::thread::hardware_concurrency();
     int fpint = -1;
 
     FILE *fp = fopen(inFile.c_str(), "r");
