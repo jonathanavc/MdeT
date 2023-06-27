@@ -267,6 +267,8 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d_index[i], global_contigs_target * 2 * sizeof(size_t));
     }
 
+    char *_mem;
+
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL) {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -277,7 +279,6 @@ int main(int argc, char const *argv[]) {
 
         int nth = std::thread::hardware_concurrency();
         int fpint = -1;
-        char *_mem;
 
         FILE *fp = fopen(inFile.c_str(), "r");
         fseek(fp, 0L, SEEK_END);   // seek to the EOF
@@ -393,7 +394,6 @@ int main(int argc, char const *argv[]) {
         for (int i = 0; i < 2; i++) {
             if (SUBPS[i].joinable()) SUBPS[i].join();
         }
-        cudaFreeHost(_mem);
 
         _end = std::chrono::system_clock::now();
         _duration = _end - _start;
@@ -422,6 +422,7 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++) {
+        cudaFreeHost(_mem);
         cudaFreeHost(seqs_kernel_index[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
