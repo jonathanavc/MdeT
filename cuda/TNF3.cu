@@ -371,7 +371,6 @@ int main(int argc, char const *argv[]) {
         contig_name_i = i;
         while (_mem[i] != 10) i++;
         contig_name_e = i;
-
         i++;
 
         contig_i = i;
@@ -379,52 +378,43 @@ int main(int argc, char const *argv[]) {
         contig_e = i;
 
         contig_size = contig_e - contig_i;
-
+        
         if (contig_size >= __min) {
           if (contig_size < minContig) {
             if (contig_size >= minContigByCorr)
               smallCtgs.insert(nobs);
             else
               nresv++;
-
-            lCtgIdx[std::string(_mem + contig_name_i, _mem + contig_name_e)] =
-                nobs;
+            lCtgIdx[std::string(_mem + contig_name_i, _mem + contig_name_e)] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = contig_i;
-          seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
-              contig_e;
+          seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
           nobs_cont++;
         } else
-          ignored[std::string(_mem + contig_name_i, _mem + contig_name_e)] =
-              seqs.size();
-        // necesario??????????? creo que si
-        contig_names.emplace_back((const char *)(_mem + contig_name_i),
-                                  (const char *)(_mem + contig_name_e));
-        seqs.emplace_back((const char *)(_mem + contig_i),
-                          (const char *)(_mem + contig_e));
+          ignored[std::string(_mem + contig_name_i, _mem + contig_name_e)] = seqs.size();
+        contig_names.emplace_back((const char *)(_mem + contig_name_i), (const char *)(_mem + contig_name_e));
+        seqs.emplace_back((const char *)(_mem + contig_i), (const char *)(_mem + contig_e));
         if (nobs_cont == global_contigs_target) {
           TNF.push_back((double *)0);
-          SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                        kernel_cont, nobs_cont);
+          SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
           nobs_cont = 0;
-          if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
+          if (SUBPS[SUBP_IND].joinable()) 
+            SUBPS[SUBP_IND].join();
         }
       }
     }
     if (nobs_cont != 0) {
       TNF.push_back((double *)0);
-      SUBPS[SUBP_IND] =
-          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
+      SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
     seqs.shrink_to_fit();
 
     for (int i = 0; i < 2; i++) {
-      if (SUBPS[i].joinable()) {
+      if (SUBPS[i].joinable())
         SUBPS[i].join();
-      }
     }
 
     cudaFreeHost(_mem);
