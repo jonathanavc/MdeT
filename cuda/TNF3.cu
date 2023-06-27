@@ -358,8 +358,7 @@ int main(int argc, char const *argv[]) {
                             smallCtgs.insert(nobs);
                         else
                             nresv++;
-                        lCtgIdx[std::string((const char *)(_mem + contig_name_i),
-                                            (const char *)(_mem + contig_name_e))] = nobs;
+                        lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_i)] = nobs;
                         gCtgIdx[nobs++] = seqs.size();
                     }
                     seqs_kernel_index[SUBP_IND][nobs_cont] = contig_i;
