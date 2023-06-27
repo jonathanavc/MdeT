@@ -384,6 +384,7 @@ int main(int argc, char const *argv[]) {
           std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
     seqs.shrink_to_fit();
+    std::cout << seqs.size() << std::endl;
 
     for (int i = 0; i < 2; i++) {
       if (SUBPS[i].joinable()) {
