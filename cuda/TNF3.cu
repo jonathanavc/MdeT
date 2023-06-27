@@ -173,11 +173,11 @@ int n_THREADS = 32;
 int n_BLOCKS = 128;
 size_t nobs = 0;
 
-std::vector<std::string_view> contig_names;
-std::unordered_map<std::string, size_t> ignored;
 std::vector<std::string_view> seqs;
+std::vector<std::string_view> contig_names;
+std::unordered_map<std::string_view, size_t> ignored;
+std::unordered_map<std::string_view, size_t> lCtgIdx;
 std::unordered_map<size_t, size_t> gCtgIdx;
-std::unordered_map<std::string, size_t> lCtgIdx;
 std::unordered_set<int> smallCtgs;
 
 const int n_TNF = 136;
@@ -365,8 +365,7 @@ int main(int argc, char const *argv[]) {
                     seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
                     nobs_cont++;
                 } else {
-                    ignored[std::string((const char *)(_mem + contig_name_i),
-                                        (const char *)(_mem + contig_name_e))] = seqs.size();
+                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_i)] = seqs.size();
                 }
                 contig_names.emplace_back(_mem + contig_name_i, contig_name_e - contig_name_i);
                 seqs.emplace_back(_mem + contig_i, contig_e - contig_i);
