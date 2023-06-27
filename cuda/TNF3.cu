@@ -322,7 +322,7 @@ int main(int argc, char const *argv[]) {
     size_t total = 0;
     for (int i = 0; i < nth; i++) {
       size_t _size;
-      if (i == nth - 1)
+      if (i != nth - 1)
         _size = chunk;
       else
         _size = chunk + (fsize % nth);
