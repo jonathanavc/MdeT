@@ -361,7 +361,7 @@ int main(int argc, char const *argv[]) {
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
-          seqs.emplace_back(&(_mem + i), &(_mem + i + contig_size));
+          seqs.emplace_back((_mem + i), (_mem + i + contig_size));
         }
         i += contig_size;
         contig_size = 0;
