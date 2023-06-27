@@ -173,10 +173,9 @@ int n_THREADS = 32;
 int n_BLOCKS = 128;
 size_t nobs = 0;
 
-std::vector<std::string> contig_names;
+std::vector<std::string_view> contig_names;
 std::unordered_map<std::string, size_t> ignored;
-std::vector<std::string> seqs;
-std::vector<std::string_view> seqs2;
+std::vector<std::string_view> seqs;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_map<std::string, size_t> lCtgIdx;
 std::unordered_set<int> smallCtgs;
@@ -370,9 +369,8 @@ int main(int argc, char const *argv[]) {
                     ignored[std::string((const char *)(_mem + contig_name_i),
                                         (const char *)(_mem + contig_name_e))] = seqs.size();
                 }
-                contig_names.emplace_back((const char *)(_mem + contig_name_i),
-                                          (const char *)(_mem + contig_name_e));
-                seqs.emplace_back((const char *)(_mem + contig_i), (const char *)(_mem + contig_e));
+                contig_names.emplace_back(_mem + contig_name_i, contig_name_e - contig_name_i);
+                seqs.emplace_back(_mem + contig_i, contig_e - contig_i);
                 if (nobs_cont == global_contigs_target) {
                     TNF.push_back((double *)0);
                     SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
