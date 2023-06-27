@@ -357,6 +357,7 @@ int main(int argc, char const *argv[]) {
     size_t contig_size = 0;
     seqs.reserve(fsize % __min);
     lCtgIdx.reserve(fsize % __min);
+    gCtgIdx.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         while (_mem[i] != 10) {
