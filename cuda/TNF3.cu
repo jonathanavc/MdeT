@@ -314,7 +314,7 @@ int main(int argc, char const *argv[]) {
     char *_mem;
     cudaMallocHost((void **)&_mem, fsize);
     std::cout << "tamaño total:" << fsize << std::endl;
-    std::cout << "chunk:" << chunk << std::endl;
+    std::cout << "threads:" << nth << std::endl;
 
     fpint = open(inFile.c_str(), O_RDWR | O_CREAT,
                  S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
@@ -325,7 +325,7 @@ int main(int argc, char const *argv[]) {
         _size = chunk;
       else
         _size = chunk + fsize % nth;
-      std::cout << "tamaño _size:" << _size << std::endl;
+      std::cout << "tamaño chunk:" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
     for (int i = 0; i < nth; i++) {
