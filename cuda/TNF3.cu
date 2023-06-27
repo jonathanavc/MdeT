@@ -365,7 +365,8 @@ int main(int argc, char const *argv[]) {
                     seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
                     nobs_cont++;
                 } else {
-                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
+                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] =
+                        seqs.size();
                 }
                 contig_names.emplace_back(_mem + contig_name_i, contig_name_e - contig_name_i);
                 seqs.emplace_back(_mem + contig_i, contig_e - contig_i);
@@ -398,11 +399,6 @@ int main(int argc, char const *argv[]) {
     auto end_global = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> duration = end_global - start_global;
     std::cout << duration.count() / 1000.f << std::endl;
-
-    std::cout << seqs.size();
-    std::cout << std::endl;
-
-    std::cout << seqs.at(0) << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
     if (out) {
