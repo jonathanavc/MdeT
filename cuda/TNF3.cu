@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -354,10 +355,14 @@ int main(int argc, char const *argv[]) {
     _start = std::chrono::system_clock::now();
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
     size_t contig_size = 0;
+    size_t contig_name_s = 0;
+    size_t contig_name_e = 0;
     seqs.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
+        contig_name_s = i;
         while (_mem[i] != 10) i++;
+        contig_name_e = i;
         i++;
         while (i + contig_size < fsize && _mem[i + contig_size] != 10)
           contig_size++;
@@ -367,7 +372,9 @@ int main(int argc, char const *argv[]) {
               smallCtgs.insert(nobs);
             else
               nresv++;
-            //lCtgIdx[kseq->name.s] = nobs;
+
+            lCtgIdx[std::string_view(contig_name_s,
+                                     contig_name_e - contig_name_s)] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
