@@ -346,8 +346,6 @@ int main(int argc, char const *argv[]) {
               << std::endl;
 
     _start = std::chrono::system_clock::now();
-
-    std::string _s = "";
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
     size_t contig_size = 0;
     for (size_t i = 0; i < fsize; i++) {
