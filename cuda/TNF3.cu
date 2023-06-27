@@ -307,6 +307,7 @@ int main(int argc, char const *argv[]) {
     size_t fsize = ftell(fp);  // get the current position
     fclose(fp);
     size_t chunk = fsize / nth;
+    char *_mem;
     cudaMallocHost((void **)&_mem, fsize);
     std::cout << "tamaño total:" << fsize << std::endl;
     std::cout << "chunk:" << chunk << std::endl;
@@ -330,6 +331,7 @@ int main(int argc, char const *argv[]) {
     close(fpint);
     cudaMalloc(&seqs_d, fsize);
     cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
+    cudaFreeHost(_mem);
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
