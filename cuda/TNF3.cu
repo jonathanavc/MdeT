@@ -399,8 +399,8 @@ int main(int argc, char const *argv[]) {
           ignored[std::string(_mem + contig_name_i, _mem + contig_name_e)] =
               seqs.size();
         // necesario??????????? creo que si
-        contig_names.push_back((const char *)(_mem + contig_name_i),
-                               (const char *)(_mem + contig_name_e));
+        contig_names.emplace_back((const char *)(_mem + contig_name_i),
+                                  (const char *)(_mem + contig_name_e));
         seqs.emplace_back((const char *)(_mem + contig_i),
                           (const char *)(_mem + contig_e));
         if (nobs_cont == global_contigs_target) {
