@@ -385,7 +385,7 @@ int main(int argc, char const *argv[]) {
     }
     seqs.shrink_to_fit();
     std::cout << seqs.size() << std::endl;
-    std::cout << seqs.at(sesqs.size() - 1) << std::endl;
+    std::cout << seqs.at(seqs.size() - 1) << std::endl;
 
     for (int i = 0; i < 2; i++) {
       if (SUBPS[i].joinable()) {
