@@ -267,6 +267,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d_index[i], global_contigs_target * 2 * sizeof(size_t));
     }
 
+    char *_mem;
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL) {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -283,7 +284,6 @@ int main(int argc, char const *argv[]) {
         size_t fsize = ftell(fp);  // get the current position
         fclose(fp);
         size_t chunk = fsize / nth;
-        char *_mem;
         cudaMallocHost((void **)&_mem, fsize);
         std::cout << "tamaño total:" << fsize << std::endl;
         std::cout << "threads:" << nth << std::endl;
