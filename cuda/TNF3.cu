@@ -350,9 +350,9 @@ int main(int argc, char const *argv[]) {
     size_t contig_size = 0;
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        while (!(_mem[i] == 10)) i++;
+        while (_mem[i] != 10) i++;
         i++;
-        while (i + contig_size < fsize && !(_mem[i + contig_size] == 10))
+        while (i + contig_size < fsize && _mem[i + contig_size] != 10)
           contig_size++;
         if (contig_size >= __min) {
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
