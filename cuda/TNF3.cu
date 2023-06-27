@@ -329,12 +329,20 @@ int main(int argc, char const *argv[]) {
     }
 
     close(fpint);
-    cudaMalloc(&seqs_d, fsize);
-    cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
-    std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
+    std::cout << "cargar archivo descomprimido a ram(pinned):"
+              << _duration.count() / 1000.f << std::endl;
+
+    _start = std::chrono::system_clock::now();
+
+    cudaMalloc(&seqs_d, fsize);
+    cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
+
+    _end = std::chrono::system_clock::now();
+    _duration = _end - _start;
+    std::cout << "archivo a memoria de gpu:" << _duration.count() / 1000.f
               << std::endl;
 
     _start = std::chrono::system_clock::now();
