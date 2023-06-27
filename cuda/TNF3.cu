@@ -226,7 +226,8 @@ void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
                   cudaMemcpyHostToDevice, _s[SUBP_IND]);
 
   get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(
-      TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
+      TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread,
+      global_contigs_target);
   cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND],
                   global_contigs_target * n_TNF * sizeof(double),
                   cudaMemcpyDeviceToHost, _s[SUBP_IND]);
@@ -356,9 +357,8 @@ int main(int argc, char const *argv[]) {
         contig_size = 0;
         if (nobs_cont == global_contigs_target) {
           TNF.push_back((double *)0);
-          SUBPS[SUBP_IND] =
-              std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont,
-                          nobs_cont, global_contigs_target);
+          SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
+                                        kernel_cont, nobs_cont);
           SUBP_IND = (SUBP_IND + 1) & 1;
           kernel_cont++;
           nobs_cont = 0;
@@ -368,9 +368,8 @@ int main(int argc, char const *argv[]) {
     }
     if (nobs_cont != 0) {
       TNF.push_back((double *)0);
-      SUBPS[SUBP_IND] =
-          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont,
-                      global_contigs_target);
+      SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
+                                    kernel_cont, nobs_cont, );
     }
 
     for (int i = 0; i < 2; i++) {
