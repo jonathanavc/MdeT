@@ -358,14 +358,14 @@ int main(int argc, char const *argv[]) {
                             smallCtgs.insert(nobs);
                         else
                             nresv++;
-                        lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_i)] = nobs;
+                        lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                         gCtgIdx[nobs++] = seqs.size();
                     }
                     seqs_kernel_index[SUBP_IND][nobs_cont] = contig_i;
                     seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
                     nobs_cont++;
                 } else {
-                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_i)] = seqs.size();
+                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
                 contig_names.emplace_back(_mem + contig_name_i, contig_name_e - contig_name_i);
                 seqs.emplace_back(_mem + contig_i, contig_e - contig_i);
