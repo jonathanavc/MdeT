@@ -303,7 +303,7 @@ int main(int argc, char const *argv[]) {
     // Esto si es rapido
     auto _start = std::chrono::system_clock::now();
 
-    int nth = 8;
+    int nth = 16;
     int fpint = -1;
 
     FILE *fp = fopen(inFile.c_str(), "r");
