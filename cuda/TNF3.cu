@@ -385,7 +385,6 @@ int main(int argc, char const *argv[]) {
             TNF.push_back((double *)0);
             SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         }
-        cudaFreeHost(_mem);
         seqs.shrink_to_fit();
         contig_names.shrink_to_fit();
 
@@ -423,6 +422,7 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++) {
+        cudaFreeHost(_mem);
         cudaFreeHost(seqs_kernel_index[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
