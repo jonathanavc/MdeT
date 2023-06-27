@@ -11,7 +11,6 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -373,8 +372,7 @@ int main(int argc, char const *argv[]) {
             else
               nresv++;
 
-            lCtgIdx[std::string_view(contig_name_s,
-                                     contig_name_e - contig_name_s)] = nobs;
+            lCtgIdx[std::string(contig_name_s, contig_name_e)] = nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
