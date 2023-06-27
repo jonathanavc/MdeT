@@ -367,6 +367,7 @@ int main(int argc, char const *argv[]) {
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
+          nobs++;
         }
         // necesario??????????? creo que si
         seqs.emplace_back((const char *)(_mem + i),
