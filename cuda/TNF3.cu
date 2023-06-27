@@ -368,8 +368,8 @@ int main(int argc, char const *argv[]) {
     }
     if (nobs_cont != 0) {
       TNF.push_back((double *)0);
-      SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
-                                    kernel_cont, nobs_cont, );
+      SUBPS[SUBP_IND] =
+          std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
 
     for (int i = 0; i < 2; i++) {
