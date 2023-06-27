@@ -350,6 +350,7 @@ int main(int argc, char const *argv[]) {
     _start = std::chrono::system_clock::now();
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
     size_t contig_size = 0;
+    seqs.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
         while (_mem[i] != 10) i++;
@@ -361,7 +362,8 @@ int main(int argc, char const *argv[]) {
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
-          seqs.emplace_back((_mem + i), (_mem + i + contig_size));
+          seqs.emplace_back((const char *)(_mem + i),
+                            (const char *)(_mem + i + contig_size));
         }
         i += contig_size;
         contig_size = 0;
@@ -381,6 +383,7 @@ int main(int argc, char const *argv[]) {
       SUBPS[SUBP_IND] =
           std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
+    seqs.shrink_to_fit();
 
     for (int i = 0; i < 2; i++) {
       if (SUBPS[i].joinable()) {
