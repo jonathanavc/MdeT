@@ -280,6 +280,7 @@ int main(int argc, char const *argv[]) {
   global_contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
 
   int SUBP_IND = 0;
+  int nresv = 0;
   nobs_cont = 0;
   kernel_cont = 0;
 
@@ -361,13 +362,16 @@ int main(int argc, char const *argv[]) {
           contig_size++;
         if (contig_size >= __min) {
           if (contig_size < minContig) {
-            if (contig_size >= minContigByCorr) smallCtgs.insert(nobs);
+            if (contig_size >= minContigByCorr)
+              smallCtgs.insert(nobs);
+            else
+              nresv++;
+            gCtgIdx[nobs++] = seqs.size();
           }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
-          nobs++;
         }
         // necesario??????????? creo que si
         seqs.emplace_back((const char *)(_mem + i),
