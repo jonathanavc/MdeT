@@ -170,7 +170,10 @@ static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG"
 int contig_per_thread = 1;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
+size_t nobs = 0;
 
+std::vector<std::string> contig_names;
+std::unordered_map<std::string, size_t> ignored;
 std::vector<std::string> seqs;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_map<std::string, size_t> lCtgIdx;
@@ -317,12 +320,6 @@ int main(int argc, char const *argv[]) {
 
         cudaMalloc(&seqs_d, fsize);
         cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
-
-        size_t nobs = 0;
-        std::vector<std::string> seqs;
-        std::vector<std::string> contig_names;
-        std::unordered_set<size_t> smallCtgs;
-        std::unordered_map<std::string, size_t> ignored;
 
         _end = std::chrono::system_clock::now();
         _duration = _end - _start;
