@@ -290,7 +290,7 @@ int main(int argc, char const *argv[]) {
     cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
     cudaMalloc(&seqs_d_index[i], global_contigs_target * 2 * sizeof(size_t));
   }
-  size_t nobs = 0;
+
   gzFile f = gzopen(inFile.c_str(), "r");
   if (f == NULL) {
     cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -340,7 +340,9 @@ int main(int argc, char const *argv[]) {
     cudaMalloc(&seqs_d, fsize);
     cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
 
+    size_t nobs = 0;
     std::vector<std::string> seqs;
+    std::unordered_set<size_t> smallCtgs;
 
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
@@ -358,13 +360,17 @@ int main(int argc, char const *argv[]) {
         while (i + contig_size < fsize && _mem[i + contig_size] != 10)
           contig_size++;
         if (contig_size >= __min) {
+          if (contig_size < minContig) {
+            if (contig_size >= minContigByCorr) smallCtgs.insert(nobs);
+          }
           seqs_kernel_index[SUBP_IND][nobs_cont] = i;
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
               i + contig_size;
           nobs_cont++;
-          seqs.emplace_back((const char *)(_mem + i),
-                            (const char *)(_mem + i + contig_size));
         }
+        // necesario??????????? creo que si
+        seqs.emplace_back((const char *)(_mem + i),
+                          (const char *)(_mem + i + contig_size));
         i += contig_size;
         contig_size = 0;
         if (nobs_cont == global_contigs_target) {
@@ -384,8 +390,6 @@ int main(int argc, char const *argv[]) {
           std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
     }
     seqs.shrink_to_fit();
-    std::cout << seqs.size() << std::endl;
-    std::cout << seqs.at(seqs.size() - 1) << std::endl;
 
     for (int i = 0; i < 2; i++) {
       if (SUBPS[i].joinable()) {
