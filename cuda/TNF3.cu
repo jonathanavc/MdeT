@@ -278,7 +278,6 @@ int main(int argc, char const *argv[]) {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
     } else {
-        // Esto si es rapido
         auto _start = std::chrono::system_clock::now();
 
         int nth = std::thread::hardware_concurrency();
