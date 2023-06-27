@@ -388,7 +388,9 @@ int main(int argc, char const *argv[]) {
             TNF.push_back((double *)0);
             SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
         }
+        std::cout << seqs.size() << std::cout;
         seqs.shrink_to_fit();
+        std::cout << seqs.size() << std::cout;
         contig_names.shrink_to_fit();
 
         for (int i = 0; i < 2; i++) {
