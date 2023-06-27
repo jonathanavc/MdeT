@@ -326,7 +326,7 @@ int main(int argc, char const *argv[]) {
         _size = chunk;
       else
         _size = chunk + fsize % nth;
-      total+= size;
+      total+= __add_pointer_impl;
       std::cout << "tamaño chunk:" << _size << std::endl;
       readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
     }
