@@ -331,7 +331,6 @@ int main(int argc, char const *argv[]) {
     close(fpint);
     cudaMalloc(&seqs_d, fsize);
     cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
-    cudaFreeHost(_mem);
 
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
@@ -379,6 +378,8 @@ int main(int argc, char const *argv[]) {
         SUBPS[i].join();
       }
     }
+
+    cudaFreeHost(_mem);
 
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
