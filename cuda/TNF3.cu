@@ -176,7 +176,7 @@ size_t nobs = 0;
 std::vector<std::string> contig_names;
 std::unordered_map<std::string, size_t> ignored;
 std::vector<std::string> seqs;
-td::vector<std::string_view> seqs2;
+std::vector<std::string_view> seqs2;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_map<std::string, size_t> lCtgIdx;
 std::unordered_set<int> smallCtgs;
