@@ -354,19 +354,27 @@ int main(int argc, char const *argv[]) {
     _start = std::chrono::system_clock::now();
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
     std::string contig_name;
-    size_t contig_size = 0;
-    seqs.reserve(fsize % __min);
+    size_t contig_name_i;
+    size_t contig_name_e;
+    size_t contig_i;
+    size_t contig_e;
+    size_t contig_size = 0 seqs.reserve(fsize % __min);
     lCtgIdx.reserve(fsize % __min);
     gCtgIdx.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        while (_mem[i] != 10) {
-          contig_name.push_back(_mem[i]);
-          i++;
-        }
+        contig_name_i = i;
+        while (_mem[i] != 10) i++;
+        contig_name_e = i;
+
         i++;
-        while (i + contig_size < fsize && _mem[i + contig_size] != 10)
-          contig_size++;
+
+        contig_i = i;
+        while (i < fsize && _mem[i] != 10) i++;
+        contig_e = i;
+
+        contig_size = contig_e - contig_i;
+
         if (contig_size >= __min) {
           if (contig_size < minContig) {
             if (contig_size >= minContigByCorr)
@@ -374,20 +382,22 @@ int main(int argc, char const *argv[]) {
             else
               nresv++;
 
-            lCtgIdx[contig_name] = nobs;
+            lCtgIdx[std::string(_mem + contig_name_i, _mem + contig_name_e)] =
+                nobs;
             gCtgIdx[nobs++] = seqs.size();
           }
-          seqs_kernel_index[SUBP_IND][nobs_cont] = i;
+          seqs_kernel_index[SUBP_IND][nobs_cont] = contig_i;
           seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] =
-              i + contig_size;
+              contig_e;
           nobs_cont++;
-        }
+        } else
+          ignored[kseq->name.s] = seqs.size();
         // necesario??????????? creo que si
+        contig_names.push_back((const char *)(_mem + contig_name_i),
+                               (const char *)(_mem + contig_name_e));
         seqs.emplace_back((const char *)(_mem + i),
                           (const char *)(_mem + i + contig_size));
-        i += contig_size;
         contig_name.clear();
-        contig_size = 0;
         if (nobs_cont == global_contigs_target) {
           TNF.push_back((double *)0);
           SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND,
