@@ -79,7 +79,8 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d,
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d,
                         const size_t *seqs_d_index, size_t nobs,
-                        size_t contigs_per_thread) {
+                        const size_t contigs_per_thread,
+                        const size_t global_contigs_target) {
   const size_t minContig = 2500;
   const size_t minContigByCorr = 1000;
   const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -328,7 +329,7 @@ int main(int argc, char const *argv[]) {
     close(fpint);
     cudaMalloc(&seqs_d, fsize);
     cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
-    
+
     auto _end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> _duration = _end - _start;
     std::cout << "cargar archivo descomprimido:" << _duration.count() / 1000.f
@@ -524,7 +525,7 @@ int main(int argc, char const *argv[]) {
     cudaFreeHost(seqs_kernel_index[i]);
     cudaFree(TNF_d[i]);
     cudaFree(seqs_d_index[i]);
-    for (int j = 0; j < 2; j++) cudaStreamDestroy(_s[i][j]);
+    cudaStreamDestroy(_s[i]);
   }
   return 0;
 }
