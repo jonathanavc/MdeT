@@ -355,15 +355,15 @@ int main(int argc, char const *argv[]) {
     size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
     std::string contig_name;
     size_t contig_size = 0;
-    size_t contig_name_size = 0;
     seqs.reserve(fsize % __min);
     lCtgIdx.reserve(fsize % __min);
     for (size_t i = 0; i < fsize; i++) {
       if (_mem[i] < 65) {
-        contig_name_s = i;
-        while (_mem[i + contig_name_size] != 10) contig_name_size++;
-        contig_name = str::string(i, i + contig_name_size);
-        i += contig_name_size + 1;
+        while (_mem[i] != 10) {
+          contig_name.push_back(_mem[i]);
+          i++;
+        }
+        i++;
         while (i + contig_size < fsize && _mem[i + contig_size] != 10)
           contig_size++;
         if (contig_size >= __min) {
@@ -385,6 +385,7 @@ int main(int argc, char const *argv[]) {
         seqs.emplace_back((const char *)(_mem + i),
                           (const char *)(_mem + i + contig_size));
         i += contig_size;
+        contig_name.clear();
         contig_size = 0;
         if (nobs_cont == global_contigs_target) {
           TNF.push_back((double *)0);
