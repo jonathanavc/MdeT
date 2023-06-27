@@ -366,7 +366,8 @@ int main(int argc, char const *argv[]) {
                     seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
                     nobs_cont++;
                 } else
-                    ignored[std::string(_mem + contig_name_i, _mem + contig_name_e)] = seqs.size();
+                    ignored[std::string((const char *)(_mem + contig_name_i),
+                                        (const char *)(_mem + contig_name_e))] = seqs.size();
                 contig_names.emplace_back((const char *)(_mem + contig_name_i),
                                           (const char *)(_mem + contig_name_e));
                 seqs.emplace_back((const char *)(_mem + contig_i), (const char *)(_mem + contig_e));
@@ -390,8 +391,6 @@ int main(int argc, char const *argv[]) {
         for (int i = 0; i < 2; i++) {
             if (SUBPS[i].joinable()) SUBPS[i].join();
         }
-
-        cudaFreeHost(_mem);
 
         _end = std::chrono::system_clock::now();
         _duration = _end - _start;
@@ -418,6 +417,7 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     for (int i = 0; i < 2; i++) {
+        cudaFreeHost(_mem);
         cudaFreeHost(seqs_kernel_index[i]);
         cudaFree(TNF_d[i]);
         cudaFree(seqs_d_index[i]);
