@@ -209,7 +209,7 @@ int main(int argc, char const *argv[]) {
         cudaMallocHost((void **)&_mem, fsize);
 
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-        std::thread readerThreads[nth];
+        std::__1::thread readerThreads[nth];
 
         for (int i = 0; i < nth; i++) {
             size_t _size;
@@ -217,7 +217,7 @@ int main(int argc, char const *argv[]) {
                 _size = chunk;
             else
                 _size = chunk + (fsize % nth);
-            readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
+            readerThreads[i] = std::__1::thread(reader, fpint, i, chunk, _size, _mem);
         }
 
         for (int i = 0; i < nth; i++) {  // esperar a que terminen de leer
