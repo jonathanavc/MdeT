@@ -219,6 +219,9 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(load_file);
 
         TIMERSTART(read_file);
+
+        size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
+
         size_t nobs = 0;
         size_t nresv = 0;
         size_t contig_name_i;
@@ -231,7 +234,6 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-        size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
