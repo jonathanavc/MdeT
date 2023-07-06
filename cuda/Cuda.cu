@@ -70,7 +70,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 }
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                        const size_t contigs_per_thread, const size_t global_contigs_target) {
+                        const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t minContig = 2500;
     const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -86,7 +86,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         const size_t tnf_index = contig_index * 136;
         if (contig_index >= nobs) break;
-        size_t contig_size = seqs_d_index[contig_index + global_contigs_target] - seqs_d_index[contig_index];
+        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         // calcular independiente si es small contig o no
         // if (contig_size >= minContig || contig_size < minContigByCorr) {
         const char *contig = seqs_d + seqs_d_index[contig_index];
@@ -111,7 +111,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
 }
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                              const size_t contigs_per_thread, const size_t global_contigs_target) {
+                              const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t minContig = 2500;
     const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -124,7 +124,7 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
         }
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         if (contig_index >= nobs) break;
-        size_t contig_size = seqs_d_index[contig_index + global_contigs_target] - seqs_d_index[contig_index];
+        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         // calcular independiente si es small contig o no
         // if (contig_size >= minContig || contig_size < minContigByCorr) {
         const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
@@ -164,6 +164,9 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
 int n_BLOCKS = 512;
 int n_THREADS = 16;
 char *_mem;
+size_t fsize;
+vector<size_t> seqs_d_index_i;
+vector<size_t> seqs_d_index_e;
 
 std::vector<std::string_view> seqs;
 std::vector<std::string_view> contig_names;
@@ -177,6 +180,7 @@ static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
+double TNF;
 
 int main(int argc, char const *argv[]) {
     std::string inFile = "test.gz";
@@ -197,7 +201,7 @@ int main(int argc, char const *argv[]) {
         TIMERSTART(load_file);
         int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
         fseek(fp, 0L, SEEK_END);
-        size_t fsize = ftell(fp);  // obtener el tamaño del archivo
+        fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
 
         size_t chunk = fsize / nth;
@@ -237,6 +241,8 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
+        seqs_d_index_i.reserve(fsize % __min);
+        seqs_d_index_e.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
@@ -254,6 +260,8 @@ int main(int argc, char const *argv[]) {
                         else
                             nresv++;
                     }
+                    seqs_d_index_i.emplace_back(contig_i);
+                    seqs_d_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
@@ -265,8 +273,10 @@ int main(int argc, char const *argv[]) {
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
-        seqs.shrink_to_fit();          // liberar memoria no usada
-        contig_names.shrink_to_fit();  // liberar memoria no usada
+        seqs_d_index_i.shrink_to_fit();  // liberar memoria no usada
+        seqs_d_index_e.shrink_to_fit();  // liberar memoria no usada
+        seqs.shrink_to_fit();            // liberar memoria no usada
+        contig_names.shrink_to_fit();    // liberar memoria no usada
         TIMERSTOP(read_file);
     }
     std::cout << seqs.size() << " contigs" << std::endl;
@@ -275,8 +285,37 @@ int main(int argc, char const *argv[]) {
     // calcular matriz de tetranucleotidos
     TIMERSTART(tnf);
     if (1) {
+        char *seqs_d;
+        double *TNF_d;
+        size_t *seqs_d_index;
+        dim3 blkDim(n_THREADS, 1, 1);
+        dim3 grdDim(n_BLOCKS, 1, 1);
+        cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
+        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        cudaMalloc(&seqs_d, fsize);
+        cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
+
+        cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index, seqs_d_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+
+        contigs_per_thread = (nobs + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
+        get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, contigs_per_thread, nobs);
+
+        cudaDeviceSynchronize();
+
+        cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(double), cudaMemcpyDeviceToHost);
     }
     TIMERSTOP(tnf);
+
+    std::ofstream out("TNF.bin", ios::out | ios::binary);
+    if (out) {
+        out.write((char *)TNF, nobs * n_TNF * sizeof(double));
+        out.close();
+    } else {
+        std::cout << "Error al guardar en TNF.bin" << std::endl;
+    }
+    out.close();
 
     cudaFreeHost(_mem);
     TIMERSTOP(total);
