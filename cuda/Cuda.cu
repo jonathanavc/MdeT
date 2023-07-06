@@ -199,7 +199,7 @@ int main(int argc, char const *argv[]) {
         return 1;
     } else {
         TIMERSTART(load_file);
-        int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
+        int nth = 1;  // obtener el numero de hilos maximo
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
@@ -284,7 +284,7 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     TIMERSTART(tnf);
-    if (1) {
+    if (1) {  // calcular TNF en paralelo en GPU
         double *TNF_d;
         char *seqs_d;
         size_t *seqs_d_index;
@@ -310,9 +310,11 @@ int main(int argc, char const *argv[]) {
 
     std::ofstream out("TNF.bin", std::ios::out | std::ios::binary);
     if (out) {
-        for(auto it = smallCtgs.begin(); it != smallCtgs.end(); it++){
-            for (size_t i = 0; i < 136; i++) {
-                TNF[*it * 136 + i] = 0;
+        if (1) {  // para verificar con el codigo de secuencial
+            for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
+                for (size_t i = 0; i < 136; i++) {
+                    TNF[*it * 136 + i] = 0;
+                }
             }
         }
         out.write((char *)TNF, nobs * 136 * sizeof(double));
