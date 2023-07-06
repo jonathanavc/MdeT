@@ -17,7 +17,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "../extra/KseqReader.h"
+#include "metrictime2.hpp"
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,
@@ -152,67 +152,6 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
-static const std::string TN[] = {
-    "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA", "CCAG", "GGAC", "ATTA",
-    "GATC", "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC", "GACC", "GAGA",
-    "ATAG", "ATCA", "CAGA", "AGTA", "ATGA", "AAAT", "TTAA", "TATA", "AGTG", "AGCT", "CCAC", "GGCC", "ACCC",
-    "GGGA", "GCGC", "ATAC", "CTGA", "TAGA", "ATAT", "GTCA", "CTCC", "ACAA", "ACCT", "TAAA", "AACG", "CGAG",
-    "AGGG", "ATCG", "ACGC", "TCAA", "CTAC", "CTCA", "GACA", "GGAA", "CTTC", "GCCC", "CTGC", "TGCA", "GGCA",
-    "CACG", "GAGC", "AACT", "CATG", "AATT", "ACAG", "AGAT", "ATAA", "CATC", "GCCA", "TCGA", "CACA", "CAAC",
-    "AAGG", "AGCA", "ATGG", "ATTC", "GTGA", "ACCG", "GATA", "GCTA", "CGTC", "CCCG", "AAGC", "CGTA", "GTAC",
-    "AGGA", "AATG", "CACC", "CAGC", "CGGC", "ACAC", "CCGG", "CCGA", "CCCC", "TGAA", "AACA", "AGAG", "CCCA",
-    "CGGA", "TACA", "ACCA", "ACGT", "GAAC", "GTAA", "ATGC", "GTTA", "TCCA", "CAGG", "ACTG", "AAAG", "AAGA",
-    "CAAG", "GCGA", "AACC", "ACGG", "CCAA", "CTTA", "AGAC", "AGCG", "GAAA", "AATC", "ATTG", "GCAC", "CCTA",
-    "CGAC", "CTAG", "AGAA", "CGCA", "CGCG", "AATA"};
-
-static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC",
-                                  "ATAT", "TATA", "CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC"};
-
-int contig_per_thread = 1;
-int n_THREADS = 32;
-int n_BLOCKS = 128;
-size_t nobs = 0;
-
-std::vector<std::string_view> seqs;
-std::vector<std::string_view> contig_names;
-std::unordered_map<std::string_view, size_t> ignored;
-std::unordered_map<std::string_view, size_t> lCtgIdx;
-std::unordered_map<size_t, size_t> gCtgIdx;
-std::unordered_set<int> smallCtgs;
-
-const int n_TNF = 136;
-const int n_TNFP = 16;
-
-unsigned char TNmap[256];
-unsigned char TNPmap[256];
-
-static size_t minContig = 2500;        // minimum contig size for binning
-static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by abundance correlation)
-static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
-
-char *seqs_d;
-double *TNF_d[2];
-static size_t *seqs_d_index[2];
-
-size_t nobs_cont;
-size_t kernel_cont;
-static size_t global_contigs_target;
-std::vector<double *> TNF;
-cudaStream_t _s[2];
-size_t *seqs_kernel_index[2];
-
-void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size) {
-    cudaMallocHost((void **)&TNF[cont], global_contigs_target * n_TNF * sizeof(double));
-    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                    global_contigs_target * 2 * sizeof(size_t), cudaMemcpyHostToDevice, _s[SUBP_IND]);
-
-    get_TNF<<<grdDim, blkDim, 0, _s[SUBP_IND]>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size,
-                                                 contig_per_thread, global_contigs_target);
-    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], global_contigs_target * n_TNF * sizeof(double),
-                    cudaMemcpyDeviceToHost, _s[SUBP_IND]);
-    cudaStreamSynchronize(_s[SUBP_IND]);
-}
-
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
     while (readSz < _size) {
@@ -220,6 +159,17 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
         readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
     }
 }
+
+int n_BLOCKS = 512;
+int n_THREADS = 16;
+char *_mem;
+
+std::vector<std::string_view> seqs;
+std::vector<std::string_view> contig_names;
+std::unordered_map<std::string_view, size_t> ignored;
+std::unordered_map<std::string_view, size_t> lCtgIdx;
+std::unordered_map<size_t, size_t> gCtgIdx;
+std::unordered_set<int> smallCtgs;
 
 int main(int argc, char const *argv[]) {
     std::string inFile = "test.gz";
@@ -230,104 +180,37 @@ int main(int argc, char const *argv[]) {
             inFile = argv[3];
         }
     }
-    // std::cout << "n°bloques: "<< n_BLOCKS <<", n°threads:"<< n_THREADS <<
-    // std::endl;
 
-    /*
-    // se inicializan los mapas
-    for (int i = 0; i < 256; i++) {
-      TNmap[i] = n_TNF;
-      TNPmap[i] = 0;
-    }
-    for (int i = 0; i < n_TNF; ++i) {
-      unsigned char key = get_tn(TN[i].c_str(), 0);
-      TNmap[key] = i;
-    }
-
-    for (size_t i = 0; i < n_TNFP; ++i) {
-      unsigned char key = get_tn(TNP[i].c_str(), 0);
-      TNPmap[key] = 1;
-    }
-    */
-
-    auto start_global = std::chrono::system_clock::now();
-    auto start = std::chrono::system_clock::now();
-
-    std::thread SUBPS[2];
-    dim3 blkDim(n_THREADS, 1, 1);
-    dim3 grdDim(n_BLOCKS, 1, 1);
-
-    global_contigs_target = n_BLOCKS * n_THREADS * contig_per_thread;
-
-    int SUBP_IND = 0;
-    int nresv = 0;
-    nobs_cont = 0;
-    kernel_cont = 0;
-
-    for (int i = 0; i < 2; i++) {
-        cudaStreamCreate(&_s[i]);
-        cudaMallocHost((void **)&seqs_kernel_index[i], global_contigs_target * 2 * sizeof(size_t));
-        cudaMalloc(&TNF_d[i], global_contigs_target * n_TNF * sizeof(double));
-        cudaMalloc(&seqs_d_index[i], global_contigs_target * 2 * sizeof(size_t));
-    }
-
-    char *_mem;
-
-    gzFile f = gzopen(inFile.c_str(), "r");
-    if (f == NULL) {
-        cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
+    FILE *fp = fopen(inFile.c_str(), "r");
+    if (fp == NULL) {
+        std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
-        auto _start = std::chrono::system_clock::now();
-
-        int nth = std::thread::hardware_concurrency();
-        int fpint = -1;
-
-        FILE *fp = fopen(inFile.c_str(), "r");
-        fseek(fp, 0L, SEEK_END);   // seek to the EOF
-        size_t fsize = ftell(fp);  // get the current position
+        int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
+        fseek(fp, 0L, SEEK_END);
+        size_t fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
+
         size_t chunk = fsize / nth;
+
         cudaMallocHost((void **)&_mem, fsize);
-        std::cout << "tamaño total:" << fsize << std::endl;
-        std::cout << "threads:" << nth << std::endl;
 
         fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
         thread readerThreads[nth];
-        size_t total = 0;
-        for (int i = 0; i < nth; i++) {
-            size_t _size;
-            if (i != nth - 1)
-                _size = chunk;
+
+        for (int i = 0; i < nth; i++) {  // leer el archivo en paralelo
+            if (i == nth - 1)
+                readerThreads[i] = std::thread(reader, fpint, i, chunk, fsize - (i * chunk), _mem);
             else
-                _size = chunk + (fsize % nth);
-            total += _size;
-            std::cout << "tamaño chunk:" << _size << std::endl;
-            readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
+                readerThreads[i] = std::thread(reader, fpint, i, chunk, chunk, _mem);
         }
-        for (int i = 0; i < nth; i++) {
+
+        for (int i = 0; i < nth; i++) {  // esperar a que terminen de leer
             readerThreads[i].join();
         }
-        std::cout << "total:" << total << std::endl;
 
         close(fpint);
 
-        auto _end = std::chrono::system_clock::now();
-        std::chrono::duration<float, std::milli> _duration = _end - _start;
-        std::cout << "cargar archivo descomprimido a ram(pinned):" << _duration.count() / 1000.f << std::endl;
-
-        _start = std::chrono::system_clock::now();
-
-        cudaMalloc(&seqs_d, fsize);
-        cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
-
-        _end = std::chrono::system_clock::now();
-        _duration = _end - _start;
-        std::cout << "archivo a memoria de gpu:" << _duration.count() / 1000.f << std::endl;
-
-        _start = std::chrono::system_clock::now();
-        size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
-        std::string contig_name;
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
@@ -338,19 +221,16 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-        for (size_t i = 0; i < fsize; i++) {
+        for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
-                contig_name_i = i;
+                contig_name_i = i;  // guardar el inicio del nombre del contig
                 while (_mem[i] != 10) i++;
-                contig_name_e = i;
+                contig_name_e = i;  // guardar el final del nombre del contig
                 i++;
-
-                contig_i = i;
+                contig_i = i;  // guardar el inicio del contig
                 while (i < fsize && _mem[i] != 10) i++;
-                contig_e = i;
-
+                contig_e = i;  // guardar el final del contig
                 contig_size = contig_e - contig_i;
-
                 if (contig_size >= __min) {
                     if (contig_size < minContig) {
                         if (contig_size >= minContigByCorr)
@@ -360,66 +240,18 @@ int main(int argc, char const *argv[]) {
                     }
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
-                    seqs_kernel_index[SUBP_IND][nobs_cont] = contig_i;
-                    seqs_kernel_index[SUBP_IND][nobs_cont + global_contigs_target] = contig_e;
-                    nobs_cont++;
                 } else {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] =
                         seqs.size();
                 }
-                contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
+                contig_names.emplace_back(
+                    std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
-                if (nobs_cont == global_contigs_target) {
-                    TNF.push_back((double *)0);
-                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-                    SUBP_IND = (SUBP_IND + 1) & 1;
-                    kernel_cont++;
-                    nobs_cont = 0;
-                    if (SUBPS[SUBP_IND].joinable()) SUBPS[SUBP_IND].join();
-                }
             }
         }
-        if (nobs_cont != 0) {
-            TNF.push_back((double *)0);
-            SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-        }
-        seqs.shrink_to_fit();
-        contig_names.shrink_to_fit();
-
-        for (int i = 0; i < 2; i++) {
-            if (SUBPS[i].joinable()) SUBPS[i].join();
-        }
-
-        _end = std::chrono::system_clock::now();
-        _duration = _end - _start;
-        std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
+        seqs.shrink_to_fit();          // liberar memoria no usada
+        contig_names.shrink_to_fit();  // liberar memoria no usada
     }
-
-    auto end_global = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> duration = end_global - start_global;
-    std::cout << duration.count() / 1000.f << std::endl;
-
-    std::ofstream out("TNF.bin", ios::out | ios::binary);
-    if (out) {
-        for (size_t i = 0; i < TNF.size(); i++) {
-            if (i < TNF.size() - 1)
-                out.write((char *)TNF[i], global_contigs_target * n_TNF * sizeof(double));
-            else
-                out.write((char *)TNF[i], nobs_cont * n_TNF * sizeof(double));
-        }
-        // std::cout << "TNF guardado" << std::endl;
-    } else {
-        // std::cout << "Error al guardar" << std::endl;
-    }
-    out.close();
-
-    for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     cudaFreeHost(_mem);
-    for (int i = 0; i < 2; i++) {
-        cudaFreeHost(seqs_kernel_index[i]);
-        cudaFree(TNF_d[i]);
-        cudaFree(seqs_d_index[i]);
-        cudaStreamDestroy(_s[i]);
-    }
     return 0;
 }
