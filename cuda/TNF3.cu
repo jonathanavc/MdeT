@@ -1,11 +1,17 @@
 // nvcc TNF.cu -lz
 // ta bien
-#include "../extra/KseqReader.h"
+#include <cuda_runtime.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <chrono>
-#include <cuda_runtime.h>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
