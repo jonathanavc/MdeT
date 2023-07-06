@@ -165,8 +165,8 @@ int n_BLOCKS = 512;
 int n_THREADS = 16;
 char *_mem;
 size_t fsize;
-vector<size_t> seqs_d_index_i;
-vector<size_t> seqs_d_index_e;
+std::vector<size_t> seqs_d_index_i;
+std::vector<size_t> seqs_d_index_e;
 
 std::vector<std::string_view> seqs;
 std::vector<std::string_view> contig_names;
@@ -285,8 +285,8 @@ int main(int argc, char const *argv[]) {
     // calcular matriz de tetranucleotidos
     TIMERSTART(tnf);
     if (1) {
-        char *seqs_d;
         double *TNF_d;
+        char *seqs_d;
         size_t *seqs_d_index;
         dim3 blkDim(n_THREADS, 1, 1);
         dim3 grdDim(n_BLOCKS, 1, 1);
