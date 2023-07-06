@@ -310,6 +310,11 @@ int main(int argc, char const *argv[]) {
 
     std::ofstream out("TNF.bin", std::ios::out | std::ios::binary);
     if (out) {
+        for(auto it = smallCtgs.begin(); it != smallCtgs.end(); it++){
+            for (size_t i = 0; i < 136; i++) {
+                TNF[*it * 136 + i] = 0;
+            }
+        }
         out.write((char *)TNF, nobs * 136 * sizeof(double));
         out.close();
     } else {
