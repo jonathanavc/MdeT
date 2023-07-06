@@ -299,7 +299,7 @@ int main(int argc, char const *argv[])
     auto start = std::chrono::system_clock::now();
     
 
-    global_contigs_target = n_BLOCKS * n_THREADS;
+    size_t global_contigs_target = n_BLOCKS * n_THREADS;
 
     int nresv = 0;
     kernel_cont = 0;
