@@ -87,26 +87,26 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
         const size_t tnf_index = contig_index * 136;
         if (contig_index >= nobs) break;
         size_t contig_size = seqs_d_index[contig_index + global_contigs_target] - seqs_d_index[contig_index];
-        // tengo dudas sobre esta parte ------------------------
-        if (contig_size >= minContig || contig_size < minContigByCorr) {
-            const char *contig = seqs_d + seqs_d_index[contig_index];
-            for (size_t j = 0; j < contig_size - 3; ++j) {
-                short tn = get_tn(contig, j);
-                if (tn & 256) continue;
-                if (TNmap_d[tn] == 136) {
-                    tn = get_revComp_tn_d(tn);
-                }
-                ++TNF_d[tnf_index + TNmap_d[tn]];
+        // calcular independiente si es small contig o no
+        // if (contig_size >= minContig || contig_size < minContigByCorr) {
+        const char *contig = seqs_d + seqs_d_index[contig_index];
+        for (size_t j = 0; j < contig_size - 3; ++j) {
+            short tn = get_tn(contig, j);
+            if (tn & 256) continue;
+            if (TNmap_d[tn] == 136) {
+                tn = get_revComp_tn_d(tn);
             }
-            double rsum = 0;
-            for (size_t c = 0; c < 136; ++c) {
-                rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
-            }
-            rsum = sqrt(rsum);
-            for (size_t c = 0; c < 136; ++c) {
-                TNF_d[tnf_index + c] /= rsum;  // OK
-            }
+            ++TNF_d[tnf_index + TNmap_d[tn]];
         }
+        double rsum = 0;
+        for (size_t c = 0; c < 136; ++c) {
+            rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
+        }
+        rsum = sqrt(rsum);
+        for (size_t c = 0; c < 136; ++c) {
+            TNF_d[tnf_index + c] /= rsum;  // OK
+        }
+        //}
     }
 }
 
@@ -270,6 +270,13 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << seqs.size() << " contigs" << std::endl;
     std::cout << nobs << " contigs with size >= " << minContig << std::endl;
+
+    // calcular matriz de tetranucleotidos
+    TIMERSTART(tnf);
+    if (1) {
+    }
+    TIMERSTOP(tnf);
+
     cudaFreeHost(_mem);
     TIMERSTOP(total);
     return 0;
