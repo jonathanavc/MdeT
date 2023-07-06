@@ -180,7 +180,7 @@ static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
-double TNF;
+double *TNF;
 
 int main(int argc, char const *argv[]) {
     std::string inFile = "test.gz";
