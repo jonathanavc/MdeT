@@ -304,11 +304,11 @@ int main(int argc, char const *argv[])
     char *_mem;
     size_t fsize;
     
-    std::ifstream f(fileninFile.c_str());
+    std::ifstream f(inFile.c_str());
 
     if (!f.good())
     {
-        cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
+        std::cout << "[Error!] can't open the sequence fasta file " << inFile << std::endl;
         return 1;
     } else {
         auto _start = std::chrono::system_clock::now();
