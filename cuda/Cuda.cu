@@ -184,6 +184,7 @@ int main(int argc, char const *argv[]) {
             inFile = argv[3];
         }
     }
+    TIMERSTART(total);
 
     FILE *fp = fopen(inFile.c_str(), "r");
     if (fp == NULL) {
@@ -268,5 +269,6 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << seqs.size() << " contigs" << std::endl;
     cudaFreeHost(_mem);
+    TIMERSTOP(total);
     return 0;
 }
