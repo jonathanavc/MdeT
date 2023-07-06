@@ -199,7 +199,7 @@ int main(int argc, char const *argv[]) {
         return 1;
     } else {
         TIMERSTART(load_file);
-        int nth = 1;  // obtener el numero de hilos maximo
+        int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
@@ -213,7 +213,7 @@ int main(int argc, char const *argv[]) {
 
         for (int i = 0; i < nth; i++) {  // leer el archivo en paralelo
             if (i == nth - 1)
-                readerThreads[i] = std::thread(reader, fpint, i, chunk, fsize - (i * chunk), _mem);
+                readerThreads[i] = std::thread(reader, fpint, i, chunk, chunk + (fsize % nth), _mem);
             else
                 readerThreads[i] = std::thread(reader, fpint, i, chunk, chunk, _mem);
         }
