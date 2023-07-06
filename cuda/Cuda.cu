@@ -217,7 +217,6 @@ int main(int argc, char const *argv[]) {
                 _size = chunk;
             else
                 _size = chunk + (fsize % nth);
-            total += _size;
             std::cout << "tamaño chunk:" << _size << std::endl;
             readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
         }
