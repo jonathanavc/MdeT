@@ -268,6 +268,7 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(read_file);
     }
     std::cout << seqs.size() << " contigs" << std::endl;
+    std::cout << nobs << " contigs with size >= " << minContig << std::endl;
     cudaFreeHost(_mem);
     TIMERSTOP(total);
     return 0;
