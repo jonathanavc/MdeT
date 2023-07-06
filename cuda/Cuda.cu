@@ -125,26 +125,27 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         if (contig_index >= nobs) break;
         size_t contig_size = seqs_d_index[contig_index + global_contigs_target] - seqs_d_index[contig_index];
-        if (contig_size >= minContig || contig_size < minContigByCorr) {
-            const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
-            for (size_t j = 0; j < contig_size - 3; ++j) {
-                short tn = get_tn(contig, j);
-                if (tn & 256) continue;
-                if (TNmap_d[tn] == 136) {
-                    tn = get_revComp_tn_d(tn);
-                    continue;
-                }
-                ++TNF_temp[TNmap_d[tn]];
+        // calcular independiente si es small contig o no
+        // if (contig_size >= minContig || contig_size < minContigByCorr) {
+        const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
+        for (size_t j = 0; j < contig_size - 3; ++j) {
+            short tn = get_tn(contig, j);
+            if (tn & 256) continue;
+            if (TNmap_d[tn] == 136) {
+                tn = get_revComp_tn_d(tn);
+                continue;
             }
-            double rsum = 0;
-            for (size_t c = 0; c < 136; ++c) {
-                rsum += TNF_temp[c] * TNF_temp[c];
-            }
-            rsum = sqrt(rsum);
-            for (size_t c = 0; c < 136; ++c) {
-                TNF_temp[c] /= rsum;  // OK
-            }
+            ++TNF_temp[TNmap_d[tn]];
         }
+        double rsum = 0;
+        for (size_t c = 0; c < 136; ++c) {
+            rsum += TNF_temp[c] * TNF_temp[c];
+        }
+        rsum = sqrt(rsum);
+        for (size_t c = 0; c < 136; ++c) {
+            TNF_temp[c] /= rsum;  // OK
+        }
+        //}
         // guardar en la memoria global
         for (size_t c = 0; c < 136; ++c) {
             TNF_d[contig_index * 136 + c] = TNF_temp[c];
