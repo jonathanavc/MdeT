@@ -257,6 +257,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();  // liberar memoria no usada
         TIMERSTOP(read_file);
     }
+    std::cout << seqs.size() << " contigs" << std::endl;
     cudaFreeHost(_mem);
     return 0;
 }
