@@ -296,8 +296,6 @@ int main(int argc, char const *argv[])
     }
 
     auto start_global = std::chrono::system_clock::now();
-    auto start = std::chrono::system_clock::now();
-    
 
     size_t global_contigs_target = n_BLOCKS * n_THREADS;
 
@@ -307,7 +305,7 @@ int main(int argc, char const *argv[])
     size_t fsize;
     
     std::ifstream f(fileninFile.c_str());
-    
+
     if (!f.good())
     {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -409,6 +407,8 @@ int main(int argc, char const *argv[])
         std::cout << "cargar estructuras TNF:" << _duration.count() / 1000.f << std::endl;
     }
 
+    auto _start std::chrono::system_clock::now();
+
     char * TNF_d;
     char * seqs_d;
     char * seqs_index_d;
@@ -426,12 +426,12 @@ int main(int argc, char const *argv[])
 
     get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_index_d, nobs, ((nobs + global_contigs_target - 1)/global_contigs_target), global_contigs_target);
 
-    _end = std::chrono::system_clock::now();
-    _duration = _end - _start;
+    auto _end = std::chrono::system_clock::now();
+    auto _duration = _end - _start;
     std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
 
     auto end_global = std::chrono::system_clock::now();
-    duration = end_global - start_global;
+    std::chrono::duration<float, std::milli>  duration = end_global - start_global;
     std::cout << duration.count() / 1000.f << std::endl;
 
     std::ofstream out("TNF.bin", ios::out | ios::binary);
