@@ -233,16 +233,12 @@ int contig_per_thread = 1;
 int n_THREADS = 32;
 int n_BLOCKS = 128;
 
-<<<<<<< Updated upstream
-std::vector<std::string> seqs;
-=======
 std::vector<size_t> seqs_index_i;
 std::vector<size_t> seqs_index_e;
 std::vector<std::string_view> seqs;
 std::vector<std::string_view> contig_names;
 std::unordered_map<std::string_view, size_t> ignored;
 std::unordered_map<std::string_view, size_t> lCtgIdx;
->>>>>>> Stashed changes
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
 
@@ -256,19 +252,9 @@ static size_t minContig = 2500;               // minimum contig size for binning
 static size_t minContigByCorr = 1000;         // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000; // for graph generation purpose
 
-<<<<<<< Updated upstream
-double *TNF_d[2];
-static size_t *seqs_d_index[2];
-
-=======
->>>>>>> Stashed changes
 size_t nobs_cont;
 size_t kernel_cont;
 std::vector<double *> TNF;
-<<<<<<< Updated upstream
-std::string seqs_kernel[2];
-=======
->>>>>>> Stashed changes
 size_t *seqs_kernel_index[2];
 
 void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
@@ -329,51 +315,16 @@ int main(int argc, char const *argv[])
 
     global_contigs_target = n_BLOCKS * n_THREADS;
 
-<<<<<<< Updated upstream
-    int SUBP_IND = 0;
-    nobs_cont = 0;
-    kernel_cont = 0;
-    for (int i = 0; i < 2; i++)
-    {
-        seqs_kernel_index[i] = (size_t *)malloc(n_THREADS * n_BLOCKS * contig_per_thread * sizeof(size_t));
-        cudaMalloc(&TNF_d[i], n_BLOCKS * n_THREADS * n_TNF * contig_per_thread * sizeof(double));
-        cudaMalloc(&seqs_d_index[i], n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t));
-    }
-
-    size_t nobs = 0;
-    int nresv = 0;
-=======
     int nresv = 0;
     kernel_cont = 0;
     char *_mem;
     size_t fsize;
->>>>>>> Stashed changes
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL)
     {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
-<<<<<<< Updated upstream
-    }
-    else
-    {
-        kseq_t *kseq = kseq_init(f);
-        int64_t len;
-        while ((len = kseq_read(kseq)) > 0)
-        {
-            std::transform(kseq->seq.s, kseq->seq.s + len, kseq->seq.s, ::toupper);
-            if (kseq->name.l > 0)
-            {
-                if (len >= (int)std::min(minContigByCorr, minContigByCorrForGraph))
-                {
-                    if (len < (int)minContig)
-                    {
-                        if (len >= (int)minContigByCorr)
-                        {
-                            smallCtgs.insert(1);
-                        }
-=======
     } else {
         auto _start = std::chrono::system_clock::now();
 
@@ -446,72 +397,11 @@ int main(int argc, char const *argv[])
                     if (contig_size < minContig) {
                         if (contig_size >= minContigByCorr)
                             smallCtgs.insert(nobs);
->>>>>>> Stashed changes
                         else
                         {
                             ++nresv;
                         }
                     }
-<<<<<<< Updated upstream
-                    nobs++;
-                    seqs_kernel[SUBP_IND] += kseq->seq.s;
-                    seqs_kernel_index[SUBP_IND][nobs_cont] = seqs_kernel[SUBP_IND].size();
-                    nobs_cont++;
-                }
-                else
-                {
-                    // ignored[kseq->name.s] = seqs.size();
-                }
-                // contig_names.push_back(kseq->name.s);
-                seqs.push_back(kseq->seq.s);
-
-                if (nobs_cont == n_BLOCKS * n_THREADS * contig_per_thread)
-                {
-                    /*
-                    if (SUBPS[SUBP_IND].joinable())
-                    {
-                        SUBPS[SUBP_IND].join();
-                    }
-                    */
-                    TNF.emplace_back((double *)0);
-                    SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-                    SUBP_IND = (SUBP_IND + 1) % 2;
-                    kernel_cont++;
-                    nobs_cont = 0;
-
-                    // si aún no se ha terminado la ejecición la siguiente hebra se espera a ella.
-                    if (SUBPS[SUBP_IND].joinable())
-                    {
-                        SUBPS[SUBP_IND].join();
-                    }
-                }
-            }
-        }
-        kseq_destroy(kseq);
-        kseq = NULL;
-        gzclose(f);
-    }
-    if (nobs_cont != 0)
-    {
-        TNF.emplace_back((double *)0);
-        SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
-        SUBP_IND = (SUBP_IND + 1) % 2;
-        kernel_cont++;
-        nobs_cont = 0;
-    }
-    // se esperan a las hebras restantes
-    for (int i = 0; i < 2; i++)
-    {
-        if (SUBPS[i].joinable())
-        {
-            SUBPS[i].join();
-        }
-    }
-
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float, std::milli> duration = end - start;
-    // std::cout <<"leer contigs + procesamiento "<< duration.count()/1000.f << "s " << std::endl;
-=======
                 } else {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] =
                         seqs.size();
@@ -552,7 +442,6 @@ int main(int argc, char const *argv[])
     _end = std::chrono::system_clock::now();
     _duration = _end - _start;
     std::cout << "calcular TNF:" << _duration.count() / 1000.f << std::endl;
->>>>>>> Stashed changes
 
     auto end_global = std::chrono::system_clock::now();
     duration = end_global - start_global;
@@ -569,24 +458,6 @@ int main(int argc, char const *argv[])
                 out.write((char *)TNF[i], (nobs % (n_BLOCKS * n_THREADS * contig_per_thread)) * n_TNF * sizeof(double));
         }
         // std::cout << "TNF guardado" << std::endl;
-<<<<<<< Updated upstream
-    }
-    else
-    {
-        // std::cout << "Error al guardar" << std::endl;
-    }
-    out.close();
-
-    for (int i = 0; i < TNF.size(); i++)
-        free(TNF[i]);
-    for (int i = 0; i < 2; i++)
-    {
-        free(seqs_kernel_index[i]);
-        cudaFree(TNF_d[i]);
-        cudaFree(seqs_d_index[i]);
-    }
-
-=======
     } else {
         std::cout << "Error al guardar TNF.bin" << std::endl;
     }
@@ -594,6 +465,5 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < TNF.size(); i++) cudaFreeHost(TNF[i]);
     cudaFreeHost(_mem);
->>>>>>> Stashed changes
     return 0;
 }
