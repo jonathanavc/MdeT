@@ -196,8 +196,8 @@ int main(int argc, char const *argv[]) {
 
         cudaMallocHost((void **)&_mem, fsize);
 
-        fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-        thread readerThreads[nth];
+        int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+        std::thread readerThreads[nth];
 
         for (int i = 0; i < nth; i++) {  // leer el archivo en paralelo
             if (i == nth - 1)
@@ -215,6 +215,8 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(load_file);
 
         TIMERSTART(read_file);
+        nobs = 0;
+        nresv = 0;
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
