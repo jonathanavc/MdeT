@@ -367,8 +367,8 @@ int main(int argc, char const *argv[]) {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] =
                         seqs.size();
                 }
-                contig_names.emplace_back(_mem + contig_name_i, contig_name_e - contig_name_i);
-                seqs.emplace_back(_mem + contig_i, contig_e - contig_i);
+                contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
+                seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
                 if (nobs_cont == global_contigs_target) {
                     TNF.push_back((double *)0);
                     SUBPS[SUBP_IND] = std::thread(kernel, blkDim, grdDim, SUBP_IND, kernel_cont, nobs_cont);
