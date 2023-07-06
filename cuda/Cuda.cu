@@ -302,7 +302,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
         size_t contigs_per_thread = (nobs + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
-        get_TNF_local<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, contigs_per_thread, nobs);
+        get_TNF<<<grdDim, blkDim>>>(TNF_d, seqs_d, seqs_d_index, nobs, contigs_per_thread, nobs);
 
         cudaDeviceSynchronize();
 
