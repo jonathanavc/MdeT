@@ -263,26 +263,6 @@ size_t kernel_cont;
 std::vector<double *> TNF;
 size_t *seqs_kernel_index[2];
 
-void kernel(dim3 blkDim, dim3 grdDim, int SUBP_IND, int cont, int size)
-{
-    // std::cout << "kernel: " << kernel_cont<< std::endl;
-    cudaStream_t _s;
-    cudaStreamCreate(&_s);
-    char *seqs_d;
-    TNF[cont] = (double *)malloc(n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double));
-    cudaMallocAsync(&seqs_d, seqs_kernel[SUBP_IND].size(), _s);
-    cudaMemcpyAsync(seqs_d, seqs_kernel[SUBP_IND].data(), seqs_kernel[SUBP_IND].size(), cudaMemcpyHostToDevice, _s);
-    cudaMemcpyAsync(seqs_d_index[SUBP_IND], seqs_kernel_index[SUBP_IND],
-                    n_BLOCKS * n_THREADS * contig_per_thread * sizeof(size_t), cudaMemcpyHostToDevice,
-                    _s); // seqs_index
-    get_TNF<<<grdDim, blkDim, 0, _s>>>(TNF_d[SUBP_IND], seqs_d, seqs_d_index[SUBP_IND], size, contig_per_thread);
-    cudaFreeAsync(seqs_d, _s);
-    cudaMemcpyAsync(TNF[cont], TNF_d[SUBP_IND], n_BLOCKS * n_THREADS * contig_per_thread * n_TNF * sizeof(double),
-                    cudaMemcpyDeviceToHost, _s);
-    cudaStreamSynchronize(_s);
-    seqs_kernel[SUBP_IND] = "";
-}
-
 int main(int argc, char const *argv[])
 {
     std::string inFile = "test.gz";
