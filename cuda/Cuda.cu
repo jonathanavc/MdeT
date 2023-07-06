@@ -211,11 +211,15 @@ int main(int argc, char const *argv[]) {
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
         std::thread readerThreads[nth];
 
-        for (int i = 0; i < nth; i++) {  // leer el archivo en paralelo
-            if (i == nth - 1)
-                readerThreads[i] = std::thread(reader, fpint, i, chunk, chunk + (fsize % nth), _mem);
+        for (int i = 0; i < nth; i++) {
+            size_t _size;
+            if (i != nth - 1)
+                _size = chunk;
             else
-                readerThreads[i] = std::thread(reader, fpint, i, chunk, chunk, _mem);
+                _size = chunk + (fsize % nth);
+            total += _size;
+            std::cout << "tamaño chunk:" << _size << std::endl;
+            readerThreads[i] = thread(reader, fpint, i, chunk, _size, _mem);
         }
 
         for (int i = 0; i < nth; i++) {  // esperar a que terminen de leer
