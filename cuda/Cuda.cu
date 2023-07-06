@@ -171,6 +171,10 @@ std::unordered_map<std::string_view, size_t> lCtgIdx;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
 
+static size_t minContig = 2500;        // minimum contig size for binning
+static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
+
 int main(int argc, char const *argv[]) {
     std::string inFile = "test.gz";
     if (argc > 2) {
@@ -227,6 +231,7 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
+        size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
