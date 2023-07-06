@@ -308,7 +308,7 @@ int main(int argc, char const *argv[]) {
     }
     TIMERSTOP(tnf);
 
-    std::ofstream out("TNF.bin", ios::out | ios::binary);
+    std::ofstream out("TNF.bin", std::ios::out | std::ios::binary);
     if (out) {
         out.write((char *)TNF, nobs * 136 * sizeof(double));
         out.close();
