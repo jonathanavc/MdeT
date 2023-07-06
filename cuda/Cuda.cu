@@ -219,8 +219,8 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(load_file);
 
         TIMERSTART(read_file);
-        nobs = 0;
-        nresv = 0;
+        size_t nobs = 0;
+        size_t nresv = 0;
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
