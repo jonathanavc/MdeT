@@ -305,9 +305,10 @@ int main(int argc, char const *argv[])
     kernel_cont = 0;
     char *_mem;
     size_t fsize;
+    
 
-    gzFile f = gzopen(inFile.c_str(), "r");
-    if (f == NULL)
+    std::ifstream f(fileninFile.c_str())
+    if (!f.good())
     {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
