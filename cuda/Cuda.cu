@@ -17,7 +17,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "metrictime2.hpp"
+#include "../extra/metrictime2.hpp"
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,
@@ -186,6 +186,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
+        TIMERSTART(load_file);
         int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
         fseek(fp, 0L, SEEK_END);
         size_t fsize = ftell(fp);  // obtener el tamaño del archivo
@@ -211,6 +212,9 @@ int main(int argc, char const *argv[]) {
 
         close(fpint);
 
+        TIMERSTOP(load_file);
+
+        TIMERSTART(read_file);
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
@@ -251,6 +255,7 @@ int main(int argc, char const *argv[]) {
         }
         seqs.shrink_to_fit();          // liberar memoria no usada
         contig_names.shrink_to_fit();  // liberar memoria no usada
+        TIMERSTOP(read_file);
     }
     cudaFreeHost(_mem);
     return 0;
