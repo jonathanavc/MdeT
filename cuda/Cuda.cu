@@ -174,6 +174,8 @@ std::unordered_set<int> smallCtgs;
 static size_t minContig = 2500;        // minimum contig size for binning
 static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
+size_t nobs;
+size_t nresv;
 
 int main(int argc, char const *argv[]) {
     std::string inFile = "test.gz";
@@ -222,9 +224,8 @@ int main(int argc, char const *argv[]) {
         TIMERSTART(read_file);
 
         size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
-
-        size_t nobs = 0;
-        size_t nresv = 0;
+        nobs = 0;
+        nresv = 0;
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
