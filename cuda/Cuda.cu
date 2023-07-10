@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -18,6 +20,83 @@
 #include <vector>
 
 #include "../extra/metrictime2.hpp"
+
+typedef double Distance;
+
+std::istream &safeGetline(std::istream &is, std::string &t) {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    // The sentry object performs various tasks,
+    // such as thread synchronization and updating the stream state.
+
+    std::istream::sentry se(is, true);
+    std::streambuf *sb = is.rdbuf();
+
+    for (;;) {
+        int c = sb->sbumpc();
+        switch (c) {
+            case '\n':
+                return is;
+            case '\r':
+                if (sb->sgetc() == '\n') sb->sbumpc();
+                return is;
+            case EOF:
+                // Also handle the case when the last line has no line ending
+                if (t.empty()) is.setstate(std::ios::eofbit);
+                return is;
+            default:
+                t += (char)c;
+        }
+    }
+}
+
+size_t countLines(const char *f) {
+    size_t lines = 0;
+
+    FILE *pFile;
+    pFile = fopen(f, "r");
+
+    if (pFile == NULL) {
+        cerr << "[Error!] can't open input file " << f << endl;
+        return 0;
+    }
+
+    while (EOF != fscanf(pFile, "%*[^\n]") && EOF != fscanf(pFile, "%*c")) {
+        ++lines;
+    }
+
+    fclose(pFile);
+
+    return lines;
+}
+
+size_t ncols(std::ifstream &is, int skip = 0) {
+    size_t nc = 0;
+
+    std::string firstLine;
+    while (skip-- >= 0) std::getline(is, firstLine);
+
+    std::stringstream ss(firstLine);
+    std::string col;
+    while (std::getline(ss, col, tab_delim)) {
+        ++nc;
+    }
+
+    return nc;
+}
+
+size_t ncols(const char *f, int skip = 0) {
+    std::ifstream is(f);
+    if (!is.is_open()) {
+        cerr << "[Error!] can't open input file " << f << endl;
+        return 0;
+    }
+
+    return ncols(is, skip);
+}
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,
@@ -160,9 +239,11 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
         readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
     }
 }
-
-int n_BLOCKS = 512;
-int n_THREADS = 16;
+std::string inFile;
+std::string abdFile;
+int numThreads;
+int n_BLOCKS;
+int n_THREADS;
 char *_mem;
 size_t fsize;
 std::vector<size_t> seqs_d_index_i;
@@ -174,6 +255,8 @@ std::unordered_map<std::string_view, size_t> ignored;
 std::unordered_map<std::string_view, size_t> lCtgIdx;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
+boost::numeric::ublas::matrix<float> ABD;
+boost::numeric::ublas::matrix<float> ABD_VAR;
 
 static size_t minContig = 2500;        // minimum contig size for binning
 static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by abundance correlation)
@@ -183,14 +266,22 @@ size_t nresv;
 double *TNF;
 
 int main(int argc, char const *argv[]) {
-    std::string inFile = "test.gz";
-    if (argc > 2) {
-        n_BLOCKS = atoi(argv[1]);
-        n_THREADS = atoi(argv[2]);
-        if (argc > 3) {
-            inFile = argv[3];
-        }
-    }
+    po::options_description desc("Allowed options", 110, 110 / 2);
+    desc.add_options().("help,h", "produce help message");
+    desc.add_options().("inFile,i", po::value<std::string>(&inFile),
+                        "Contigs in fasta file format [Mandatory]");
+    desc.add_options().(
+        "abdFile,a", po::value<std::string>(&abdFile),
+        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
+        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
+    desc.add_options().("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
+                        "Number of threads to use (0: use all cores)");
+    desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
+    desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+
+    if (numThreads == 0)
+        numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
+
     TIMERSTART(total);
 
     FILE *fp = fopen(inFile.c_str(), "r");
@@ -199,28 +290,27 @@ int main(int argc, char const *argv[]) {
         return 1;
     } else {
         TIMERSTART(load_file);
-        int nth = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
 
-        size_t chunk = fsize / nth;
+        size_t chunk = fsize / numThreads;
 
         cudaMallocHost((void **)&_mem, fsize);
 
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-        std::thread readerThreads[nth];
+        std::thread readerThreads[numThreads];
 
-        for (int i = 0; i < nth; i++) {
+        for (int i = 0; i < numThreads; i++) {
             size_t _size;
-            if (i != nth - 1)
+            if (i != numThreads - 1)
                 _size = chunk;
             else
-                _size = chunk + (fsize % nth);
+                _size = chunk + (fsize % numThreads);
             readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
         }
 
-        for (int i = 0; i < nth; i++) {  // esperar a que terminen de leer
+        for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
             readerThreads[i].join();
         }
 
@@ -283,6 +373,228 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << seqs.size() << " contigs" << std::endl;
     std::cout << nobs << " contigs with size >= " << minContig << std::endl;
+
+    // cargar el archivo de abundancias
+    if (1) {
+        size_t nABD = 0;
+        const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
+        if (abdFile.length() > 0) {
+            smallCtgs.clear();
+            std::unordered_map<std::string_view, size_t> lCtgIdx2;
+            std::unordered_map<size_t, size_t> gCtgIdx2;
+
+            nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
+            if (nobs < 1) {
+                cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
+                exit(1);
+            }
+            nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
+            // num of features (excluding the first three columns which is the contigName,
+            // contigLen, and totalAvgDepth);
+            if (!cvExt) {
+                if (nABD % 2 != 0) {
+                    cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
+                            "is not even."
+                         << endl;
+                    return 1;
+                }
+                nABD /= 2;
+            }
+            ABD.resize(nobs, nABD);
+            ABD_VAR.resize(nobs, nABD);
+
+            std::ifstream is(abdFile.c_str());
+            if (!is.is_open()) {
+                cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
+                return 1;
+            }
+
+            int r = -1;
+            int nskip = 0;
+
+            for (std::string row; safeGetline(is, row) && is.good();
+                 ++r) {       // leer el archivo linea por linea
+                if (r == -1)  // the first row is header
+                    continue;
+
+                std::stringstream ss(row);  // convertir la linea en un stream
+                int c = -nNonFeat;
+                Distance mean, variance, meanSum = 0;
+                std::string label;   // almacena el nombre del contig
+                bool isGood = true;  // indica si el contig se encuentra en el las estucturas de datos
+                DistancePair tmp(0, 0);
+
+                for (std::string col; getline(ss, col, tab_delim); ++c) {  // leer la linea por columnas
+                    if (col.empty()) break;
+                    if (c == -3 || (cvExt && c == -1)) {  // contig name
+                        trim_fasta_label(col);
+                        label = col;
+                        if (lCtgIdx.find(label) == lCtgIdx.end()) {  // no se encuentra el contig
+                            if (ignored.find(label) == ignored.end()) {
+                                verbose_message(
+                                    "[Warning!] Cannot find the contig (%s) in abundance file from the "
+                                    "assembly file\n",
+                                    label.c_str());
+                            } else if (debug) {
+                                verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n",
+                                                label.c_str(), seqs[ignored[label]].size(), minContig);
+                            }
+                            isGood = false;  // cannot find the contig from fasta file. just skip it!
+                            break;
+                        }
+                        continue;
+                    } else if (c == -2) {
+                        continue;
+                    } else if (c == -1) {
+                        meanSum = boost::lexical_cast<Distance>(col.c_str());
+                        if (meanSum < minCVSum) {
+                            if (debug)
+                                verbose_message(
+                                    "[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                    label.c_str(), meanSum, minCVSum);
+                            isGood = false;  // cannot find the contig from fasta file. just skip it!
+                            break;
+                        }
+                        continue;
+                    }
+
+                    assert(r - nskip >= 0 && r - nskip < (int)nobs);
+
+                    bool checkMean = false, checkVar = false;
+
+                    if (cvExt) {
+                        mean = ABD(r - nskip, c) = boost::lexical_cast<Distance>(col.c_str());
+                        meanSum += mean;
+                        variance = ABD_VAR(r - nskip, c) = mean;
+                        checkMean = true;
+                    } else {
+                        if (c % 2 == 0) {
+                            mean = ABD(r - nskip, c / 2) = boost::lexical_cast<Distance>(col.c_str());
+                            checkMean = true;
+                        } else {
+                            variance = ABD_VAR(r - nskip, c / 2) = boost::lexical_cast<Distance>(col.c_str());
+                            checkVar = true;
+                        }
+                    }
+
+                    if (checkMean) {
+                        if (mean > 1e+7) {
+                            std::cerr
+                                << "[Error!] Need to check where the average depth is greater than 1e+7 for "
+                                   "the contig "
+                                << label << ", column " << c + 1 << std::endl;
+                            return 1;
+                        }
+                        if (mean < 0) {
+                            std::cerr << "[Error!] Negative coverage depth is not allowed for the contig "
+                                      << label << ", column " << c + 1 << ": " << mean << std::endl;
+                            return 1;
+                        }
+                    }
+
+                    if (checkVar) {
+                        if (variance > 1e+14) {
+                            std::cerr
+                                << "[Error!] Need to check where the depth variance is greater than 1e+14 "
+                                   "for the contig "
+                                << label << ", column " << c + 1 << std::endl;
+                            return 1;
+                        }
+                        if (variance < 0) {
+                            std::cerr << "[Error!] Negative variance is not allowed for the contig "
+                                      << std::label << ", column " << c + 1 << ": " << variance << std::endl;
+                            return 1;
+                        }
+                        if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
+                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: "
+                                      << std::variance << " / " << mean << " = " << variance / mean << ": "
+                                      << label << std::endl;
+                            isGood = false;
+                            break;
+                        }
+                    }
+
+                    if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
+                        if (meanSum < minCVSum) {
+                            if (debug)
+                                verbose_message(
+                                    "[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                    label.c_str(), meanSum, minCVSum);
+                            isGood = false;  // cannot find the contig from fasta file. just skip it!
+                            break;
+                        }
+                        tmp.second = meanSum;  // useEB ? rand() : meanSum
+                    }
+                }
+
+                if (isGood) {
+                    size_t _gidx = gCtgIdx[lCtgIdx[label]];
+                    if (seqs[_gidx].size() < minContig) {
+                        smallCtgs.insert(r - nskip);
+                        if (seqs[_gidx].size() < minContigByCorr) ++nresv;
+                    }
+                    lCtgIdx2[label] = r - nskip;  // local index
+                    gCtgIdx2[r - nskip] = _gidx;  // global index
+                } else {
+                    ++nskip;
+                    continue;
+                }
+
+                tmp.first = r - nskip;
+                rABD.push_back(tmp);
+
+                if ((int)nABD != (cvExt ? c : c / 2)) {
+                    cerr << "[Error!] Different number of variables for the object for the contig " << label
+                         << endl;
+                    return 1;
+                }
+            }
+            is.close();
+
+            verbose_message(
+                "Finished reading %d contigs (using %d including %d short contigs) and %d coverages from "
+                "%s\n",
+                r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
+
+            if ((specific || veryspecific) && nABD < minSamples) {
+                cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
+                        "and --veryspecific would be the same as --sensitive when # of samples ("
+                     << nABD << ") < minSamples (" << minSamples << ")" << endl;
+            }
+
+            if (nABD < minSamples) {
+                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD
+                     << ") < minSamples (" << minSamples << ")" << endl;
+            }
+
+            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin();
+                 it != lCtgIdx.end(); ++it) {
+                if (lCtgIdx2.find(it->first) ==
+                    lCtgIdx2.end()) {  // given seq but missed depth info or skipped
+                    ignored[it->first] = gCtgIdx[it->second];
+                }
+            }
+
+            lCtgIdx.clear();
+            gCtgIdx.clear();
+
+            lCtgIdx = lCtgIdx2;
+            gCtgIdx = gCtgIdx2;
+
+            assert(lCtgIdx.size() == gCtgIdx.size());
+            assert(lCtgIdx.size() + ignored.size() == seqs.size());
+
+            nobs = lCtgIdx.size();
+            nobs2 = ignored.size();
+
+            if (ABD.size1() != nobs) {
+                ABD.resize(nobs, nABD, true);
+                ABD_VAR.resize(nobs, nABD, true);
+            }
+
+            assert(rABD.size() == nobs);
+        }
+    }
 
     // calcular matriz de tetranucleotidos
     TIMERSTART(tnf);
