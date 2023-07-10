@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/program_options.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -22,6 +22,7 @@
 #include "../extra/metrictime2.hpp"
 
 typedef double Distance;
+typedef std::pair<int, Distance> DistancePair;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
@@ -99,29 +100,26 @@ size_t ncols(const char *f, int skip = 0) {
 }
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
-    2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,
-    106, 38,  48,  83,  16,  22,  136, 114, 5,   54,  107, 120, 72,  41,  44,  26,  27,  23,  136, 53,
-    12,  81,  136, 127, 30,  110, 136, 80,  132, 123, 71,  102, 79,  1,   35,  124, 29,  4,   136, 34,
-    91,  17,  136, 52,  9,   77,  136, 117, 76,  93,  136, 65,  6,   73,  136, 68,  28,  94,  136, 113,
-    121, 36,  136, 10,  103, 99,  136, 87,  129, 14,  136, 136, 98,  19,  136, 97,  15,  56,  136, 131,
-    57,  46,  136, 136, 122, 60,  136, 136, 42,  62,  136, 136, 7,   130, 136, 51,  133, 20,  136, 134,
-    89,  86,  136, 136, 104, 95,  136, 136, 49,  136, 136, 136, 105, 136, 136, 136, 33,  136, 136, 136,
-    43,  136, 136, 136, 55,  136, 136, 136, 112, 136, 136, 136, 136, 136, 136, 136, 75,  136, 136, 136,
-    32,  136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 100, 136, 136, 136,
-    63,  136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 125, 108, 136, 136, 58,  24,  136, 136,
-    84,  13,  136, 136, 25,  66,  136, 136, 18,  128, 136, 136, 74,  61,  136, 136, 85,  136, 136, 136,
-    118, 40,  136, 136, 109, 90,  136, 136, 45,  136, 136, 136, 111, 136, 136, 136, 82,  136, 136, 136,
+    2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,
+    16,  22,  136, 114, 5,   54,  107, 120, 72,  41,  44,  26,  27,  23,  136, 53,  12,  81,  136, 127, 30,  110, 136, 80,
+    132, 123, 71,  102, 79,  1,   35,  124, 29,  4,   136, 34,  91,  17,  136, 52,  9,   77,  136, 117, 76,  93,  136, 65,
+    6,   73,  136, 68,  28,  94,  136, 113, 121, 36,  136, 10,  103, 99,  136, 87,  129, 14,  136, 136, 98,  19,  136, 97,
+    15,  56,  136, 131, 57,  46,  136, 136, 122, 60,  136, 136, 42,  62,  136, 136, 7,   130, 136, 51,  133, 20,  136, 134,
+    89,  86,  136, 136, 104, 95,  136, 136, 49,  136, 136, 136, 105, 136, 136, 136, 33,  136, 136, 136, 43,  136, 136, 136,
+    55,  136, 136, 136, 112, 136, 136, 136, 136, 136, 136, 136, 75,  136, 136, 136, 32,  136, 136, 136, 136, 136, 136, 136,
+    136, 136, 136, 136, 136, 136, 136, 136, 100, 136, 136, 136, 63,  136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136,
+    125, 108, 136, 136, 58,  24,  136, 136, 84,  13,  136, 136, 25,  66,  136, 136, 18,  128, 136, 136, 74,  61,  136, 136,
+    85,  136, 136, 136, 118, 40,  136, 136, 109, 90,  136, 136, 45,  136, 136, 136, 111, 136, 136, 136, 82,  136, 136, 136,
     59,  11,  136, 136, 64,  37,  136, 136, 0,   136, 136, 136, 39,  136, 136, 136};
 
 __device__ __constant__ unsigned char BN[256] = {
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
@@ -258,8 +256,8 @@ std::unordered_set<int> smallCtgs;
 boost::numeric::ublas::matrix<float> ABD;
 boost::numeric::ublas::matrix<float> ABD_VAR;
 
-static size_t minContig = 2500;        // minimum contig size for binning
-static size_t minContigByCorr = 1000;  // minimum contig size for recruiting (by abundance correlation)
+static size_t minContig = 2500;                // minimum contig size for binning
+static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
@@ -268,19 +266,16 @@ double *TNF;
 int main(int argc, char const *argv[]) {
     po::options_description desc("Allowed options", 110, 110 / 2);
     desc.add_options().("help,h", "produce help message");
-    desc.add_options().("inFile,i", po::value<std::string>(&inFile),
-                        "Contigs in fasta file format [Mandatory]");
-    desc.add_options().(
-        "abdFile,a", po::value<std::string>(&abdFile),
-        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
-        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
+    desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
+    desc.add_options().("abdFile,a", po::value<std::string>(&abdFile),
+                        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
+                        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
     desc.add_options().("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
                         "Number of threads to use (0: use all cores)");
     desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
     desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
 
-    if (numThreads == 0)
-        numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
+    if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
     TIMERSTART(total);
 
@@ -357,11 +352,9 @@ int main(int argc, char const *argv[]) {
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
-                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] =
-                        seqs.size();
+                    ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
-                contig_names.emplace_back(
-                    std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
+                contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
@@ -412,9 +405,8 @@ int main(int argc, char const *argv[]) {
             int r = -1;
             int nskip = 0;
 
-            for (std::string row; safeGetline(is, row) && is.good();
-                 ++r) {       // leer el archivo linea por linea
-                if (r == -1)  // the first row is header
+            for (std::string row; safeGetline(is, row) && is.good(); ++r) {  // leer el archivo linea por linea
+                if (r == -1)                                                 // the first row is header
                     continue;
 
                 std::stringstream ss(row);  // convertir la linea en un stream
@@ -436,8 +428,8 @@ int main(int argc, char const *argv[]) {
                                     "assembly file\n",
                                     label.c_str());
                             } else if (debug) {
-                                verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n",
-                                                label.c_str(), seqs[ignored[label]].size(), minContig);
+                                verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n", label.c_str(),
+                                                seqs[ignored[label]].size(), minContig);
                             }
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
@@ -449,9 +441,8 @@ int main(int argc, char const *argv[]) {
                         meanSum = boost::lexical_cast<Distance>(col.c_str());
                         if (meanSum < minCVSum) {
                             if (debug)
-                                verbose_message(
-                                    "[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                    label.c_str(), meanSum, minCVSum);
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                                label.c_str(), meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -479,36 +470,33 @@ int main(int argc, char const *argv[]) {
 
                     if (checkMean) {
                         if (mean > 1e+7) {
-                            std::cerr
-                                << "[Error!] Need to check where the average depth is greater than 1e+7 for "
-                                   "the contig "
-                                << label << ", column " << c + 1 << std::endl;
+                            std::cerr << "[Error!] Need to check where the average depth is greater than 1e+7 for "
+                                         "the contig "
+                                      << label << ", column " << c + 1 << std::endl;
                             return 1;
                         }
                         if (mean < 0) {
-                            std::cerr << "[Error!] Negative coverage depth is not allowed for the contig "
-                                      << label << ", column " << c + 1 << ": " << mean << std::endl;
+                            std::cerr << "[Error!] Negative coverage depth is not allowed for the contig " << label << ", column "
+                                      << c + 1 << ": " << mean << std::endl;
                             return 1;
                         }
                     }
 
                     if (checkVar) {
                         if (variance > 1e+14) {
-                            std::cerr
-                                << "[Error!] Need to check where the depth variance is greater than 1e+14 "
-                                   "for the contig "
-                                << label << ", column " << c + 1 << std::endl;
+                            std::cerr << "[Error!] Need to check where the depth variance is greater than 1e+14 "
+                                         "for the contig "
+                                      << label << ", column " << c + 1 << std::endl;
                             return 1;
                         }
                         if (variance < 0) {
-                            std::cerr << "[Error!] Negative variance is not allowed for the contig "
-                                      << std::label << ", column " << c + 1 << ": " << variance << std::endl;
+                            std::cerr << "[Error!] Negative variance is not allowed for the contig " << std::label << ", column "
+                                      << c + 1 << ": " << variance << std::endl;
                             return 1;
                         }
                         if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: "
-                                      << std::variance << " / " << mean << " = " << variance / mean << ": "
-                                      << label << std::endl;
+                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / "
+                                      << mean << " = " << variance / mean << ": " << label << std::endl;
                             isGood = false;
                             break;
                         }
@@ -517,9 +505,8 @@ int main(int argc, char const *argv[]) {
                     if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
                         if (meanSum < minCVSum) {
                             if (debug)
-                                verbose_message(
-                                    "[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                    label.c_str(), meanSum, minCVSum);
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                                label.c_str(), meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -544,8 +531,7 @@ int main(int argc, char const *argv[]) {
                 rABD.push_back(tmp);
 
                 if ((int)nABD != (cvExt ? c : c / 2)) {
-                    cerr << "[Error!] Different number of variables for the object for the contig " << label
-                         << endl;
+                    cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
                     return 1;
                 }
             }
@@ -563,14 +549,12 @@ int main(int argc, char const *argv[]) {
             }
 
             if (nABD < minSamples) {
-                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD
-                     << ") < minSamples (" << minSamples << ")" << endl;
+                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
+                     << minSamples << ")" << endl;
             }
 
-            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin();
-                 it != lCtgIdx.end(); ++it) {
-                if (lCtgIdx2.find(it->first) ==
-                    lCtgIdx2.end()) {  // given seq but missed depth info or skipped
+            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+                if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
                     ignored[it->first] = gCtgIdx[it->second];
                 }
             }
