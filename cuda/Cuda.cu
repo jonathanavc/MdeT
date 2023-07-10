@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
