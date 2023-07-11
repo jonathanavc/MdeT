@@ -150,8 +150,8 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
                         const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    const size_t minContig = 2500;
-    const size_t minContigByCorr = 1000;
+    //const size_t minContig = 2500;
+    //const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     for (size_t i = 0; i < contigs_per_thread; i++) {
@@ -191,8 +191,8 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
                               const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    const size_t minContig = 2500;
-    const size_t minContigByCorr = 1000;
+    //const size_t minContig = 2500;
+    //const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
     double TNF_temp[136];
