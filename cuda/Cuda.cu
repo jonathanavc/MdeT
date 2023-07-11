@@ -619,7 +619,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
         std::cout << "i: " << seqs_h_index_i[0] << std::endl;
-        std::cout << "3: " << seqs_h_index_e[0] << std::endl;
+        std::cout << "e: " << seqs_h_index_e[nobs] << std::endl;
 
         for (int i = 0; i < n_STREAMS; i++) {
             size_t contig_to_process = contig_per_kernel;
