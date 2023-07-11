@@ -379,6 +379,11 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();    // liberar memoria no usada
         TIMERSTOP(read_file);
     }
+    for(size_t i = 0; i < seqs_h_index_i.size(); i++) {
+        if(seqs_h_index_e[i] - seqs_h_index_i[i] < 0){
+            std::cout << "error: " << i << std::endl;
+        }
+    }
     std::cout << seqs.size() << " contigs" << std::endl;
     std::cout << nobs << " contigs with size >= " << minContig << std::endl;
 
