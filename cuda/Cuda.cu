@@ -627,6 +627,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamCreate(&streams[i]);
             char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
             char *_mem_e = _mem + seqs_h_index_e[(contig_per_kernel * i) + contig_to_process - 1];  // puntero al final del ultimo contig
+            std::count << "fsize: " << fsize << std::endl;
             std::cout << "size: " << _mem_e - _mem_i << std::endl;
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
