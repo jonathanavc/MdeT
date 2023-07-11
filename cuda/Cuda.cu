@@ -264,6 +264,15 @@ size_t nresv;
 double *TNF;
 
 int main(int argc, char const *argv[]) {
+    if (argc > 2) {
+        n_BLOCKS = atoi(argv[1]);
+        n_THREADS = atoi(argv[2]);
+        if (argc > 3) {
+            inFile = argv[3];
+        }
+    }
+
+    /*
     po::options_description desc("Allowed options", 110, 110 / 2);
     desc.add_options().("help,h", "produce help message");
     desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
@@ -274,6 +283,7 @@ int main(int argc, char const *argv[]) {
                         "Number of threads to use (0: use all cores)");
     desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
     desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+    */
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
