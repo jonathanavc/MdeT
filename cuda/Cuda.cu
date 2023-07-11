@@ -617,6 +617,8 @@ int main(int argc, char const *argv[]) {
 
         cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index, seqs_d_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
         std::cout << "i: " << seqs_h_index_i[0] << std::endl;
         std::cout << "e: " << seqs_h_index_e[nobs - 1] << std::endl;
@@ -630,9 +632,9 @@ int main(int argc, char const *argv[]) {
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
             size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
-            cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
+            //cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
 
-            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d_i, seqs_d, seqs_d_index_i, contig_to_process, contigs_per_thread,
+            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d_i, seqs_d, seqs_d_index, contig_to_process, contigs_per_thread,
                                                        nobs);
             cudaMemcpyAsync(TNF, TNF_d_i, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
