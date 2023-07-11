@@ -24,6 +24,7 @@
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
 
+/*
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -98,6 +99,7 @@ size_t ncols(const char *f, int skip = 0) {
 
     return ncols(is, skip);
 }
+*/
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,
