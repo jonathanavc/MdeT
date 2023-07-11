@@ -61,7 +61,7 @@ size_t countLines(const char *f) {
     pFile = fopen(f, "r");
 
     if (pFile == NULL) {
-        cerr << "[Error!] can't open input file " << f << endl;
+        std::cerr << "[Error!] can't open input file " << f << std::endl;
         return 0;
     }
 
@@ -92,7 +92,7 @@ size_t ncols(std::ifstream &is, int skip = 0) {
 size_t ncols(const char *f, int skip = 0) {
     std::ifstream is(f);
     if (!is.is_open()) {
-        cerr << "[Error!] can't open input file " << f << endl;
+        std::cerr << "[Error!] can't open input file " << f << std::endl;
         return 0;
     }
 
