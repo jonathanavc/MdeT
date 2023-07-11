@@ -614,18 +614,25 @@ int main(int argc, char const *argv[]) {
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
+        std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
 
         cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
-
+        
         for (int i = 0; i < n_STREAMS; i++) {
+            std::cout << "stream: " << i << std::endl;
             size_t contig_to_process = contig_per_kernel;
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
+            std::cout << "contig_to_process: " << contig_to_process << std::endl;
             cudaStreamCreate(&streams[i]);
             size_t _mem_i = seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
+            std::cout << "_mem_i: " << _mem_i << std::endl;
             size_t _mem_size = seqs_h_index_e[(contig_per_kernel * i) + contig_to_process - 1] - seqs_h_index_i[contig_per_kernel * i];
+            std::cout << "_mem_size: " << _mem_size << std::endl;
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
+            std::cout << "TNF_d_i: " << (size_t)TNF_d_i << std::endl;
             size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
+            std:: cout << "seqs_d_index_i: " << (size_t)seqs_d_index_i << std::endl;
             size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
             cudaMemcpyAsync(seqs_d + _mem_i, _mem + _mem_i, _mem_size, cudaMemcpyHostToDevice, streams[i]);
 
