@@ -617,11 +617,11 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
         for (int i = 0; i < n_STREAMS; i++) {
-            size_t contig_to_procces = contig_per_kernel;
-            if (i == n_STREAMS - 1) contig_to_procces += (nobs % n_STREAMS);
+            size_t contig_to_process = contig_per_kernel;
+            if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             cudaStreamCreate(&streams[i]);
             char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
-            char *_mem_e = _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_proccess]; // puntero al final del ultimo contig
+            char *_mem_e = _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_process]; // puntero al final del ultimo contig
             cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
             size_t contigs_per_thread = (contig_to_procces + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
             get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d, seqs_d, seqs_d_index, contig_to_procces, contigs_per_thread, nobs);
