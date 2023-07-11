@@ -380,7 +380,7 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(read_file);
     }
     for(size_t i = 0; i < seqs_h_index_i.size(); i++) {
-        if(seqs_h_index_e[i] - seqs_h_index_i[i] < 0){
+        if(seqs_h_index_e[i] < seqs_h_index_i[i]){
             std::cout << "error: " << i << std::endl;
         }
     }
