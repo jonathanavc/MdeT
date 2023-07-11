@@ -613,8 +613,8 @@ int main(int argc, char const *argv[]) {
 
         size_t contig_per_kernel = nobs / n_STREAMS;
 
-        cudaMemcpy(seqs_d_index, seqs_d_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
         for (int i = 0; i < n_STREAMS; i++) {
             size_t contig_to_procces = contig_per_kernel;
