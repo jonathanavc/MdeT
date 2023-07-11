@@ -623,12 +623,13 @@ int main(int argc, char const *argv[]) {
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             std::cout << "contig_to_process: " << contig_to_process << std::endl;
             cudaStreamCreate(&streams[i]);
-            char *_mem_i = seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
-            std::cout << "mem_i: " << (void *)_mem_i << std::endl;
-            char *_mem_e = seqs_h_index_e[contig_per_kernel * i + contig_to_process];  // puntero al final del ultimo contig
+            char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
+            std::cout << "mem_i: " << seqs_h_index_i[contig_per_kernel * i] << std::endl;
+            char *_mem_e =
+                _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_process];  // puntero al final del ultimo contig
 
-            std::cout << "mem_e: " << (void *)_mem_e << std::endl;
-            double * TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
+            std::cout << "mem_e: " << seqs_h_index_e[contig_per_kernel * i + contig_to_process] << std::endl;
+            double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             std::cout << "TNF_d: " << TNF_d << std::endl;
             std::cout << "TNF_d_i: " << TNF_d_i << std::endl;
             size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
@@ -637,7 +638,8 @@ int main(int argc, char const *argv[]) {
             std::cout << "contigs_per_thread: " << contigs_per_thread << std::endl;
             cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
 
-            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d_i, seqs_d, seqs_d_index_i, contig_to_process, contigs_per_thread, nobs);
+            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d_i, seqs_d, seqs_d_index_i, contig_to_process, contigs_per_thread,
+                                                       nobs);
             cudaMemcpyAsync(TNF, TNF_d_i, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
