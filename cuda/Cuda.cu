@@ -237,6 +237,9 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
         readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
     }
 }
+
+static const char tab_delim = '\t';
+
 std::string inFile;
 std::string abdFile;
 int numThreads;
