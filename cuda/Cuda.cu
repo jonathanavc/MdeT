@@ -379,11 +379,6 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();    // liberar memoria no usada
         TIMERSTOP(read_file);
     }
-    for(size_t i = 0; i < seqs_h_index_i.size(); i++) {
-        if(seqs_h_index_e[i] < seqs_h_index_i[i]){
-            std::cout << "error: " << i << std::endl;
-        }
-    }
     std::cout << seqs.size() << " contigs" << std::endl;
     std::cout << nobs << " contigs with size >= " << minContig << std::endl;
 
@@ -632,8 +627,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "contig_to_process: " << contig_to_process << std::endl;
             cudaStreamCreate(&streams[i]);
             char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
-            char *_mem_e =
-                _mem + seqs_h_index_e[(contig_per_kernel * i) + contig_to_process];  // puntero al final del ultimo contig
+            char *_mem_e = _mem + seqs_h_index_e[(contig_per_kernel * i) + contig_to_process - 1];  // puntero al final del ultimo contig
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             std::cout << "TNF_d: " << TNF_d << std::endl;
             std::cout << "TNF_d_i: " << TNF_d_i << std::endl;
