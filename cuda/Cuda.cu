@@ -253,8 +253,8 @@ std::unordered_map<std::string_view, size_t> ignored;
 std::unordered_map<std::string_view, size_t> lCtgIdx;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
-boost::numeric::ublas::matrix<float> ABD;
-boost::numeric::ublas::matrix<float> ABD_VAR;
+//boost::numeric::ublas::matrix<float> ABD;
+//boost::numeric::ublas::matrix<float> ABD_VAR;
 
 static size_t minContig = 2500;                // minimum contig size for binning
 static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
