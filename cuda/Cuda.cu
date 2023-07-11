@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/program_options.hpp>
+//#include <boost/numeric/ublas/matrix.hpp>
+//#include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -244,8 +244,8 @@ int n_BLOCKS;
 int n_THREADS;
 char *_mem;
 size_t fsize;
-std::vector<size_t> seqs_d_index_i;
-std::vector<size_t> seqs_d_index_e;
+std::vector<size_t> seqs_h_index_i;
+std::vector<size_t> seqs_h_index_e;
 
 std::vector<std::string_view> seqs;
 std::vector<std::string_view> contig_names;
@@ -328,8 +328,8 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-        seqs_d_index_i.reserve(fsize % __min);
-        seqs_d_index_e.reserve(fsize % __min);
+        seqs_h_index_i.reserve(fsize % __min);
+        seqs_h_index_e.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
@@ -347,8 +347,8 @@ int main(int argc, char const *argv[]) {
                         else
                             nresv++;
                     }
-                    seqs_d_index_i.emplace_back(contig_i);
-                    seqs_d_index_e.emplace_back(contig_e);
+                    seqs_h_index_i.emplace_back(contig_i);
+                    seqs_h_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
@@ -358,8 +358,8 @@ int main(int argc, char const *argv[]) {
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
-        seqs_d_index_i.shrink_to_fit();  // liberar memoria no usada
-        seqs_d_index_e.shrink_to_fit();  // liberar memoria no usada
+        seqs_h_index_i.shrink_to_fit();  // liberar memoria no usada
+        seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
         seqs.shrink_to_fit();            // liberar memoria no usada
         contig_names.shrink_to_fit();    // liberar memoria no usada
         TIMERSTOP(read_file);
@@ -369,6 +369,7 @@ int main(int argc, char const *argv[]) {
 
     // cargar el archivo de abundancias
     if (1) {
+        /*
         size_t nABD = 0;
         const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
         if (abdFile.length() > 0) {
@@ -578,6 +579,7 @@ int main(int argc, char const *argv[]) {
 
             assert(rABD.size() == nobs);
         }
+        */
     }
 
     // calcular matriz de tetranucleotidos
@@ -593,6 +595,33 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
 
+        n_STREAMS = 10;
+        cudastream_t streams[n_STREAMS];
+
+        size_t contig_per_kernel = nobs / n_STREAMS;
+
+        cudaMemcpy(seqs_d_index, seqs_d_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+
+        for (int i = 0; i < n_STREAMS; i++) {
+            size_t contig_to_procces = contig_per_kernel;
+            if (i == n_STREAMS - 1) contig_to_procces += (nobs % n_STREAMS);
+            cudaStreamCreate(&streams[i]);
+            double *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
+            double *_mem_e = _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_proccess] - 1; // puntero al final del ultimo contig
+            cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
+            size_t contigs_per_thread = (nobs + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
+            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d, seqs_d, seqs_d_index, contig_to_procces, contigs_per_thread, nobs);
+            cudaMemcpyAsync(TNF, TNF_d + (contig_per_kernel * i * 136), contig_to_procces * 136 * sizeof(double),
+                            cudaMemcpyDeviceToHost, streams[i]);
+        }
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
+        }
+
+        /*
+
         cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index, seqs_d_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index + nobs, seqs_d_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
@@ -603,6 +632,7 @@ int main(int argc, char const *argv[]) {
         cudaDeviceSynchronize();
 
         cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(double), cudaMemcpyDeviceToHost);
+        */
     }
     TIMERSTOP(tnf);
 
