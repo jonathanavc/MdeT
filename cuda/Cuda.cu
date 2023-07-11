@@ -610,7 +610,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
 
-        int n_STREAMS = 10;
+        int n_STREAMS = 1;
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
