@@ -618,8 +618,8 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
 
-        std::cout << "i: " seqs_h_index_i[0] << std::endl;
-        std::cout << "3: " seqs_h_index_e[0] << std::endl;
+        std::cout << "i: " << seqs_h_index_i[0] << std::endl;
+        std::cout << "3: " << seqs_h_index_e[0] << std::endl;
 
         for (int i = 0; i < n_STREAMS; i++) {
             size_t contig_to_process = contig_per_kernel;
@@ -627,7 +627,8 @@ int main(int argc, char const *argv[]) {
             std::cout << "contig_to_process: " << contig_to_process << std::endl;
             cudaStreamCreate(&streams[i]);
             char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
-            char *_mem_e = _mem + seqs_h_index_e[(contig_per_kernel * i) + contig_to_process];  // puntero al final del ultimo contig
+            char *_mem_e =
+                _mem + seqs_h_index_e[(contig_per_kernel * i) + contig_to_process];  // puntero al final del ultimo contig
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             std::cout << "TNF_d: " << TNF_d << std::endl;
             std::cout << "TNF_d_i: " << TNF_d_i << std::endl;
