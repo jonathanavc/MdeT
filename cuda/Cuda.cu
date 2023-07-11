@@ -617,8 +617,7 @@ int main(int argc, char const *argv[]) {
 
         cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
-        cudaMemcpy(seqs_d_index + nobs, seqs_h_index_e.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
 
         std::cout << "i: " << seqs_h_index_i[0] << std::endl;
         std::cout << "e: " << seqs_h_index_e[nobs - 1] << std::endl;
