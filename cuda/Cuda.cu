@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-//#include <boost/numeric/ublas/matrix.hpp>
-//#include <boost/program_options.hpp>
+// #include <boost/numeric/ublas/matrix.hpp>
+// #include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -150,8 +150,8 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 
 __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
                         const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    //const size_t minContig = 2500;
-    //const size_t minContigByCorr = 1000;
+    // const size_t minContig = 2500;
+    // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     for (size_t i = 0; i < contigs_per_thread; i++) {
@@ -191,8 +191,8 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
 
 __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
                               const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    //const size_t minContig = 2500;
-    //const size_t minContigByCorr = 1000;
+    // const size_t minContig = 2500;
+    // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
     double TNF_temp[136];
@@ -258,8 +258,8 @@ std::unordered_map<std::string_view, size_t> ignored;
 std::unordered_map<std::string_view, size_t> lCtgIdx;
 std::unordered_map<size_t, size_t> gCtgIdx;
 std::unordered_set<int> smallCtgs;
-//boost::numeric::ublas::matrix<float> ABD;
-//boost::numeric::ublas::matrix<float> ABD_VAR;
+// boost::numeric::ublas::matrix<float> ABD;
+// boost::numeric::ublas::matrix<float> ABD_VAR;
 
 static size_t minContig = 2500;                // minimum contig size for binning
 static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
@@ -621,16 +621,23 @@ int main(int argc, char const *argv[]) {
         for (int i = 0; i < n_STREAMS; i++) {
             size_t contig_to_process = contig_per_kernel;
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
+            std::cout << "contig_to_process: " << contig_to_process << std::endl;
             cudaStreamCreate(&streams[i]);
             char *_mem_i = _mem + seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
-            char *_mem_e = _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_process]; // puntero al final del ultimo contig
+            std::cout << "mem_i: " << _mem_i << std::endl;
+            char *_mem_e = _mem + seqs_h_index_e[contig_per_kernel * i + contig_to_process];  // puntero al final del ultimo contig
+            std::cout << "mem_e: " << _mem_e << std::endl;
             double * TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
-            size_t * seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
-            cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
+            std::cout << "TNF_d: " << TNF_d << std::endl;
+            std::cout << "TNF_d_i: " << TNF_d_i << std::endl;
+            size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
+            std::cout << "seqs_d_index_i: " << seqs_d_index_i << std::endl;
             size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
+            std::cout << "contigs_per_thread: " << contigs_per_thread << std::endl;
+            cudaMemcpyAsync(seqs_d, _mem_i, _mem_e - _mem_i, cudaMemcpyHostToDevice, streams[i]);
+
             get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d_i, seqs_d, seqs_d_index_i, contig_to_process, contigs_per_thread, nobs);
-            cudaMemcpyAsync(TNF, TNF_d_i, contig_to_process * 136 * sizeof(double),
-                            cudaMemcpyDeviceToHost, streams[i]);
+            cudaMemcpyAsync(TNF, TNF_d_i, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
