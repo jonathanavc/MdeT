@@ -610,7 +610,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
 
-        int n_STREAMS = 1;
+        int n_STREAMS = 10;
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
@@ -624,8 +624,6 @@ int main(int argc, char const *argv[]) {
             cudaStreamCreate(&streams[i]);
             size_t _mem_i = seqs_h_index_i[contig_per_kernel * i];  // puntero al inicio del primer contig
             size_t _mem_size = seqs_h_index_e[(contig_per_kernel * i) + contig_to_process - 1] - seqs_h_index_i[contig_per_kernel * i];
-            std::cout << "fsize: " << fsize << std::endl;
-            std::cout << "size: " << _mem_size << std::endl;
             double *TNF_d_i = TNF_d + (contig_per_kernel * i * 136);
             size_t *seqs_d_index_i = seqs_d_index + (contig_per_kernel * i);
             size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
