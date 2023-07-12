@@ -645,6 +645,9 @@ int main(int argc, char const *argv[]) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
+        cudaFree(TNF_d);
+        cudaFree(seqs_d);
+        cudaFree(seqs_d_index);
 
         /*
 
