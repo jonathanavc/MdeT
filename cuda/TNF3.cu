@@ -278,7 +278,7 @@ int main(int argc, char const *argv[]) {
         cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
         return 1;
     } else {
-        auto _start = std::chrono::system_clock::now();
+        auto _start = std::chrono::high_resolution_clock::now();
 
         int nth = std::thread::hardware_concurrency();
         int fpint = -1;
@@ -312,8 +312,8 @@ int main(int argc, char const *argv[]) {
 
         close(fpint);
 
-        auto _end = std::chrono::system_clock::now();
-        std::chrono::duration<float, std::milli> _duration = _end - _start;
+        auto _end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> _duration = _end - _start;
         std::cout << "cargar archivo descomprimido a ram(pinned):" << _duration.count() / 1000.f << std::endl;
 
         _start = std::chrono::system_clock::now();
