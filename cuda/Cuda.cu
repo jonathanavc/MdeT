@@ -610,7 +610,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
 
-        int n_STREAMS = 2;
+        int n_STREAMS = 10;
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
@@ -624,7 +624,7 @@ int main(int argc, char const *argv[]) {
             size_t contig_to_process = contig_per_kernel;
             size_t _des = contig_per_kernel * i;
             std::cout << "stream: " << i << " contig_to_process: " << contig_to_process << std::endl;
-            
+
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
             size_t _mem_size =
