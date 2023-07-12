@@ -122,7 +122,7 @@ int main(int argc, char const *argv[])
                         else
                             ++nresv;
                     }
-                    std::cout << kseq->name.s << std::endl;
+                    //std::cout << kseq->name.s << std::endl;
                     // lCtgIdx[kseq->name.s] = nobs;
                     /////// cambio para facilitar la transferencia de gCtgIdx
                     gCtgIdx[nobs++] = seqs.size(); // global index
