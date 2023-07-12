@@ -636,7 +636,7 @@ int main(int argc, char const *argv[]) {
             size_t TNF_des = _des * 136;
 
             cudaMemcpyAsync(seqs_d + _mem_i, _mem + _mem_i, _mem_size, cudaMemcpyHostToDevice, streams[i]);
-            cudaMemcpyAsync(seqs_d_index + _dez, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
+            cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
                        cudaMemcpyHostToDevice, streams[i]);
             cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                        cudaMemcpyHostToDevice, streams[i]);
