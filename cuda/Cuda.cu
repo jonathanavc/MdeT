@@ -632,13 +632,13 @@ int main(int argc, char const *argv[]) {
             size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
             size_t _mem_size =
                 seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des];  // tamaño de la memoria a copiar
-            size_t TNF_i = _des * 136;
+            size_t TNF_des = _des * 136;
             
             cudaMemcpyAsync(seqs_d + _mem_i, _mem + _mem_i, _mem_size, cudaMemcpyHostToDevice, streams[i]);
 
-            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d + TNF_i, seqs_d, seqs_d_index + _des, contig_to_process,
+            get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                        contigs_per_thread, nobs);
-            cudaMemcpyAsync(TNF + TNF_i, TNF_d + TNF_i, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost,
+            cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost,
                             streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
