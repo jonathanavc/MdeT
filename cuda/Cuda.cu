@@ -621,16 +621,19 @@ int main(int argc, char const *argv[]) {
 
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
+            
             size_t contig_to_process = contig_per_kernel;
+            size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
             size_t _des = contig_per_kernel * i;
-            std::cout << "stream: " << i << " contig_to_process: " << contig_to_process << std::endl;
+
+            std::cout << "stream: " << i << " contig_to_process: " << contig_to_process << "contigs_per_thread: "<< contigs_per_thread << std::endl;
 
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
             size_t _mem_size =
                 seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des];  // tamaño de la memoria a copiar
             size_t TNF_i = _des * 136;
-            size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
+            
             cudaMemcpyAsync(seqs_d + _mem_i, _mem + _mem_i, _mem_size, cudaMemcpyHostToDevice, streams[i]);
 
             get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d + TNF_i, seqs_d, seqs_d_index + _des, contig_to_process,
