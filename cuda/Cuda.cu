@@ -285,7 +285,7 @@ int main(int argc, char const *argv[]) {
         ("abdFile,a", po::value<std::string>(&abdFile),
         "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
         "contig names, and the first row will be considered as the header and be skipped) [Optional]");
-        ("numThreads,t", po::value<size_t>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)")
+        ("numThreads,t", po::value<int>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)")
         ("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks")
         ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
     
