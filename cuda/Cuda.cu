@@ -54,6 +54,7 @@ size_t nobs;
 size_t nresv;
 bool verbose;
 bool debug;
+bool cvExt;
 double *TNF;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
@@ -284,6 +285,7 @@ int main(int argc, char const *argv[]) {
     desc.add_options()
         ("help,h", "produce help message")
         ("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]")
+        ("cvExt", po::value<bool>(&cvExt)->zero_tokens(), "When a coverage file without variance (from third party tools) is used instead of abdFile from jgi_summarize_bam_contig_depths")
         ("abdFile,a", po::value<std::string>(&abdFile),
         "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
         "contig names, and the first row will be considered as the header and be skipped) [Optional]")
