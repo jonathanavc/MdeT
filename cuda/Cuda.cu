@@ -26,13 +26,111 @@ namespace po = boost::program_options;
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
 
+typedef boost::math::normal_distribution<Distance> Normal;
+typedef boost::math::poisson_distribution<Distance> Poisson;
+
+typedef boost::property<boost::edge_weight_t, double> Weight;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> DirectedSimpleGraph;
+typedef boost::graph_traits<UndirectedGraph>::edge_descriptor edge_descriptor;
+typedef boost::graph_traits<UndirectedGraph>::out_edge_iterator out_edge_iterator;
+typedef boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_descriptor;
+
+static const std::string version = VERSION;
+static const std::string DATE = BUILD_TIMESTAMP;
+static bool verbose = false;
+static bool debug = false;
+static bool keep = false;
+static bool noBinOut = false;
+static size_t seedClsSize = 10000;
+static size_t minClsSize = 200000;
+static size_t minContig = 2500; //minimum contig size for binning
+static size_t minContigByCorr = 1000; //minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
+static std::string inFile;
+static std::string abdFile;
+static bool cvExt;
+static std::string pairFile;
+static std::string outFile;
+static Similarity p1 = 0;
+static Similarity p2 = 0;
+static Similarity p3 = 95;
+static double pB = 50;
+static Similarity minProb = 0;
+static Similarity minBinned = 0;
+static bool verysensitive = false;
+static bool sensitive = false;
+static bool specific = false;
+static bool veryspecific = false;
+static bool superspecific = false;
+static bool onlyLabel = false;
+static size_t numThreads = 0;
+static Distance minCV = 1;
+static Distance minCVSum = 2;
+static Distance minTimes = 10;
+static Distance minCorr = 0;
+static size_t minSamples = 10; //minimum number of sample sizes for considering correlation based recruiting
+static bool sumLowCV = false;
+static bool fuzzy = false;
+static bool useEB = true; //Ensemble Binning
+static Similarity minShared = 0;
+static bool saveCls = false;
+static bool outUnbinned = false;
+static Distance maxVarRatio = 0.0;
+static double LOG101 = log(101);
+
+static const char line_delim = '\n';
+static const char tab_delim = '\t';
+static const char fasta_delim = '>';
+static const std::size_t buf_size = 1024 * 1024;
+static char os_buffer[buf_size];
+static size_t commandline_hash;
+
+static UndirectedGraph gprob;
+static DirectedSimpleGraph paired;
+static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
+static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
+
+static std::unordered_map<std::string_view, size_t> lCtgIdx; //map of sequence label => local index
+static std::unordered_map<size_t, size_t> gCtgIdx; //local index => global index of contig_names and seqs
+static std::unordered_map<std::string_view, size_t> ignored; //map of sequence label => index of contig_names and seqs
+static std::vector<std::string_view> contig_names;
+static std::vector<std::string-view> seqs;
+
+typedef std::vector<int> ContigVector;
+typedef std::set<int> ClassIdType; //ordered
+typedef std::unordered_set<int> ContigSet;
+typedef std::unordered_map<int, ContigVector> ClassMap;
+
+static ContigSet smallCtgs;
+static size_t nobs = 0;
+static size_t nobs2; //number of contigs used for binning
+
+static boost::numeric::ublas::matrix<float> ABD;
+static boost::numeric::ublas::matrix<float> ABD_VAR;
+static boost::numeric::ublas::matrix<float> TNF;
+
+typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
+
+typedef std::pair<int, size_t> ClsSizePair;
+typedef std::pair<int, Distance> DistancePair;
+static std::list<DistancePair> rABD; //sum of abundance sorted by abundance
+static std::list<DistancePair> rABD2; //backup queue
+typedef std::pair<int, size_t> OutDegPair;
+static std::list<OutDegPair> oDeg; //out degree of all vertices
+
+static int B = 0;
+static size_t nABD = 0;
+static const size_t nTNF = 136;
+static unsigned long long seed = 0;
+
+/*
 static const char tab_delim = '\t';
 
 std::string inFile;
 std::string abdFile;
 int numThreads;
-int n_BLOCKS;
-int n_THREADS;
+
 char *_mem;
 size_t fsize;
 std::vector<size_t> seqs_h_index_i;
@@ -55,6 +153,16 @@ size_t nresv;
 bool verbose;
 bool debug;
 bool cvExt;
+Distance minCVSum = 2;
+Distance maxVarRatio = 0.0;
+*/
+
+char *_mem;
+size_t fsize;
+std::vector<size_t> seqs_h_index_i;
+std::vector<size_t> seqs_h_index_e;
+int n_BLOCKS;
+int n_THREADS;
 double *TNF;
 
 static void trim_fasta_label(std::string &label) {
