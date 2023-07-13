@@ -24,6 +24,34 @@
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
 
+static const char tab_delim = '\t';
+
+std::string inFile;
+std::string abdFile;
+int numThreads;
+int n_BLOCKS;
+int n_THREADS;
+char *_mem;
+size_t fsize;
+std::vector<size_t> seqs_h_index_i;
+std::vector<size_t> seqs_h_index_e;
+
+std::vector<std::string_view> seqs;
+std::vector<std::string_view> contig_names;
+std::unordered_map<std::string_view, size_t> ignored;
+std::unordered_map<std::string_view, size_t> lCtgIdx;
+std::unordered_map<size_t, size_t> gCtgIdx;
+std::unordered_set<int> smallCtgs;
+boost::numeric::ublas::matrix<float> ABD;
+boost::numeric::ublas::matrix<float> ABD_VAR;
+
+static size_t minContig = 2500;                // minimum contig size for binning
+static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
+size_t nobs;
+size_t nresv;
+double *TNF;
+
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -235,34 +263,6 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
         readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
     }
 }
-
-static const char tab_delim = '\t';
-
-std::string inFile;
-std::string abdFile;
-int numThreads;
-int n_BLOCKS;
-int n_THREADS;
-char *_mem;
-size_t fsize;
-std::vector<size_t> seqs_h_index_i;
-std::vector<size_t> seqs_h_index_e;
-
-std::vector<std::string_view> seqs;
-std::vector<std::string_view> contig_names;
-std::unordered_map<std::string_view, size_t> ignored;
-std::unordered_map<std::string_view, size_t> lCtgIdx;
-std::unordered_map<size_t, size_t> gCtgIdx;
-std::unordered_set<int> smallCtgs;
-boost::numeric::ublas::matrix<float> ABD;
-boost::numeric::ublas::matrix<float> ABD_VAR;
-
-static size_t minContig = 2500;                // minimum contig size for binning
-static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
-static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
-size_t nobs;
-size_t nresv;
-double *TNF;
 
 int main(int argc, char const *argv[]) {
     /*
