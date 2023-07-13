@@ -275,7 +275,7 @@ int main(int argc, char const *argv[]) {
     }
     */
 
-    boost::po::options_description desc("Allowed options", 110, 110 / 2);
+    boost::program_options::options_description desc("Allowed options", 110, 110 / 2);
     desc.add_options().("help,h", "produce help message");
     desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
     desc.add_options().("abdFile,a", po::value<std::string>(&abdFile),
