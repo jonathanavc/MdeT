@@ -434,13 +434,16 @@ int main(int argc, char const *argv[]) {
                         label = col;
                         if (lCtgIdx.find(label) == lCtgIdx.end()) {  // no se encuentra el contig
                             if (ignored.find(label) == ignored.end()) {
-                                verbose_message(
-                                    "[Warning!] Cannot find the contig (%s) in abundance file from the "
+                                /*
+                                verbose_message("[Warning!] Cannot find the contig (%s) in abundance file from the "
                                     "assembly file\n",
                                     label.c_str());
+                                    */
                             } else if (debug) {
+                                /*
                                 verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n", label.c_str(),
                                                 seqs[ignored[label]].size(), minContig);
+                                                */
                             }
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
@@ -451,9 +454,13 @@ int main(int argc, char const *argv[]) {
                     } else if (c == -1) {
                         meanSum = boost::lexical_cast<Distance>(col.c_str());
                         if (meanSum < minCVSum) {
-                            if (debug)
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
-                                                meanSum, minCVSum);
+                            if (debug) {
+                                /*
+                                    verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                   label.c_str(), meanSum, minCVSum);
+                                                    */
+                            }
+
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -515,9 +522,13 @@ int main(int argc, char const *argv[]) {
 
                     if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
                         if (meanSum < minCVSum) {
-                            if (debug)
+                            if (debug) {
+                                /*
                                 verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
                                                 meanSum, minCVSum);
+                                                */
+                            }
+
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -542,26 +553,27 @@ int main(int argc, char const *argv[]) {
                 rABD.push_back(tmp);
 
                 if ((int)nABD != (cvExt ? c : c / 2)) {
-                    cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
+                    std::cerr << "[Error!] Different number of variables for the object for the contig " << label << std::endl;
                     return 1;
                 }
             }
             is.close();
-
+            /*
             verbose_message(
                 "Finished reading %d contigs (using %d including %d short contigs) and %d coverages from "
                 "%s\n",
                 r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
+                */
 
             if ((specific || veryspecific) && nABD < minSamples) {
-                cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
-                        "and --veryspecific would be the same as --sensitive when # of samples ("
-                     << nABD << ") < minSamples (" << minSamples << ")" << endl;
+                std::cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
+                             "and --veryspecific would be the same as --sensitive when # of samples ("
+                          << nABD << ") < minSamples (" << minSamples << ")" << std::endl;
             }
 
             if (nABD < minSamples) {
-                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
-                     << minSamples << ")" << endl;
+                std::cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
+                          << minSamples << ")" << std::endl;
             }
 
             for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
