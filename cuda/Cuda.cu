@@ -24,7 +24,13 @@
 namespace po = boost::program_options;
 
 typedef double Distance;
-typedef std::pair<int, Distance> DistancePair;
+typedef double Similarity;
+#define LOG log
+#define LOG10 log10
+#define SQRT sqrt
+#define EXP exp
+#define POW pow
+#define FABS fabs
 
 typedef boost::math::normal_distribution<Distance> Normal;
 typedef boost::math::poisson_distribution<Distance> Poisson;
