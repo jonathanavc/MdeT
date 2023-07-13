@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/program_options.hpp>
+// #include <boost/numeric/ublas/matrix.hpp>
+// #include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -21,162 +21,10 @@
 
 #include "../extra/metrictime2.hpp"
 
-namespace po = boost::program_options;
-
 typedef double Distance;
-typedef double Similarity;
-#define LOG log
-#define LOG10 log10
-#define SQRT sqrt
-#define EXP exp
-#define POW pow
-#define FABS fabs
-
-typedef boost::math::normal_distribution<Distance> Normal;
-typedef boost::math::poisson_distribution<Distance> Poisson;
-
-typedef boost::property<boost::edge_weight_t, double> Weight;
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> DirectedSimpleGraph;
-typedef boost::graph_traits<UndirectedGraph>::edge_descriptor edge_descriptor;
-typedef boost::graph_traits<UndirectedGraph>::out_edge_iterator out_edge_iterator;
-typedef boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_descriptor;
-
-static const std::string version = VERSION;
-static const std::string DATE = BUILD_TIMESTAMP;
-static bool verbose = false;
-static bool debug = false;
-static bool keep = false;
-static bool noBinOut = false;
-static size_t seedClsSize = 10000;
-static size_t minClsSize = 200000;
-static size_t minContig = 2500; //minimum contig size for binning
-static size_t minContigByCorr = 1000; //minimum contig size for recruiting (by abundance correlation)
-static size_t minContigByCorrForGraph = 1000; //for graph generation purpose
-static std::string inFile;
-static std::string abdFile;
-static bool cvExt;
-static std::string pairFile;
-static std::string outFile;
-static Similarity p1 = 0;
-static Similarity p2 = 0;
-static Similarity p3 = 95;
-static double pB = 50;
-static Similarity minProb = 0;
-static Similarity minBinned = 0;
-static bool verysensitive = false;
-static bool sensitive = false;
-static bool specific = false;
-static bool veryspecific = false;
-static bool superspecific = false;
-static bool onlyLabel = false;
-static size_t numThreads = 0;
-static Distance minCV = 1;
-static Distance minCVSum = 2;
-static Distance minTimes = 10;
-static Distance minCorr = 0;
-static size_t minSamples = 10; //minimum number of sample sizes for considering correlation based recruiting
-static bool sumLowCV = false;
-static bool fuzzy = false;
-static bool useEB = true; //Ensemble Binning
-static Similarity minShared = 0;
-static bool saveCls = false;
-static bool outUnbinned = false;
-static Distance maxVarRatio = 0.0;
-static double LOG101 = log(101);
-
-static const char line_delim = '\n';
-static const char tab_delim = '\t';
-static const char fasta_delim = '>';
-static const std::size_t buf_size = 1024 * 1024;
-static char os_buffer[buf_size];
-static size_t commandline_hash;
-
-static UndirectedGraph gprob;
-static DirectedSimpleGraph paired;
-static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
-static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
-
-static std::unordered_map<std::string_view, size_t> lCtgIdx; //map of sequence label => local index
-static std::unordered_map<size_t, size_t> gCtgIdx; //local index => global index of contig_names and seqs
-static std::unordered_map<std::string_view, size_t> ignored; //map of sequence label => index of contig_names and seqs
-static std::vector<std::string_view> contig_names;
-static std::vector<std::string-view> seqs;
-
-typedef std::vector<int> ContigVector;
-typedef std::set<int> ClassIdType; //ordered
-typedef std::unordered_set<int> ContigSet;
-typedef std::unordered_map<int, ContigVector> ClassMap;
-
-static ContigSet smallCtgs;
-static size_t nobs = 0;
-static size_t nobs2; //number of contigs used for binning
-
-static boost::numeric::ublas::matrix<float> ABD;
-static boost::numeric::ublas::matrix<float> ABD_VAR;
-static boost::numeric::ublas::matrix<float> TNF;
-
-typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
-
-typedef std::pair<int, size_t> ClsSizePair;
 typedef std::pair<int, Distance> DistancePair;
-static std::list<DistancePair> rABD; //sum of abundance sorted by abundance
-static std::list<DistancePair> rABD2; //backup queue
-typedef std::pair<int, size_t> OutDegPair;
-static std::list<OutDegPair> oDeg; //out degree of all vertices
-
-static int B = 0;
-static size_t nABD = 0;
-static const size_t nTNF = 136;
-static unsigned long long seed = 0;
 
 /*
-static const char tab_delim = '\t';
-
-std::string inFile;
-std::string abdFile;
-int numThreads;
-
-char *_mem;
-size_t fsize;
-std::vector<size_t> seqs_h_index_i;
-std::vector<size_t> seqs_h_index_e;
-
-std::vector<std::string_view> seqs;
-std::vector<std::string_view> contig_names;
-std::unordered_map<std::string_view, size_t> ignored;
-std::unordered_map<std::string_view, size_t> lCtgIdx;
-std::unordered_map<size_t, size_t> gCtgIdx;
-std::unordered_set<int> smallCtgs;
-boost::numeric::ublas::matrix<float> ABD;
-boost::numeric::ublas::matrix<float> ABD_VAR;
-
-static size_t minContig = 2500;                // minimum contig size for binning
-static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
-static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
-size_t nobs;
-size_t nresv;
-bool verbose;
-bool debug;
-bool cvExt;
-Distance minCVSum = 2;
-Distance maxVarRatio = 0.0;
-*/
-
-char *_mem;
-size_t fsize;
-std::vector<size_t> seqs_h_index_i;
-std::vector<size_t> seqs_h_index_e;
-int n_BLOCKS;
-int n_THREADS;
-double *TNF;
-
-static void trim_fasta_label(std::string &label) {
-	size_t pos = label.find_first_of(" \t");
-	if (pos != std::string::npos)
-		label = label.substr(0, pos);
-}
-
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -251,6 +99,7 @@ size_t ncols(const char *f, int skip = 0) {
 
     return ncols(is, skip);
 }
+*/
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
@@ -389,8 +238,35 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     }
 }
 
+static const char tab_delim = '\t';
+
+std::string inFile;
+std::string abdFile;
+int numThreads;
+int n_BLOCKS;
+int n_THREADS;
+char *_mem;
+size_t fsize;
+std::vector<size_t> seqs_h_index_i;
+std::vector<size_t> seqs_h_index_e;
+
+std::vector<std::string_view> seqs;
+std::vector<std::string_view> contig_names;
+std::unordered_map<std::string_view, size_t> ignored;
+std::unordered_map<std::string_view, size_t> lCtgIdx;
+std::unordered_map<size_t, size_t> gCtgIdx;
+std::unordered_set<int> smallCtgs;
+// boost::numeric::ublas::matrix<float> ABD;
+// boost::numeric::ublas::matrix<float> ABD_VAR;
+
+static size_t minContig = 2500;                // minimum contig size for binning
+static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
+size_t nobs;
+size_t nresv;
+double *TNF;
+
 int main(int argc, char const *argv[]) {
-    /*
     if (argc > 2) {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
@@ -398,26 +274,19 @@ int main(int argc, char const *argv[]) {
             inFile = argv[3];
         }
     }
-    */
 
+    /*
     po::options_description desc("Allowed options", 110, 110 / 2);
-
-    desc.add_options()
-        ("help,h", "produce help message")
-        ("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]")
-        ("cvExt", po::value<bool>(&cvExt)->zero_tokens(), "When a coverage file without variance (from third party tools) is used instead of abdFile from jgi_summarize_bam_contig_depths")
-        ("abdFile,a", po::value<std::string>(&abdFile),
-        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
-        "contig names, and the first row will be considered as the header and be skipped) [Optional]")
-        ("numThreads,t", po::value<int>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)")
-        ("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks")
-        ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads")
-		("debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")
-		("verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output");
-    
-    po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
-	po::notify(vm);
+    desc.add_options().("help,h", "produce help message");
+    desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
+    desc.add_options().("abdFile,a", po::value<std::string>(&abdFile),
+                        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
+                        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
+    desc.add_options().("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
+                        "Number of threads to use (0: use all cores)");
+    desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
+    desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+    */
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
@@ -513,6 +382,7 @@ int main(int argc, char const *argv[]) {
 
     // cargar el archivo de abundancias
     if (1) {
+        /*z
         size_t nABD = 0;
         const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
         if (abdFile.length() > 0) {
@@ -522,7 +392,7 @@ int main(int argc, char const *argv[]) {
 
             nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
             if (nobs < 1) {
-                std::cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << std::endl;
+                cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
                 exit(1);
             }
             nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
@@ -530,9 +400,9 @@ int main(int argc, char const *argv[]) {
             // contigLen, and totalAvgDepth);
             if (!cvExt) {
                 if (nABD % 2 != 0) {
-                    std::cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
+                    cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
                             "is not even."
-                         << std::endl;
+                         << endl;
                     return 1;
                 }
                 nABD /= 2;
@@ -542,7 +412,7 @@ int main(int argc, char const *argv[]) {
 
             std::ifstream is(abdFile.c_str());
             if (!is.is_open()) {
-                std::cerr << "[Error!] can't open the contig coverage depth file " << abdFile << std::endl;
+                cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
                 return 1;
             }
 
@@ -567,16 +437,13 @@ int main(int argc, char const *argv[]) {
                         label = col;
                         if (lCtgIdx.find(label) == lCtgIdx.end()) {  // no se encuentra el contig
                             if (ignored.find(label) == ignored.end()) {
-                                /*
-                                verbose_message("[Warning!] Cannot find the contig (%s) in abundance file from the "
+                                verbose_message(
+                                    "[Warning!] Cannot find the contig (%s) in abundance file from the "
                                     "assembly file\n",
                                     label.c_str());
-                                    */
                             } else if (debug) {
-                                /*
                                 verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n", label.c_str(),
                                                 seqs[ignored[label]].size(), minContig);
-                                                */
                             }
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
@@ -587,13 +454,9 @@ int main(int argc, char const *argv[]) {
                     } else if (c == -1) {
                         meanSum = boost::lexical_cast<Distance>(col.c_str());
                         if (meanSum < minCVSum) {
-                            if (debug) {
-                                /*
-                                    verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                   label.c_str(), meanSum, minCVSum);
-                                                    */
-                            }
-
+                            if (debug)
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                                label.c_str(), meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -641,13 +504,13 @@ int main(int argc, char const *argv[]) {
                             return 1;
                         }
                         if (variance < 0) {
-                            std::cerr << "[Error!] Negative variance is not allowed for the contig " << label << ", column "
+                            std::cerr << "[Error!] Negative variance is not allowed for the contig " << std::label << ", column "
                                       << c + 1 << ": " << variance << std::endl;
                             return 1;
                         }
                         if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << variance << " / " << mean
-                                      << " = " << variance / mean << ": " << label << std::endl;
+                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / "
+                                      << mean << " = " << variance / mean << ": " << label << std::endl;
                             isGood = false;
                             break;
                         }
@@ -655,13 +518,9 @@ int main(int argc, char const *argv[]) {
 
                     if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
                         if (meanSum < minCVSum) {
-                            if (debug) {
-                                /*
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
-                                                meanSum, minCVSum);
-                                                */
-                            }
-
+                            if (debug)
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
+                                                label.c_str(), meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -686,30 +545,29 @@ int main(int argc, char const *argv[]) {
                 rABD.push_back(tmp);
 
                 if ((int)nABD != (cvExt ? c : c / 2)) {
-                    std::cerr << "[Error!] Different number of variables for the object for the contig " << label << std::endl;
+                    cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
                     return 1;
                 }
             }
             is.close();
-            /*
+
             verbose_message(
                 "Finished reading %d contigs (using %d including %d short contigs) and %d coverages from "
                 "%s\n",
                 r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
-                */
 
             if ((specific || veryspecific) && nABD < minSamples) {
-                std::cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
-                             "and --veryspecific would be the same as --sensitive when # of samples ("
-                          << nABD << ") < minSamples (" << minSamples << ")" << std::endl;
+                cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
+                        "and --veryspecific would be the same as --sensitive when # of samples ("
+                     << nABD << ") < minSamples (" << minSamples << ")" << endl;
             }
 
             if (nABD < minSamples) {
-                std::cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
-                          << minSamples << ")" << std::endl;
+                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
+                     << minSamples << ")" << endl;
             }
 
-            for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
                 if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
                     ignored[it->first] = gCtgIdx[it->second];
                 }
@@ -734,6 +592,7 @@ int main(int argc, char const *argv[]) {
 
             assert(rABD.size() == nobs);
         }
+        */
     }
 
     // calcular matriz de tetranucleotidos
