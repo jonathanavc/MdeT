@@ -279,14 +279,19 @@ int main(int argc, char const *argv[]) {
 
     po::options_description desc("Allowed options", 110, 110 / 2);
 
-    desc.add_options()("help,h", "produce help message");
-    ("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
-    ("abdFile,a", po::value<std::string>(&abdFile),
-     "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
-     "contig names, and the first row will be considered as the header and be skipped) [Optional]");
-    ("numThreads,t", po::value<size_t>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)");
-    ("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
-    ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+    desc.add_options()
+        ("help,h", "produce help message")
+        ("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]")
+        ("abdFile,a", po::value<std::string>(&abdFile),
+        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
+        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
+        ("numThreads,t", po::value<size_t>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)")
+        ("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks")
+        ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+    
+    po::variables_map vm;
+	po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
+	po::notify(vm);
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
