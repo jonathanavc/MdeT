@@ -396,7 +396,7 @@ int main(int argc, char const *argv[]) {
 
             nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
             if (nobs < 1) {
-                cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
+                std::cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << std::endl;
                 exit(1);
             }
             nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
@@ -404,9 +404,9 @@ int main(int argc, char const *argv[]) {
             // contigLen, and totalAvgDepth);
             if (!cvExt) {
                 if (nABD % 2 != 0) {
-                    cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
+                    std::cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
                             "is not even."
-                         << endl;
+                         << std::endl;
                     return 1;
                 }
                 nABD /= 2;
@@ -416,7 +416,7 @@ int main(int argc, char const *argv[]) {
 
             std::ifstream is(abdFile.c_str());
             if (!is.is_open()) {
-                cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
+                std::cerr << "[Error!] can't open the contig coverage depth file " << abdFile << std::endl;
                 return 1;
             }
 
