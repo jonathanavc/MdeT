@@ -52,6 +52,8 @@ static size_t minContigByCorr = 1000;          // minimum contig size for recrui
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
+bool verbose;
+bool debug;
 double *TNF;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
@@ -287,7 +289,9 @@ int main(int argc, char const *argv[]) {
         "contig names, and the first row will be considered as the header and be skipped) [Optional]")
         ("numThreads,t", po::value<int>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores)")
         ("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks")
-        ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+        ("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads")
+		("debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")
+		("verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output");
     
     po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
@@ -583,7 +587,7 @@ int main(int argc, char const *argv[]) {
                           << minSamples << ")" << std::endl;
             }
 
-            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+            for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
                 if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
                     ignored[it->first] = gCtgIdx[it->second];
                 }
