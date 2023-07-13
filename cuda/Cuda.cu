@@ -276,15 +276,15 @@ int main(int argc, char const *argv[]) {
     */
 
     boost::program_options::options_description desc("Allowed options", 110, 110 / 2);
-    desc.add_options().("help,h", "produce help message");
-    desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
-    desc.add_options().("abdFile,a", po::value<std::string>(&abdFile),
+    desc.add_options("help,h", "produce help message");
+    desc.add_options("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
+    desc.add_options("abdFile,a", po::value<std::string>(&abdFile),
                         "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
                         "contig names, and the first row will be considered as the header and be skipped) [Optional]");
-    desc.add_options().("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
+    desc.add_options("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
                         "Number of threads to use (0: use all cores)");
-    desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
-    desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
+    desc.add_options("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
+    desc.add_options("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
