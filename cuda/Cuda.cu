@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-// #include <boost/numeric/ublas/matrix.hpp>
-// #include <boost/program_options.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -24,7 +24,6 @@
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
 
-/*
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -99,7 +98,6 @@ size_t ncols(const char *f, int skip = 0) {
 
     return ncols(is, skip);
 }
-*/
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
@@ -382,7 +380,6 @@ int main(int argc, char const *argv[]) {
 
     // cargar el archivo de abundancias
     if (1) {
-        /*
         size_t nABD = 0;
         const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
         if (abdFile.length() > 0) {
@@ -455,8 +452,8 @@ int main(int argc, char const *argv[]) {
                         meanSum = boost::lexical_cast<Distance>(col.c_str());
                         if (meanSum < minCVSum) {
                             if (debug)
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                                label.c_str(), meanSum, minCVSum);
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
+                                                meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -509,8 +506,8 @@ int main(int argc, char const *argv[]) {
                             return 1;
                         }
                         if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / "
-                                      << mean << " = " << variance / mean << ": " << label << std::endl;
+                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / " << mean
+                                      << " = " << variance / mean << ": " << label << std::endl;
                             isGood = false;
                             break;
                         }
@@ -519,8 +516,8 @@ int main(int argc, char const *argv[]) {
                     if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
                         if (meanSum < minCVSum) {
                             if (debug)
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                                label.c_str(), meanSum, minCVSum);
+                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
+                                                meanSum, minCVSum);
                             isGood = false;  // cannot find the contig from fasta file. just skip it!
                             break;
                         }
@@ -592,7 +589,6 @@ int main(int argc, char const *argv[]) {
 
             assert(rABD.size() == nobs);
         }
-        */
     }
 
     // calcular matriz de tetranucleotidos
