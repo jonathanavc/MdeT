@@ -1,5 +1,10 @@
 #include "metabat1.h"
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 double * _mem;
 size_t fsize;
 
