@@ -423,7 +423,7 @@ int main(int argc, char const *argv[]) {
         std::cerr << "\nMetaBAT: Metagenome Binning based on Abundance and Tetranucleotide frequency (version 1:" << version << "; "
                   << DATE << ")" << std::endl;
         std::cerr << "by Don Kang (ddkang@lbl.gov), Jeff Froula, Rob Egan, and Zhong Wang (zhongwang@lbl.gov) \n" << std::endl;
-        std::cerr << desc << endl << std::endl;
+        std::cerr << desc << std::endl << std::endl;
 
         if (!vm.count("help")) {
             if (inFile.empty()) {
