@@ -624,7 +624,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
-        TIMERSTART(load_file);
+        //TIMERSTART(load_file);
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
@@ -644,9 +644,9 @@ int main(int argc, char const *argv[]) {
             readerThreads[i].join();
         }
         close(fpint);
-        TIMERSTOP(load_file);
+        //TIMERSTOP(load_file);
 
-        TIMERSTART(read_file);
+        //TIMERSTART(read_file);
         size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
         size_t contig_name_i;
         size_t contig_name_e;
@@ -692,8 +692,10 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
         seqs.shrink_to_fit();            // liberar memoria no usada
         contig_names.shrink_to_fit();    // liberar memoria no usada
-        TIMERSTOP(read_file);
+        //TIMERSTOP(read_file);
     }
+
+    nobs2 = ignored.size();
 
     verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2,
                     minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
