@@ -80,8 +80,8 @@ typedef boost::graph_traits<UndirectedGraph>::edge_descriptor edge_descriptor;
 typedef boost::graph_traits<UndirectedGraph>::out_edge_iterator out_edge_iterator;
 typedef boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_descriptor;
 
-static const std::string version = VERSION;
-static const std::string DATE = BUILD_TIMESTAMP;
+static const std::string version = "cudaMetabat v0.1";
+static const std::string DATE = "14-07-2023";
 static bool verbose = false;
 static bool debug = false;
 static bool keep = false;
