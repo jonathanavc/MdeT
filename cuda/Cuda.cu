@@ -11,6 +11,7 @@
 #include <boost/program_options.hpp>
 // #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
+#include <cstdarg>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -255,7 +256,7 @@ static void print_message(const char *format, ...) {
     va_list argptr;
     va_start(argptr, format);
     vfprintf(stdout, format, argptr);
-    cout.flush();
+    std::cout.flush();
     va_end(argptr);
 }
 
