@@ -298,7 +298,7 @@ int main(int ac, char* av[]) {
 
 	if(abdFile.length() > 0) {
 		smallCtgs.clear();
-		std::unordered_map<std::string, size_t> lCtgIdx2;
+		std::unordered_map<std::string_view, size_t> lCtgIdx2;
 		std::unordered_map<size_t, size_t> gCtgIdx2;
 
 		nobs = std::min(nobs, countLines(abdFile.c_str()) - 1); //the first row is header
@@ -457,7 +457,7 @@ int main(int ac, char* av[]) {
 			cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples (" << minSamples << ")" << endl;
 		}
 
-		for(std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+		for(std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
 			if(lCtgIdx2.find(it->first) == lCtgIdx2.end()) { //given seq but missed depth info or skipped
 				ignored[it->first] = gCtgIdx[it->second];
 			}
@@ -502,7 +502,7 @@ int main(int ac, char* av[]) {
 
 				//obtiene la secuencia del contig
 				//-------------- necesito guardar seqs en la memoria de GPU
-				std::string& s = seqs[gCtgIdx[r]];
+				std::string_view& s = seqs[gCtgIdx[r]];
 
 				// crea la variable tn para almacenar las 4 bases
 				char tn[5] = {'\0'};
