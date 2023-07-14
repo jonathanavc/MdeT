@@ -275,7 +275,7 @@ int main(int argc, char const *argv[]) {
 
     gzFile f = gzopen(inFile.c_str(), "r");
     if (f == NULL) {
-        cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
+        std::cerr << "[Error!] can't open the sequence fasta file " << inFile << std::endl;
         return 1;
     } else {
         auto _start = std::chrono::high_resolution_clock::now();

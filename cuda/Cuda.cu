@@ -537,7 +537,7 @@ int main(int argc, char const *argv[]) {
     }
 
     if (minCV < 0) {
-        cerr << "[Error!] minCV should be non-negative" << endl;
+        std::cerr << "[Error!] minCV should be non-negative" << std::endl;
         return 1;
     }
 
