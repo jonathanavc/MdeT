@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <boost/program_options.hpp>
 // #include <boost/numeric/ublas/matrix.hpp>
-// #include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "../extra/metrictime2.hpp"
+
+namespace po = boost::program_options;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
@@ -151,35 +153,105 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
-std::string inFile;
-std::string abdFile;
-int numThreads;
-int n_BLOCKS;
-int n_THREADS;
-char *_mem;
-size_t fsize;
-std::vector<size_t> seqs_h_index_i;
-std::vector<size_t> seqs_h_index_e;
-
-std::vector<std::string_view> seqs;
-std::vector<std::string_view> contig_names;
-std::unordered_map<std::string_view, size_t> ignored;
-std::unordered_map<std::string_view, size_t> lCtgIdx;
-std::unordered_map<size_t, size_t> gCtgIdx;
-std::unordered_set<int> smallCtgs;
-// boost::numeric::ublas::matrix<float> ABD;
-// boost::numeric::ublas::matrix<float> ABD_VAR;
-
 static size_t minContig = 2500;                // minimum contig size for binning
 static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
 static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
-double *TNF;
 
+static const std::string version = VERSION;
+static const std::string DATE = BUILD_TIMESTAMP;
+static bool verbose = false;
+static bool debug = false;
+static bool keep = false;
+static bool noBinOut = false;
+static size_t seedClsSize = 10000;
+static size_t minClsSize = 200000;
+static size_t minContig = 2500;                // minimum contig size for binning
+static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
+static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
+static std::string inFile;
+static std::string abdFile;
+static bool cvExt;
+static std::string pairFile;
+static std::string outFile;
+static Similarity p1 = 0;
+static Similarity p2 = 0;
+static Similarity p3 = 95;
+static double pB = 50;
+static Similarity minProb = 0;
+static Similarity minBinned = 0;
+static bool verysensitive = false;
+static bool sensitive = false;
+static bool specific = false;
+static bool veryspecific = false;
+static bool superspecific = false;
+static bool onlyLabel = false;
+static int numThreads = 0;
+static int numBlocks = 0;
+static int numThreads2 = 0;
+static Distance minCV = 1;
+static Distance minCVSum = 2;
+static Distance minTimes = 10;
+static Distance minCorr = 0;
+static size_t minSamples = 10;  // minimum number of sample sizes for considering correlation based recruiting
+static bool sumLowCV = false;
+static bool fuzzy = false;
+static bool useEB = true;  // Ensemble Binning
+static Similarity minShared = 0;
+static bool saveCls = false;
+static bool outUnbinned = false;
+static Distance maxVarRatio = 0.0;
+static double LOG101 = log(101);
+
+static const char line_delim = '\n';
 static const char tab_delim = '\t';
-typedef double Distance;
+static const char fasta_delim = '>';
+static const std::size_t buf_size = 1024 * 1024;
+static char os_buffer[buf_size];
+static size_t commandline_hash;
+
+static UndirectedGraph gprob;
+static DirectedSimpleGraph paired;
+// static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
+// static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
+
+static std::unordered_map<std::string_view, size_t> lCtgIdx;  // map of sequence label => local index
+static std::unordered_map<size_t, size_t> gCtgIdx;            // local index => global index of contig_names and seqs
+static std::unordered_map<std::string_view, size_t> ignored;  // map of sequence label => index of contig_names and seqs
+static std::vector<std::string_view> contig_names;
+static std::vector<std::string_view> seqs;
+static std::vector<size_t> seqs_h_index_i;
+static std::vector<size_t> seqs_h_index_e;
+static char *_mem;
+static size_t fsize;
+
+typedef std::vector<int> ContigVector;
+typedef std::set<int> ClassIdType;  // ordered
+typedef std::unordered_set<int> ContigSet;
+typedef std::unordered_map<int, ContigVector> ClassMap;
+
+static ContigSet smallCtgs;
+static size_t nobs = 0;
+static size_t nobs2;  // number of contigs used for binning
+
+// static boost::numeric::ublas::matrix<float> ABD;
+// static boost::numeric::ublas::matrix<float> ABD_VAR;
+static double *TNF;
+
+// typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
+
+typedef std::pair<int, size_t> ClsSizePair;
 typedef std::pair<int, Distance> DistancePair;
+static std::list<DistancePair> rABD;   // sum of abundance sorted by abundance
+static std::list<DistancePair> rABD2;  // backup queue
+typedef std::pair<int, size_t> OutDegPair;
+static std::list<OutDegPair> oDeg;  // out degree of all vertices
+
+static int B = 0;
+static size_t nABD = 0;
+static const size_t nTNF = 136;
+static unsigned long long seed = 0;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
@@ -253,6 +325,7 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
 }
 
 int main(int argc, char const *argv[]) {
+    /*
     if (argc > 2) {
         n_BLOCKS = atoi(argv[1]);
         n_THREADS = atoi(argv[2]);
@@ -260,19 +333,249 @@ int main(int argc, char const *argv[]) {
             inFile = argv[3];
         }
     }
-
-    /*
-    po::options_description desc("Allowed options", 110, 110 / 2);
-    desc.add_options().("help,h", "produce help message");
-    desc.add_options().("inFile,i", po::value<std::string>(&inFile), "Contigs in fasta file format [Mandatory]");
-    desc.add_options().("abdFile,a", po::value<std::string>(&abdFile),
-                        "A file having mean and variance of base coverage depth (tab delimited; the first column should be "
-                        "contig names, and the first row will be considered as the header and be skipped) [Optional]");
-    desc.add_options().("numThreads,t", po::value<size_t>(&numThreads)->default_value(0),
-                        "Number of threads to use (0: use all cores)");
-    desc.add_options().("cb", po::value<int>(&n_BLOCKS)->default_value(512), "Number of blocks");
-    desc.add_options().("ct", po::value<int>(&n_THREADS)->default_value(16), "Number of threads");
     */
+    std::string saveTNFFile, saveDistanceFile;
+    po::options_description desc("Allowed options", 110, 110 / 2);
+    desc.add_options()("help,h", "produce help message")("inFile,i", po::value<std::string>(&inFile),
+                                                         "Contigs in (gzipped) fasta file format [Mandatory]")(
+        "outFile,o", po::value<std::string>(&outFile),
+        "Base file name for each bin. The default output is fasta format. Use -l option to output only contig names [Mandatory]")(
+        "abdFile,a", po::value<std::string>(&abdFile),
+        "A file having mean and variance of base coverage depth (tab delimited; the first column should be contig names, and the "
+        "first row will be considered as the header and be skipped) [Optional]")(
+        "cvExt", po::value<bool>(&cvExt)->zero_tokens(),
+        "When a coverage file without variance (from third party tools) is used instead of abdFile from "
+        "jgi_summarize_bam_contig_depths")(
+        "pairFile,p", po::value<std::string>(&pairFile),
+        "A file having paired reads mapping information. Use it to increase sensitivity. (tab delimited; should have 3 columns of "
+        "contig index (ordered by), its mate contig index, and supporting mean read coverage. The first row will be considered as the "
+        "header and be skipped) [Optional]")(
+        "p1", po::value<Similarity>(&p1)->default_value(0),
+        "Probability cutoff for bin seeding. It mainly controls the number of potential bins and their specificity. The higher, the "
+        "more (specific) bins would be. (Percentage; Should be between 0 and 100)")(
+        "p2", po::value<Similarity>(&p2)->default_value(0),
+        "Probability cutoff for secondary neighbors. It supports p1 and better be close to p1. (Percentage; Should be between 0 and "
+        "100)")("minProb", po::value<Similarity>(&minProb)->default_value(0),
+                "Minimum probability for binning consideration. It controls sensitivity. Usually it should be >= 75. (Percentage; "
+                "Should be between 0 and 100)")(
+        "minBinned", po::value<Similarity>(&minBinned)->default_value(0),
+        "Minimum proportion of already binned neighbors for one's membership inference. It contorls specificity. Usually it would be "
+        "<= 50 (Percentage; Should be between 0 and 100)")(
+        "verysensitive", po::value<bool>(&verysensitive)->zero_tokens(),
+        "For greater sensitivity, especially in a simple community. It is the shortcut for --p1 90 --p2 85 --pB 20 --minProb 75 "
+        "--minBinned 20 --minCorr 90")(
+        "sensitive", po::value<bool>(&sensitive)->zero_tokens(),
+        "For better sensitivity [default]. It is the shortcut for --p1 90 --p2 90 --pB 20 --minProb 80 --minBinned 40 --minCorr 92")(
+        "specific", po::value<bool>(&specific)->zero_tokens(),
+        "For better specificity. Different from --sensitive when using correlation binning or ensemble binning. It is the shortcut "
+        "for --p1 90 --p2 90 --pB 30 --minProb 80 --minBinned 40 --minCorr 96")(
+        "veryspecific", po::value<bool>(&veryspecific)->zero_tokens(),
+        "For greater specificity. No correlation binning for short contig recruiting. It is the shortcut for --p1 90 --p2 90 --pB 40 "
+        "--minProb 80 --minBinned 40")(
+        "superspecific", po::value<bool>(&superspecific)->zero_tokens(),
+        "For the best specificity. It is the shortcut for --p1 95 --p2 90 --pB 50 --minProb 80 --minBinned 20")(
+        "minCorr", po::value<Distance>(&minCorr)->default_value(0),
+        "Minimum pearson correlation coefficient for binning missed contigs to increase sensitivity (Helpful when there are many "
+        "samples). Should be very high (>=90) to reduce contamination. (Percentage; Should be between 0 and 100; 0 disables)")(
+        "minSamples", po::value<size_t>(&minSamples)->default_value(10),
+        "Minimum number of sample sizes for considering correlation based recruiting")(
+        "minCV,x", po::value<Distance>(&minCV)->default_value(1),
+        "Minimum mean coverage of a contig to consider for abundance distance calculation in each library")(
+        "minCVSum", po::value<Distance>(&minCVSum)->default_value(2),
+        "Minimum total mean coverage of a contig (sum of all libraries) to consider for abundance distance calculation")(
+        "minClsSize,s", po::value<size_t>(&minClsSize)->default_value(200000), "Minimum size of a bin to be considered as the output")(
+        "minContig,m", po::value<size_t>(&minContig)->default_value(2500),
+        "Minimum size of a contig to be considered for binning (should be >=1500; ideally >=2500). If # of samples >= minSamples, "
+        "small contigs (>=1000) will be given a chance to be recruited to existing bins by default.")(
+        "minContigByCorr", po::value<size_t>(&minContigByCorr)->default_value(1000),
+        "Minimum size of a contig to be considered for recruiting by pearson correlation coefficients (activated only if # of samples "
+        ">= minSamples; disabled when minContigByCorr > minContig)")("numThreads,t", po::value<int>(&numThreads)->default_value(0),
+                                                                     "Number of threads to use (0: use all cores)")(
+        "ct", po::value<int>(&numThreads2)->default_value(16), Number of cuda threads)(
+        "cb", po::value<int>(&numBlocks)->default_value(256), "Number of cuda blocks")(
+        "minShared", po::value<Similarity>(&minShared)->default_value(50), "Percentage cutoff for merging fuzzy contigs")(
+        "fuzzy", po::value<bool>(&fuzzy)->zero_tokens(),
+        "Binning with fuzziness which assigns multiple memberships of a contig to bins (activated only with --pairFile at the "
+        "moment)")("onlyLabel,l", po::value<bool>(&onlyLabel)->zero_tokens(),
+                   "Output only sequence labels as a list in a column without sequences")(
+        "sumLowCV,S", po::value<bool>(&sumLowCV)->zero_tokens(),
+        "If set, then every sample that falls below the minCV will be used in an aggregate sample")(
+        "maxVarRatio,V", po::value<Distance>(&maxVarRatio)->default_value(maxVarRatio),
+        "Ignore any contigs where variance / mean exceeds this ratio (0 disables)")(
+        "saveTNF", po::value<std::string>(&saveTNFFile), "File to save (or load if exists) TNF matrix for each contig in input")(
+        "saveDistance", po::value<std::string>(&saveDistanceFile),
+        "File to save (or load if exists) distance graph at lowest probability cutoff")(
+        "saveCls", po::value<bool>(&saveCls)->zero_tokens(), "Save cluster memberships as a matrix format")(
+        "unbinned", po::value<bool>(&outUnbinned)->zero_tokens(), "Generate [outFile].unbinned.fa file for unbinned contigs")(
+        "noBinOut", po::value<bool>(&noBinOut)->zero_tokens(),
+        "No bin output. Usually combined with --saveCls to check only contig memberships")(
+        "B,B", po::value<int>(&B)->default_value(20), "Number of bootstrapping for ensemble binning (Recommended to be >=20)")(
+        "pB", po::value<double>(&pB)->default_value(50),
+        "Proportion of shared membership in bootstrapping. Major control for sensitivity/specificity. The higher, the specific. "
+        "(Percentage; Should be between 0 and 100)")(
+        "seed", po::value<unsigned long long>(&seed)->default_value(0),
+        "For reproducibility in ensemble binning, though it might produce slightly different results. (0: use random seed)")(
+        "keep", po::value<bool>(&keep)->zero_tokens(), "Keep the intermediate files for later usage")(
+        "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")("verbose,v", po::value<bool>(&verbose)->zero_tokens(),
+                                                                           "Verbose output");
+    po::variables_map vm;
+    po::store(po::command_line_parser(ac, av).options(desc).allow_unregistered().run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help") || inFile.length() == 0 || outFile.length() == 0) {
+        cerr << "\nMetaBAT: Metagenome Binning based on Abundance and Tetranucleotide frequency (version 1:" << version << "; " << DATE
+             << ")" << endl;
+        cerr << "by Don Kang (ddkang@lbl.gov), Jeff Froula, Rob Egan, and Zhong Wang (zhongwang@lbl.gov) \n" << endl;
+        cerr << desc << endl << endl;
+
+        if (!vm.count("help")) {
+            if (inFile.empty()) {
+                cerr << "[Error!] There was no --inFile specified" << endl;
+            }
+            if (outFile.empty()) {
+                cerr << "[Error!] There was no --outFile specified" << endl;
+            }
+        }
+
+        return vm.count("help") ? 0 : 1;
+    }
+
+    if (verbose) gettimeofday(&t1, NULL);
+
+    if (seed == 0) seed = time(0);
+    srand(seed);
+
+    if (p1 == 0 && p2 == 0) {
+        int labeledOpts =
+            (verysensitive ? 1 : 0) + (sensitive ? 1 : 0) + (specific ? 1 : 0) + (veryspecific ? 1 : 0) + (superspecific ? 1 : 0);
+        if (labeledOpts > 1) {
+            cerr << "[Error!] Please only specify one of the following options: " << endl
+                 << "\t--verysensitive, --sensitive, --specific or --veryspecific or --superspecific" << endl;
+            return 1;
+        }
+        if (labeledOpts == 0) sensitive = true;  // set the default, if none were specified
+
+        if (verysensitive) {
+            p1 = 90;
+            p2 = 85;
+            minProb = 75;
+            minBinned = 30;
+            minCorr = 90;
+            p3 = 90;  // pB = pB ? pB : 20;
+        } else if (sensitive) {
+            p1 = 90;
+            p2 = 90;
+            minProb = 80;
+            minBinned = 40;
+            minCorr = 92;
+        } else if (specific) {
+            p1 = 90;
+            p2 = 90;
+            minProb = 80;
+            minBinned = 40;
+            minCorr = 96;
+        } else if (veryspecific) {
+            p1 = 90;
+            p2 = 90;
+            minProb = 80;
+            minBinned = 40;
+        } else if (superspecific) {
+            p1 = 95;
+            p2 = 90;
+            minProb = 80;
+            minBinned = 20;
+        }
+    }
+
+    if (minContig < 1500) {
+        cerr << "[Error!] Contig length < 1500 is not allowed to be used for binning, rather use smaller minContigByCorr value to "
+                "achieve better sensitivity"
+             << endl;
+        return 1;
+    }
+
+    if (minContigByCorr > minContig) {  // disabling correlation based recruiting
+        minCorr = 0;
+    }
+
+    if (minClsSize < seedClsSize) {
+        cerr << "[Error!] minClsSize should be >= " << seedClsSize << endl;
+        return 1;
+    }
+
+    if (p1 <= 0 || p1 >= 100) {
+        cerr << "[Error!] p1 should be greater than 0 and less than 100" << endl;
+        return 1;
+    }
+
+    if (p2 <= 0 || p2 >= 100) {
+        cerr << "[Error!] p2 should be greater than 0 and less than 100" << endl;
+        return 1;
+    }
+
+    if (p3 <= 0 || p3 >= 100) {
+        cerr << "[Error!] p3 should be greater than 0 and less than 100" << endl;
+        return 1;
+    }
+
+    if (pB < 0 || pB > 100) {
+        cerr << "[Error!] pB should be >= 0 and <= 100" << endl;
+        return 1;
+    }
+
+    if (minProb <= 0 || minProb >= 100) {
+        cerr << "[Error!] minProb should be greater than 0 and less than 100" << endl;
+        return 1;
+    }
+
+    if (minBinned <= 0 || minBinned >= 100) {
+        cerr << "[Error!] minBinned should be greater than 0 and less than 100" << endl;
+        return 1;
+    }
+
+    if (minShared < 0 || minShared > 100) {
+        cerr << "[Error!] minShared should be >= 0 and <= 100" << endl;
+        return 1;
+    }
+
+    if (minCV < 0) {
+        cerr << "[Error!] minCV should be non-negative" << endl;
+        return 1;
+    }
+
+    if (B <= 1) {
+        B = 1;
+        useEB = false;
+    }
+
+    if (useEB) {
+        if (B < 10) cerr << "[Warning!] B < 10 may not be effective for ensemble binning. Consider B >= 20" << endl;
+    }
+
+    gen_commandline_hash();
+
+    p1 /= 100.;
+    p2 /= 100.;
+    p3 /= 100.;
+    pB /= 100.;
+    minProb /= 100.;
+    minBinned /= 100.;
+    minShared /= 100.;
+
+    boost::filesystem::path dir(outFile);
+    if (dir.parent_path().string().length() > 0) {
+        if (boost::filesystem::is_regular_file(dir.parent_path())) {
+            cerr << "Cannot create directory: " << dir.parent_path().string() << ", which exists as a regular file." << endl;
+            return 1;
+        }
+        boost::filesystem::create_directory(dir.parent_path());
+    }
+
+    print_message(
+        "MetaBAT 1 (%s) using p1 %2.1f%%, p2 %2.1f%%, p3 %2.1f%%, minProb %2.1f%%, minBinned %2.0f%%, minCV %2.1f, "
+        "minContig %d, minContigByCorr %d, minCorr %2.0f%%, paired %d, and %d bootstrapping\n",
+        version.c_str(), p1 * 100, p2 * 100, p3 * 100, minProb * 100, minBinned * 100, minCV, minContig, minContigByCorr, minCorr,
+        pairFile.length() > 0, useEB ? B : 0);
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
