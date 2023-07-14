@@ -234,8 +234,8 @@ int main(int ac, char* av[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-        seqs_h_index_i.reserve(fsize % __min);
-        seqs_h_index_e.reserve(fsize % __min);
+        //seqs_h_index_i.reserve(fsize % __min);
+        //seqs_h_index_e.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] < 65) {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
@@ -253,8 +253,8 @@ int main(int ac, char* av[]) {
                         else
                             nresv++;
                     }
-                    seqs_h_index_i.emplace_back(contig_i);
-                    seqs_h_index_e.emplace_back(contig_e);
+                    //seqs_h_index_i.emplace_back(contig_i);
+                    //seqs_h_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
@@ -264,8 +264,8 @@ int main(int ac, char* av[]) {
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
-        seqs_h_index_i.shrink_to_fit();  // liberar memoria no usada
-        seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
+        //seqs_h_index_i.shrink_to_fit();  // liberar memoria no usada
+        //seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
         seqs.shrink_to_fit();            // liberar memoria no usada
         contig_names.shrink_to_fit();    // liberar memoria no usada
 	}
