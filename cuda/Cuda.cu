@@ -890,8 +890,8 @@ int main(int argc, char const *argv[]) {
         double *TNF_d;
         char *seqs_d;
         size_t *seqs_d_index;
-        dim3 blkDim(n_THREADS, 1, 1);
-        dim3 grdDim(n_BLOCKS, 1, 1);
+        dim3 blkDim(numThreads2, 1, 1);
+        dim3 grdDim(numBlocks, 1, 1);
         cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
         cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc(&seqs_d, fsize);
@@ -907,7 +907,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamCreate(&streams[i]);
 
             size_t contig_to_process = contig_per_kernel;
-            size_t contigs_per_thread = (contig_to_process + (n_THREADS * n_BLOCKS) - 1) / (n_THREADS * n_BLOCKS);
+            size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             size_t _des = contig_per_kernel * i;
 
             std::cout << "stream: " << i << ", contig_to_process: " << contig_to_process
