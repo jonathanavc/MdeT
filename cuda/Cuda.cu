@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 // #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
 #include <fstream>
