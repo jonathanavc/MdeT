@@ -624,7 +624,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
-        //TIMERSTART(load_file);
+        // TIMERSTART(load_file);
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
@@ -644,9 +644,9 @@ int main(int argc, char const *argv[]) {
             readerThreads[i].join();
         }
         close(fpint);
-        //TIMERSTOP(load_file);
+        // TIMERSTOP(load_file);
 
-        //TIMERSTART(read_file);
+        // TIMERSTART(read_file);
         size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
         size_t contig_name_i;
         size_t contig_name_e;
@@ -692,7 +692,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
         seqs.shrink_to_fit();            // liberar memoria no usada
         contig_names.shrink_to_fit();    // liberar memoria no usada
-        //TIMERSTOP(read_file);
+        // TIMERSTOP(read_file);
     }
 
     nobs2 = ignored.size();
@@ -922,7 +922,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // calcular matriz de tetranucleotidos
-    TIMERSTART(tnf);
+    // TIMERSTART(tnf);
     if (1) {  // calcular TNF en paralelo en GPU
         double *TNF_d;
         char *seqs_d;
@@ -938,7 +938,7 @@ int main(int argc, char const *argv[]) {
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
-        std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
+        // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
 
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
@@ -947,8 +947,8 @@ int main(int argc, char const *argv[]) {
             size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             size_t _des = contig_per_kernel * i;
 
-            std::cout << "stream: " << i << ", contig_to_process: " << contig_to_process
-                      << ", contigs_per_thread: " << contigs_per_thread << std::endl;
+            // std::cout << "stream: " << i << ", contig_to_process: " << contig_to_process << ", contigs_per_thread: " <<
+            // contigs_per_thread << std::endl;
 
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
@@ -973,7 +973,8 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d);
         cudaFree(seqs_d_index);
     }
-    TIMERSTOP(tnf);
+    verbose_message("Finished TNF calculation.                                  \n");
+    // TIMERSTOP(tnf);
 
     std::ofstream out("TNF.bin", std::ios::out | std::ios::binary);
     if (out) {
