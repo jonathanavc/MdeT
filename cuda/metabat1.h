@@ -228,8 +228,8 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
 
 
-//static std::unordered_map<std::string, int> TNmap;
-//static std::unordered_set<std::string> TNPmap;
+static std::unordered_map<std::string, int> TNmap;
+static std::unordered_set<std::string> TNPmap;
 
 static bool revComp(char* s, int size) {
 	for (int i = 0; i < size; ++i) {
