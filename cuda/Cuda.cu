@@ -697,7 +697,7 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2,
                     minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
-    if (contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
+    if (contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {  // error en la lectura del archivo
         std::cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << std::endl;
         return 1;
     }
