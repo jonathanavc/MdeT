@@ -1,5 +1,13 @@
 #include "metabat1.h"
 
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
+    size_t readSz = 0;
+    while (readSz < _size) {
+        size_t _bytesres = _size - readSz;
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
+    }
+}
+
 int main(int ac, char* av[]) {
 	std::string saveTNFFile, saveDistanceFile;
 	po::options_description desc("Allowed options", 110, 110/2);
