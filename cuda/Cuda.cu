@@ -22,7 +22,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "../extra/metrictime2.hpp"
+//#include "../extra/metrictime2.hpp"
 
 namespace po = boost::program_options;
 
@@ -615,7 +615,7 @@ int main(int argc, char const *argv[]) {
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
-    TIMERSTART(total);
+    //TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
 
@@ -993,6 +993,6 @@ int main(int argc, char const *argv[]) {
     out.close();
 
     cudaFreeHost(_mem);
-    TIMERSTOP(total);
+    //TIMERSTOP(total);
     return 0;
 }
