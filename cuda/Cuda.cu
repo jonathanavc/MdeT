@@ -250,7 +250,6 @@ static std::list<OutDegPair> oDeg;  // out degree of all vertices
 
 static int B = 0;
 static size_t nABD = 0;
-static const size_t nTNF = 136;
 static unsigned long long seed = 0;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
