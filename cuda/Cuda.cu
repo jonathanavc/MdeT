@@ -22,7 +22,7 @@
 #include <unordered_set>
 #include <vector>
 
-//#include "../extra/metrictime2.hpp"
+// #include "../extra/metrictime2.hpp"
 
 namespace po = boost::program_options;
 
@@ -189,6 +189,7 @@ static bool onlyLabel = false;
 static int numThreads = 0;
 static int numBlocks = 0;
 static int numThreads2 = 0;
+static int n_STREAMS = 1;
 static Distance minCV = 1;
 static Distance minCVSum = 2;
 static Distance minTimes = 10;
@@ -428,6 +429,7 @@ int main(int argc, char const *argv[]) {
                                                                      "Number of threads to use (0: use all cores)")(
         "ct", po::value<int>(&numThreads2)->default_value(16), "Number of cuda threads")(
         "cb", po::value<int>(&numBlocks)->default_value(256), "Number of cuda blocks")(
+        "cs", po::value<int>(&n_STREAMS)->default_value(1), "Number of cuda streams")(
         "minShared", po::value<Similarity>(&minShared)->default_value(50), "Percentage cutoff for merging fuzzy contigs")(
         "fuzzy", po::value<bool>(&fuzzy)->zero_tokens(),
         "Binning with fuzziness which assigns multiple memberships of a contig to bins (activated only with --pairFile at the "
@@ -615,7 +617,7 @@ int main(int argc, char const *argv[]) {
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
-    //TIMERSTART(total);
+    // TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
 
@@ -935,7 +937,6 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
 
-        int n_STREAMS = 5;
         cudaStream_t streams[n_STREAMS];
 
         size_t contig_per_kernel = nobs / n_STREAMS;
@@ -994,6 +995,6 @@ int main(int argc, char const *argv[]) {
     out.close();
 
     cudaFreeHost(_mem);
-    //TIMERSTOP(total);
+    // TIMERSTOP(total);
     return 0;
 }
