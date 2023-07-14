@@ -661,7 +661,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_i.reserve(fsize % __min);
         seqs_h_index_e.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
-            if (_mem[i] < 65) {
+            if (_mem[i] == '>') {
                 contig_name_i = i;  // guardar el inicio del nombre del contig
                 while (_mem[i] != 10) i++;
                 contig_name_e = i;  // guardar el final del nombre del contig
