@@ -83,7 +83,7 @@ size_t ncols(std::ifstream &is, int skip = 0) {
 
     std::stringstream ss(firstLine);
     std::string col;
-    while (std::getline(ss, col, tab_delim)) {
+    while (std::getline(ss, col, '\t')) {
         ++nc;
     }
 
