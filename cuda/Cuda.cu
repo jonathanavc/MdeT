@@ -249,6 +249,7 @@ static std::list<OutDegPair> oDeg;  // out degree of all vertices
 static int B = 0;
 static size_t nABD = 0;
 static unsigned long long seed = 0;
+static std::chrono::time_point t1, t2;
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
@@ -311,6 +312,20 @@ size_t ncols(const char *f, int skip = 0) {
     }
 
     return ncols(is, skip);
+}
+
+void gen_commandline_hash() {
+	std::ostringstream oss;
+
+	oss << B;
+	oss << inFile << abdFile << cvExt << pairFile << p1 << p2 << p3 << minProb << minBinned;
+	oss << minCorr << minSamples << minCV << minCVSum << minContig << minContigByCorr;
+	oss << minShared << fuzzy << sumLowCV << maxVarRatio;
+
+	std::string commandline = oss.str();
+    std::hash<std::string> str_hash;
+    commandline_hash = str_hash(commandline);
+    //cout << commandline_hash << endl;
 }
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
@@ -437,7 +452,7 @@ int main(int argc, char const *argv[]) {
         return vm.count("help") ? 0 : 1;
     }
 
-    if (verbose) gettimeofday(&t1, NULL);
+    if (verbose) t1 = std::chrono::steady_clock::now();
 
     if (seed == 0) seed = time(0);
     srand(seed);
