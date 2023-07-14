@@ -1,6 +1,7 @@
 #include "metabat1.h"
 
 double * _mem;
+size_t fsize;
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
