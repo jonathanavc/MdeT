@@ -212,7 +212,7 @@ template<class T, class S> struct pair_equal_to: std::binary_function<T, std::pa
 
 //http://gbe.oxfordjournals.org/content/4/4/501.full
 //136 Tetranucleotides from TNFDistance = (4^4 - 16) / 2 + 16
-/*
+
 static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA", "CATA", "CGAA", "AAGT", "CAAA",
 		"CCAG", "GGAC", "ATTA", "GATC", "CCTC", "CTAA", "ACTA", "AGGC", "GCAA", "CCGC", "CGCC", "AAAC", "ACTC", "ATCC",
 		"GACC", "GAGA", "ATAG", "ATCA", "CAGA", "AGTA", "ATGA", "AAAT", "TTAA", "TATA", "AGTG", "AGCT", "CCAC", "GGCC",
@@ -226,12 +226,12 @@ static const std::string TN[] = { "GGTA", "AGCC", "AAAA", "ACAT", "AGTC", "ACGA"
 
 //Palindromic sequences
 static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG", "GATC", "GTAC", "ATAT", "TATA","CGCG", "GCGC", "AATT", "TTAA", "CCGG", "GGCC" };
-*/
+
 
 //static std::unordered_map<std::string, int> TNmap;
 //static std::unordered_set<std::string> TNPmap;
 
-/*static bool revComp(char* s, int size) {
+static bool revComp(char* s, int size) {
 	for (int i = 0; i < size; ++i) {
 		if (s[i] == 'A')
 			s[i] = 'T';
@@ -246,7 +246,6 @@ static const std::string TNP[] = { "ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG
 	}
 	return true;
 }
-*/
 
 static timeval t1, t2;
 

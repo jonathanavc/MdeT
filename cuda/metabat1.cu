@@ -875,7 +875,7 @@ int main(int ac, char* av[]) {
 				os << contig_names[gCtgIdx[i]] << tab_delim;
 				os << VECTOR(membership)[i] << line_delim;
 			}
-			for(std::unordered_map<std::string, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
+			for(std::unordered_map<std::string_view, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
 				os << contig_names[it->second] << tab_delim << 0 << line_delim;
 			}
 			os.close();
@@ -953,11 +953,11 @@ int main(int ac, char* av[]) {
 			os.rdbuf()->pubsetbuf(os_buffer, buf_size);
 
 			for(ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-				std::string& label = contig_names[gCtgIdx[*it2]];
+				std::string_view& label = contig_names[gCtgIdx[*it2]];
 				if(onlyLabel) {
 					os << label << line_delim;
 				} else {
-					std::string& seq = seqs[gCtgIdx[*it2]];
+					std::string_view& seq = seqs[gCtgIdx[*it2]];
 					os << fasta_delim << label << line_delim;
 					for(size_t s = 0; s < seq.length(); s += 60) {
 						os << seq.substr(s, 60) << line_delim;
@@ -975,7 +975,7 @@ int main(int ac, char* av[]) {
 
 	if(verbose) {
 		unsigned long long totalSize = 0;
-		for(std::vector<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it)
+		for(std::vector<std::string_view>::iterator it = seqs.begin(); it != seqs.end(); ++it)
 			totalSize += it->size();
 		verbose_message("%2.2f%% (%lld out of %lld bases) was binned.\n", (double) binnedSize / totalSize * 100, (unsigned long long) binnedSize, totalSize);
 	}
@@ -1033,7 +1033,7 @@ int main(int ac, char* av[]) {
 					if(onlyLabel) {
 						os << contig_names[i] << line_delim;
 					} else {
-						std::string& seq = seqs[i];
+						std::string_view& seq = seqs[i];
 						os << fasta_delim << contig_names[i] << line_delim;
 						for(size_t s = 0; s < seq.length(); s += 60) {
 							os << seq.substr(s, 60) << line_delim;
