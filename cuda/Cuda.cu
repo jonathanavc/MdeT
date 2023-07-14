@@ -422,17 +422,17 @@ int main(int argc, char const *argv[]) {
     po::notify(vm);
 
     if (vm.count("help") || inFile.length() == 0 || outFile.length() == 0) {
-        cerr << "\nMetaBAT: Metagenome Binning based on Abundance and Tetranucleotide frequency (version 1:" << version << "; " << DATE
-             << ")" << endl;
-        cerr << "by Don Kang (ddkang@lbl.gov), Jeff Froula, Rob Egan, and Zhong Wang (zhongwang@lbl.gov) \n" << endl;
-        cerr << desc << endl << endl;
+        std::cerr << "\nMetaBAT: Metagenome Binning based on Abundance and Tetranucleotide frequency (version 1:" << version << "; "
+                  << DATE << ")" << std::endl;
+        std::cerr << "by Don Kang (ddkang@lbl.gov), Jeff Froula, Rob Egan, and Zhong Wang (zhongwang@lbl.gov) \n" << std::endl;
+        std::cerr << desc << endl << endl;
 
         if (!vm.count("help")) {
             if (inFile.empty()) {
-                cerr << "[Error!] There was no --inFile specified" << endl;
+                std::cerr << "[Error!] There was no --inFile specified" << std::endl;
             }
             if (outFile.empty()) {
-                cerr << "[Error!] There was no --outFile specified" << endl;
+                std::cerr << "[Error!] There was no --outFile specified" << std::endl;
             }
         }
 
@@ -448,8 +448,8 @@ int main(int argc, char const *argv[]) {
         int labeledOpts =
             (verysensitive ? 1 : 0) + (sensitive ? 1 : 0) + (specific ? 1 : 0) + (veryspecific ? 1 : 0) + (superspecific ? 1 : 0);
         if (labeledOpts > 1) {
-            cerr << "[Error!] Please only specify one of the following options: " << endl
-                 << "\t--verysensitive, --sensitive, --specific or --veryspecific or --superspecific" << endl;
+            std::cerr << "[Error!] Please only specify one of the following options: " << std::endl
+                      << "\t--verysensitive, --sensitive, --specific or --veryspecific or --superspecific" << std::endl;
             return 1;
         }
         if (labeledOpts == 0) sensitive = true;  // set the default, if none were specified
@@ -487,9 +487,10 @@ int main(int argc, char const *argv[]) {
     }
 
     if (minContig < 1500) {
-        cerr << "[Error!] Contig length < 1500 is not allowed to be used for binning, rather use smaller minContigByCorr value to "
-                "achieve better sensitivity"
-             << endl;
+        std::cerr
+            << "[Error!] Contig length < 1500 is not allowed to be used for binning, rather use smaller minContigByCorr value to "
+               "achieve better sensitivity"
+            << std::endl;
         return 1;
     }
 
@@ -498,42 +499,42 @@ int main(int argc, char const *argv[]) {
     }
 
     if (minClsSize < seedClsSize) {
-        cerr << "[Error!] minClsSize should be >= " << seedClsSize << endl;
+        std::cerr << "[Error!] minClsSize should be >= " << seedClsSize << std::endl;
         return 1;
     }
 
     if (p1 <= 0 || p1 >= 100) {
-        cerr << "[Error!] p1 should be greater than 0 and less than 100" << endl;
+        std::cerr << "[Error!] p1 should be greater than 0 and less than 100" << std::endl;
         return 1;
     }
 
     if (p2 <= 0 || p2 >= 100) {
-        cerr << "[Error!] p2 should be greater than 0 and less than 100" << endl;
+        std::cerr << "[Error!] p2 should be greater than 0 and less than 100" << std::endl;
         return 1;
     }
 
     if (p3 <= 0 || p3 >= 100) {
-        cerr << "[Error!] p3 should be greater than 0 and less than 100" << endl;
+        std::cerr << "[Error!] p3 should be greater than 0 and less than 100" << std::endl;
         return 1;
     }
 
     if (pB < 0 || pB > 100) {
-        cerr << "[Error!] pB should be >= 0 and <= 100" << endl;
+        std::cerr << "[Error!] pB should be >= 0 and <= 100" << std::endl;
         return 1;
     }
 
     if (minProb <= 0 || minProb >= 100) {
-        cerr << "[Error!] minProb should be greater than 0 and less than 100" << endl;
+        std::cerr << "[Error!] minProb should be greater than 0 and less than 100" << std::endl;
         return 1;
     }
 
     if (minBinned <= 0 || minBinned >= 100) {
-        cerr << "[Error!] minBinned should be greater than 0 and less than 100" << endl;
+        std::cerr << "[Error!] minBinned should be greater than 0 and less than 100" << std::endl;
         return 1;
     }
 
     if (minShared < 0 || minShared > 100) {
-        cerr << "[Error!] minShared should be >= 0 and <= 100" << endl;
+        std::cerr << "[Error!] minShared should be >= 0 and <= 100" << std::endl;
         return 1;
     }
 
@@ -548,7 +549,7 @@ int main(int argc, char const *argv[]) {
     }
 
     if (useEB) {
-        if (B < 10) cerr << "[Warning!] B < 10 may not be effective for ensemble binning. Consider B >= 20" << endl;
+        if (B < 10) std::cerr << "[Warning!] B < 10 may not be effective for ensemble binning. Consider B >= 20" << std::endl;
     }
 
     gen_commandline_hash();
@@ -564,7 +565,7 @@ int main(int argc, char const *argv[]) {
     boost::filesystem::path dir(outFile);
     if (dir.parent_path().string().length() > 0) {
         if (boost::filesystem::is_regular_file(dir.parent_path())) {
-            cerr << "Cannot create directory: " << dir.parent_path().string() << ", which exists as a regular file." << endl;
+            std::cerr << "Cannot create directory: " << dir.parent_path().string() << ", which exists as a regular file." << std::endl;
             return 1;
         }
         boost::filesystem::create_directory(dir.parent_path());
