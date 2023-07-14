@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <string_view>
 #include <thread>
 #include <unordered_map>
@@ -23,7 +24,6 @@
 
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
-
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
