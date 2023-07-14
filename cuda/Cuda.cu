@@ -694,6 +694,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();    // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
+    std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
 

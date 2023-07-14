@@ -29,6 +29,7 @@ static const std::string TNP[] = {"ACGT", "AGCT", "TCGA", "TGCA", "CATG", "CTAG"
 int n_THREADS = 32;
 
 std::vector<std::string> seqs;
+std::vector<std::string> contig_names;
 static std::unordered_map<size_t, size_t> gCtgIdx;
 static std::unordered_map<std::string, size_t> lCtgIdx;
 static std::unordered_set<size_t> smallCtgs;
@@ -132,7 +133,7 @@ int main(int argc, char const *argv[])
                 {
                     // ignored[kseq->name.s] = seqs.size();
                 }
-                // contig_names.push_back(kseq->name.s);
+                contig_names.push_back(kseq->name.s);
                 seqs.push_back(kseq->seq.s);
             }
         }
@@ -140,6 +141,8 @@ int main(int argc, char const *argv[])
         kseq = NULL;
         gzclose(f);
     }
+
+    std::cout << contig_names[0] << std::endl;
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
