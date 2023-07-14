@@ -388,7 +388,7 @@ int main(int argc, char const *argv[]) {
         "Minimum size of a contig to be considered for recruiting by pearson correlation coefficients (activated only if # of samples "
         ">= minSamples; disabled when minContigByCorr > minContig)")("numThreads,t", po::value<int>(&numThreads)->default_value(0),
                                                                      "Number of threads to use (0: use all cores)")(
-        "ct", po::value<int>(&numThreads2)->default_value(16), Number of cuda threads)(
+        "ct", po::value<int>(&numThreads2)->default_value(16), "Number of cuda threads")(
         "cb", po::value<int>(&numBlocks)->default_value(256), "Number of cuda blocks")(
         "minShared", po::value<Similarity>(&minShared)->default_value(50), "Percentage cutoff for merging fuzzy contigs")(
         "fuzzy", po::value<bool>(&fuzzy)->zero_tokens(),
@@ -423,7 +423,7 @@ int main(int argc, char const *argv[]) {
         std::cerr << "\nMetaBAT: Metagenome Binning based on Abundance and Tetranucleotide frequency (version 1:" << version << "; "
                   << DATE << ")" << std::endl;
         std::cerr << "by Don Kang (ddkang@lbl.gov), Jeff Froula, Rob Egan, and Zhong Wang (zhongwang@lbl.gov) \n" << std::endl;
-        std::cerr << desc << endl << endl;
+        std::cerr << desc << endl << std::endl;
 
         if (!vm.count("help")) {
             if (inFile.empty()) {
