@@ -153,14 +153,6 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
-static size_t minContig = 2500;                // minimum contig size for binning
-static size_t minContigByCorr = 1000;          // minimum contig size for recruiting (by abundance correlation)
-static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
-size_t nobs;
-size_t nresv;
-
-static const std::string version = VERSION;
-static const std::string DATE = BUILD_TIMESTAMP;
 static bool verbose = false;
 static bool debug = false;
 static bool keep = false;
