@@ -577,6 +577,8 @@ int main(int argc, char const *argv[]) {
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
     TIMERSTART(total);
+    nobs = 0;
+    int nresv = 0;
 
     FILE *fp = fopen(inFile.c_str(), "r");
     if (fp == NULL) {
@@ -587,14 +589,10 @@ int main(int argc, char const *argv[]) {
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
-
         size_t chunk = fsize / numThreads;
-
         cudaMallocHost((void **)&_mem, fsize);
-
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
         std::thread readerThreads[numThreads];
-
         for (int i = 0; i < numThreads; i++) {
             size_t _size;
             if (i != numThreads - 1)
@@ -603,20 +601,14 @@ int main(int argc, char const *argv[]) {
                 _size = chunk + (fsize % numThreads);
             readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
         }
-
         for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
             readerThreads[i].join();
         }
-
         close(fpint);
-
         TIMERSTOP(load_file);
 
         TIMERSTART(read_file);
-
         size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
-        nobs = 0;
-        nresv = 0;
         size_t contig_name_i;
         size_t contig_name_e;
         size_t contig_i;
