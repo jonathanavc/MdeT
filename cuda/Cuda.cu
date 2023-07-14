@@ -153,6 +153,9 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
+typedef double Distance;
+typedef double Similarity;
+
 static bool verbose = false;
 static bool debug = false;
 static bool keep = false;
