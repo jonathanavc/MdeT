@@ -22,84 +22,6 @@
 
 #include "../extra/metrictime2.hpp"
 
-typedef double Distance;
-typedef std::pair<int, Distance> DistancePair;
-
-std::istream &safeGetline(std::istream &is, std::string &t) {
-    t.clear();
-
-    // The characters in the stream are read one-by-one using a std::streambuf.
-    // That is faster than reading them one-by-one using the std::istream.
-    // Code that uses streambuf this way must be guarded by a sentry object.
-    // The sentry object performs various tasks,
-    // such as thread synchronization and updating the stream state.
-
-    std::istream::sentry se(is, true);
-    std::streambuf *sb = is.rdbuf();
-
-    for (;;) {
-        int c = sb->sbumpc();
-        switch (c) {
-            case '\n':
-                return is;
-            case '\r':
-                if (sb->sgetc() == '\n') sb->sbumpc();
-                return is;
-            case EOF:
-                // Also handle the case when the last line has no line ending
-                if (t.empty()) is.setstate(std::ios::eofbit);
-                return is;
-            default:
-                t += (char)c;
-        }
-    }
-}
-
-size_t countLines(const char *f) {
-    size_t lines = 0;
-
-    FILE *pFile;
-    pFile = fopen(f, "r");
-
-    if (pFile == NULL) {
-        std::cerr << "[Error!] can't open input file " << f << std::endl;
-        return 0;
-    }
-
-    while (EOF != fscanf(pFile, "%*[^\n]") && EOF != fscanf(pFile, "%*c")) {
-        ++lines;
-    }
-
-    fclose(pFile);
-
-    return lines;
-}
-
-size_t ncols(std::ifstream &is, int skip = 0) {
-    size_t nc = 0;
-
-    std::string firstLine;
-    while (skip-- >= 0) std::getline(is, firstLine);
-
-    std::stringstream ss(firstLine);
-    std::string col;
-    while (std::getline(ss, col, '\t')) {
-        ++nc;
-    }
-
-    return nc;
-}
-
-size_t ncols(const char *f, int skip = 0) {
-    std::ifstream is(f);
-    if (!is.is_open()) {
-        std::cerr << "[Error!] can't open input file " << f << std::endl;
-        return 0;
-    }
-
-    return ncols(is, skip);
-}
-
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
     136, 114, 5,   54,  107, 120, 72,  41,  44,  26,  27,  23,  136, 53,  12,  81,  136, 127, 30,  110, 136, 80,  132, 123, 71,  102,
@@ -229,14 +151,6 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
-void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
-    size_t readSz = 0;
-    while (readSz < _size) {
-        size_t _bytesres = _size - readSz;
-        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
-    }
-}
-
 static const char tab_delim = '\t';
 
 std::string inFile;
@@ -264,6 +178,80 @@ static size_t minContigByCorrForGraph = 1000;  // for graph generation purpose
 size_t nobs;
 size_t nresv;
 double *TNF;
+
+typedef double Distance;
+typedef std::pair<int, Distance> DistancePair;
+
+std::istream &safeGetline(std::istream &is, std::string &t) {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    // The sentry object performs various tasks,
+    // such as thread synchronization and updating the stream state.
+
+    std::istream::sentry se(is, true);
+    std::streambuf *sb = is.rdbuf();
+
+    for (;;) {
+        int c = sb->sbumpc();
+        switch (c) {
+            case '\n':
+                return is;
+            case '\r':
+                if (sb->sgetc() == '\n') sb->sbumpc();
+                return is;
+            case EOF:
+                // Also handle the case when the last line has no line ending
+                if (t.empty()) is.setstate(std::ios::eofbit);
+                return is;
+            default:
+                t += (char)c;
+        }
+    }
+}
+
+size_t countLines(const char *f) {
+    size_t lines = 0;
+    FILE *pFile;
+    pFile = fopen(f, "r");
+    if (pFile == NULL) {
+        std::cerr << "[Error!] can't open input file " << f << std::endl;
+        return 0;
+    }
+    while (EOF != fscanf(pFile, "%*[^\n]") && EOF != fscanf(pFile, "%*c")) ++lines;
+    fclose(pFile);
+    return lines;
+}
+
+size_t ncols(std::ifstream &is, int skip = 0) {
+    size_t nc = 0;
+    std::string firstLine;
+    while (skip-- >= 0) std::getline(is, firstLine);
+    std::stringstream ss(firstLine);
+    std::string col;
+    while (std::getline(ss, col, '\t')) ++nc;
+    return nc;
+}
+
+size_t ncols(const char *f, int skip = 0) {
+    std::ifstream is(f);
+    if (!is.is_open()) {
+        std::cerr << "[Error!] can't open input file " << f << std::endl;
+        return 0;
+    }
+
+    return ncols(is, skip);
+}
+
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
+    size_t readSz = 0;
+    while (readSz < _size) {
+        size_t _bytesres = _size - readSz;
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
+    }
+}
 
 int main(int argc, char const *argv[]) {
     if (argc > 2) {
