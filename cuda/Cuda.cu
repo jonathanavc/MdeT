@@ -260,6 +260,20 @@ static void print_message(const char *format, ...) {
     va_end(argptr);
 }
 
+static void verbose_message(const char* format, ...) {
+	if (verbose) {
+        t2 = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::duration duration = t2 - t1;
+		int elapsed = (int) std::chrono::duration_cast<std::chrono::seconds>(duration).count() ; //seconds
+		printf("[%02d:%02d:%02d] ", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+		va_list argptr;
+		va_start(argptr, format);
+		vfprintf(stdout, format, argptr);
+		cout.flush();
+		va_end(argptr);
+	}
+}
+
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -680,8 +694,14 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();    // liberar memoria no usada
         TIMERSTOP(read_file);
     }
-    std::cout << seqs.size() << " contigs" << std::endl;
-    std::cout << nobs << " contigs with size >= " << minContig << std::endl;
+
+    verbose_message("Finished reading %d contigs. Number of target contigs >= %d are %d, and [%d and %d) are %d \n", nobs + nobs2, minContig, nobs - smallCtgs.size() - nresv, minContigByCorr, minContig, smallCtgs.size());
+	if(contig_names.size() != nobs + nobs2 || seqs.size() != nobs + nobs2) {
+		cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << endl;
+		return 1;
+	}
+    //std::cout << seqs.size() << " contigs" << std::endl;
+    //std::cout << nobs << " contigs with size >= " << minContig << std::endl;
 
     // cargar el archivo de abundancias
     if (1) {
