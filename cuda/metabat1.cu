@@ -212,6 +212,9 @@ int main(int ac, char* av[]) {
 		fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
+
+		size_t chunk = fsize / numThreads;
+
 		cudaMallocHost((void **)&_mem, fsize);
 
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
