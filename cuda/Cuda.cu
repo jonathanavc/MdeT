@@ -7,8 +7,8 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 // #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
 #include <fstream>
@@ -209,10 +209,10 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
-//static UndirectedGraph gprob;
-//static DirectedSimpleGraph paired;
-// static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
-// static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
+// static UndirectedGraph gprob;
+// static DirectedSimpleGraph paired;
+//  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
+//  static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
 
 static std::unordered_map<std::string_view, size_t> lCtgIdx;  // map of sequence label => local index
 static std::unordered_map<size_t, size_t> gCtgIdx;            // local index => global index of contig_names and seqs
@@ -249,7 +249,15 @@ static std::list<OutDegPair> oDeg;  // out degree of all vertices
 static int B = 0;
 static size_t nABD = 0;
 static unsigned long long seed = 0;
-static std::chrono::time_point t1, t2;
+static std::chrono::steady_clock::time_point t1, t2;
+
+static void print_message(const char *format, ...) {
+    va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stdout, format, argptr);
+    cout.flush();
+    va_end(argptr);
+}
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
@@ -315,17 +323,17 @@ size_t ncols(const char *f, int skip = 0) {
 }
 
 void gen_commandline_hash() {
-	std::ostringstream oss;
+    std::ostringstream oss;
 
-	oss << B;
-	oss << inFile << abdFile << cvExt << pairFile << p1 << p2 << p3 << minProb << minBinned;
-	oss << minCorr << minSamples << minCV << minCVSum << minContig << minContigByCorr;
-	oss << minShared << fuzzy << sumLowCV << maxVarRatio;
+    oss << B;
+    oss << inFile << abdFile << cvExt << pairFile << p1 << p2 << p3 << minProb << minBinned;
+    oss << minCorr << minSamples << minCV << minCVSum << minContig << minContigByCorr;
+    oss << minShared << fuzzy << sumLowCV << maxVarRatio;
 
-	std::string commandline = oss.str();
+    std::string commandline = oss.str();
     std::hash<std::string> str_hash;
     commandline_hash = str_hash(commandline);
-    //cout << commandline_hash << endl;
+    // cout << commandline_hash << endl;
 }
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
