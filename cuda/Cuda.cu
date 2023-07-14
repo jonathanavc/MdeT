@@ -416,7 +416,7 @@ int main(int argc, char const *argv[]) {
         "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")("verbose,v", po::value<bool>(&verbose)->zero_tokens(),
                                                                            "Verbose output");
     po::variables_map vm;
-    po::store(po::command_line_parser(ac, av).options(desc).allow_unregistered().run(), vm);
+    po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
     po::notify(vm);
 
     if (vm.count("help") || inFile.length() == 0 || outFile.length() == 0) {
