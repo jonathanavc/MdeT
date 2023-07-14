@@ -156,6 +156,8 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
 typedef double Distance;
 typedef double Similarity;
 
+static std::string version = "Metabat cuda 0.1";
+static std::string DATE = "2023-07-14";
 static bool verbose = false;
 static bool debug = false;
 static bool keep = false;
