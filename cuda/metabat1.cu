@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-double * _mem;
+char * _mem;
 size_t fsize;
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
