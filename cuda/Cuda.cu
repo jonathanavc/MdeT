@@ -151,8 +151,6 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
     }
 }
 
-static const char tab_delim = '\t';
-
 std::string inFile;
 std::string abdFile;
 int numThreads;
@@ -179,6 +177,7 @@ size_t nobs;
 size_t nresv;
 double *TNF;
 
+static const char tab_delim = '\t';
 typedef double Distance;
 typedef std::pair<int, Distance> DistancePair;
 
@@ -231,7 +230,7 @@ size_t ncols(std::ifstream &is, int skip = 0) {
     while (skip-- >= 0) std::getline(is, firstLine);
     std::stringstream ss(firstLine);
     std::string col;
-    while (std::getline(ss, col, '\t')) ++nc;
+    while (std::getline(ss, col, tab_delim)) ++nc;
     return nc;
 }
 
