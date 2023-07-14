@@ -1,5 +1,6 @@
 #include "metabat1.h"
 
+#include <thread>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
