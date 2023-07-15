@@ -275,6 +275,59 @@ static void verbose_message(const char *format, ...) {
     }
 }
 
+bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
+    if (saveTNFFile.empty()) return false;
+    FILE *fp = fopen(inFile.c_str(), "r");
+    if (fp == NULL) return false;
+    fseek(fp, 0L, SEEK_END);
+    size_t fsize = ftell(fp);  // obtener el tamaño del archivo
+    fclose(fp);
+
+    fsize = fsize / sizeof(double);
+
+    size_t loadedMinContig = 0;
+
+    int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+
+    pread(fpint, (void*) &fsize, 4, 0);
+    std::cout << "fsize: " << fsize << std::endl;
+
+    exit(1);
+    
+    // assert(TNF.size1() == 0);
+    /*
+    std::ifstream is(saveTNFFile.c_str());
+    if (is.good()) {
+        verbose_message("Loading saved TNF from %s\n", saveTNFFile.c_str());
+        try {
+            boost::archive::binary_iarchive ia(is);
+
+            size_t loadedMinContig;
+            ia >> loadedMinContig;
+            if (loadedMinContig != requiredMinContig) {
+                std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required "
+                          << requiredMinContig << ". Recalculating..." << endl;
+                return false;
+            }
+
+            ia >> TNF;
+            if (TNF.size1() != nobs) {
+                std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs
+                          << " contigs, but have " << TNF.size1() << endl;
+                return false;
+            }
+        } catch (...) {
+            std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost "
+                         "library. Recalculating..."
+                      << endl;
+            return false;
+        }
+    } else {
+        return false;
+    }*/
+    return true;
+}
+
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -696,7 +749,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();    // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
-    //std::cout << contig_names[0] << std::endl;
+    // std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
 
@@ -926,7 +979,7 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
-    if (1) {  // calcular TNF en paralelo en GPU
+    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU
         double *TNF_d;
         char *seqs_d;
         size_t *seqs_d_index;
