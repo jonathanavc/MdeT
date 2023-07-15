@@ -287,9 +287,9 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     fsize /= sizeof(double);
 
-    if (fsize/136 != nobs) {
+    if ((fsize/136) - 1 != nobs) { //el primer valor es el minContig
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
-                  << fsize/136 << std::endl;
+                  << (fsize/136) - 1 << std::endl;
         return false;
     }
 
@@ -994,6 +994,7 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
+    cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU
         double *TNF_d;
         char *seqs_d;
@@ -1001,15 +1002,11 @@ int main(int argc, char const *argv[]) {
         dim3 blkDim(numThreads2, 1, 1);
         dim3 grdDim(numBlocks, 1, 1);
         cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
-        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
-
         cudaStream_t streams[n_STREAMS];
-
         size_t contig_per_kernel = nobs / n_STREAMS;
         // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
-
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
 
