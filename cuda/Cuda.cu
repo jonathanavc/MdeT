@@ -313,7 +313,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
         return false;
     }
 
-    chunk = (fsize * 136 * sizeof(double)) / numThreads;
+    size_t chunk = (fsize * 136 * sizeof(double)) / numThreads;
     std::cout << "fsize: " << chunk * numThreads << std::endl;
 
     std::thread readerThreads[numThreads];
