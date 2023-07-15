@@ -322,6 +322,18 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     return true;
 }
 
+void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
+	if (saveTNFFile.empty())
+		return;
+	std::ofstream os(saveTNFFile.c_str());
+	if (os.good()) {
+		verbose_message("Saving TNF file to %s                                    \n", saveTNFFile.c_str());
+		boost::archive::binary_oarchive oa(os);
+		oa << requiredMinContig;
+		oa << TNF;
+	}
+}
+
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
@@ -1010,6 +1022,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(TNF_d);
         cudaFree(seqs_d);
         cudaFree(seqs_d_index);
+        saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
     // TIMERSTOP(tnf);
