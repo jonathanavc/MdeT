@@ -1052,6 +1052,7 @@ int main(int argc, char const *argv[]) {
                 }
             }
         }
+        out.write((char *)&minContig, sizeof(size_t));
         out.write((char *)TNF, nobs * 136 * sizeof(double));
         out.close();
     } else {
