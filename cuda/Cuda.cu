@@ -287,15 +287,28 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     fsize = fsize / sizeof(double);
 
+    if (fsize/136 != nobs) {
+        std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
+                  << TNF.size1() << endl;
+        return false;
+    }
+
     size_t loadedMinContig = 0;
 
     int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
-    pread(fpint, (void*) &loadedMinContig, 4, 0);
+    pread(fpint, (void *)&loadedMinContig, 4, 0);
+
+    if (loadedMinContig != requiredMinContig) {
+        std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required " << requiredMinContig
+                  << ". Recalculating..." << endl;
+        return false;
+    }
+
     std::cout << "loadedMinContig: " << fsize << std::endl;
 
     exit(1);
-    
+
     // assert(TNF.size1() == 0);
     /*
     std::ifstream is(saveTNFFile.c_str());
