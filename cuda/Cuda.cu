@@ -297,7 +297,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
-    pread(fpint, (void *)&loadedMinContig, 4, 0);
+    pread(fpint, (void *)&loadedMinContig, 8, 0);
 
     if (loadedMinContig != requiredMinContig) {
         std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required " << requiredMinContig
