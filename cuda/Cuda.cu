@@ -1043,7 +1043,7 @@ int main(int argc, char const *argv[]) {
     verbose_message("Finished TNF calculation.                                  \n");
     // TIMERSTOP(tnf);
 
-    std::ofstream out("TNF.bin", std::ios::out | std::ios::binary);
+    std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
     if (out) {
         if (1) {  // para verificar con el codigo de secuencial
             for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
