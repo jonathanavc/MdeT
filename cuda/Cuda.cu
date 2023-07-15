@@ -323,7 +323,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
             _size = chunk;
         else
             _size = chunk + (fsize % numThreads);
-        readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, TNF, sizeof(size_t));
+        readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, TNF, 8);
     }
     for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
         readerThreads[i].join();
