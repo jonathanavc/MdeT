@@ -295,7 +295,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     size_t loadedMinContig = 0;
 
-    int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+    int fpint = open(saveTNFFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
     pread(fpint, (void *)&loadedMinContig, 8, 0);
 
