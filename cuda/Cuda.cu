@@ -323,15 +323,23 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 }
 
 void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
-	if (saveTNFFile.empty())
-		return;
-	std::ofstream os(saveTNFFile.c_str());
-	if (os.good()) {
-		verbose_message("Saving TNF file to %s                                    \n", saveTNFFile.c_str());
-		boost::archive::binary_oarchive oa(os);
-		oa << requiredMinContig;
-		oa << TNF;
-	}
+    if (saveTNFFile.empty()) return;
+    std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
+    if (out) {
+        if (1) {  // quitar small contigs de TNF
+            for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
+                for (size_t i = 0; i < 136; i++) {
+                    TNF[*it * 136 + i] = 0;
+                }
+            }
+        }
+        out.write((char *)&minContig, sizeof(size_t));
+        out.write((char *)TNF, nobs * 136 * sizeof(double));
+        out.close();
+    } else {
+        std::cout << "Error al guardar en TNF.bin" << std::endl;
+    }
+    out.close();
 }
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
@@ -1026,23 +1034,6 @@ int main(int argc, char const *argv[]) {
     }
     verbose_message("Finished TNF calculation.                                  \n");
     // TIMERSTOP(tnf);
-
-    std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
-    if (out) {
-        if (1) {  // para verificar con el codigo de secuencial
-            for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
-                for (size_t i = 0; i < 136; i++) {
-                    TNF[*it * 136 + i] = 0;
-                }
-            }
-        }
-        out.write((char *)&minContig, sizeof(size_t));
-        out.write((char *)TNF, nobs * 136 * sizeof(double));
-        out.close();
-    } else {
-        std::cout << "Error al guardar en TNF.bin" << std::endl;
-    }
-    out.close();
 
     cudaFreeHost(_mem);
     // TIMERSTOP(total);
