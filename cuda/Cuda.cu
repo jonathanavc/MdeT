@@ -277,7 +277,7 @@ static void verbose_message(const char *format, ...) {
 
 bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     if (saveTNFFile.empty()) return false;
-    FILE *fp = fopen(inFile.c_str(), "r");
+    FILE *fp = fopen(saveTNFFile.c_str(), "r");
     if (fp == NULL) return false;
     fseek(fp, 0L, SEEK_END);
     size_t fsize = ftell(fp);  // obtener el tamaño del archivo
@@ -285,7 +285,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     std::cout << "fsize: " << fsize << std::endl;
 
-    fsize = fsize / sizeof(double);
+    fsize /= sizeof(double);
 
     if (fsize/136 != nobs) {
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
