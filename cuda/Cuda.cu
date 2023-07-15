@@ -285,11 +285,11 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     std::cout << "fsize: " << fsize << std::endl;
 
-    fsize = (fsize /sizeof(double) - 1); //el primer valor es el minContig
+    fsize = (fsize/sizeof(double)) - 1; //el primer valor es el minContig
 
     if ((fsize/136) != nobs) { 
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
-                  << (fsize/136) - 1 << std::endl;
+                  << (fsize/136) << std::endl;
         return false;
     }
 
