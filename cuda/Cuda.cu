@@ -253,6 +253,14 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem, size_t offset = 0) {
+    size_t readSz = 0;
+    while (readSz < _size) {
+        size_t _bytesres = _size - readSz;
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, offset + (id * chunk) + readSz);
+    }
+}
+
 static void print_message(const char *format, ...) {
     va_list argptr;
     va_start(argptr, format);
@@ -285,11 +293,11 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     std::cout << "fsize: " << fsize << std::endl;
 
-    fsize = (fsize/sizeof(double)) - 1; //el primer valor es el minContig
+    fsize = (fsize / sizeof(double)) - 1;  // el primer valor es el minContig
 
-    if ((fsize/136) != nobs) { 
+    if ((fsize / 136) != nobs) {
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
-                  << (fsize/136) << std::endl;
+                  << (fsize / 136) << std::endl;
         return false;
     }
 
@@ -305,9 +313,22 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
         return false;
     }
 
-    std::cout << "loadedMinContig: " << fsize << std::endl;
+    chunk = (fsize * 136 * sizeof(double)) / numThreads;
+    std::cout << "fsize: " << chunk * numThreads << std::endl;
 
-    exit(1);
+    std::thread readerThreads[numThreads];
+    for (int i = 0; i < numThreads; i++) {
+        size_t _size;
+        if (i != numThreads - 1)
+            _size = chunk;
+        else
+            _size = chunk + (fsize % numThreads);
+        readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, TNF, sizeof(size_t));
+    }
+    for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
+        readerThreads[i].join();
+    }
+    close(fpint);
 
     // assert(TNF.size1() == 0);
     /*
@@ -418,14 +439,6 @@ void gen_commandline_hash() {
     std::hash<std::string> str_hash;
     commandline_hash = str_hash(commandline);
     // cout << commandline_hash << endl;
-}
-
-void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
-    size_t readSz = 0;
-    while (readSz < _size) {
-        size_t _bytesres = _size - readSz;
-        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
-    }
 }
 
 int main(int argc, char const *argv[]) {
