@@ -316,6 +316,8 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     size_t chunk = (fsize * 136 * sizeof(double)) / numThreads;
     std::cout << "fsize: " << chunk * numThreads << std::endl;
 
+    pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
+    /*
     std::thread readerThreads[numThreads];
     for (int i = 0; i < numThreads; i++) {
         size_t _size;
@@ -327,40 +329,8 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     }
     for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
         readerThreads[i].join();
-    }
-    close(fpint);
-
-    // assert(TNF.size1() == 0);
-    /*
-    std::ifstream is(saveTNFFile.c_str());
-    if (is.good()) {
-        verbose_message("Loading saved TNF from %s\n", saveTNFFile.c_str());
-        try {
-            boost::archive::binary_iarchive ia(is);
-
-            size_t loadedMinContig;
-            ia >> loadedMinContig;
-            if (loadedMinContig != requiredMinContig) {
-                std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required "
-                          << requiredMinContig << ". Recalculating..." << endl;
-                return false;
-            }
-
-            ia >> TNF;
-            if (TNF.size1() != nobs) {
-                std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs
-                          << " contigs, but have " << TNF.size1() << endl;
-                return false;
-            }
-        } catch (...) {
-            std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost "
-                         "library. Recalculating..."
-                      << endl;
-            return false;
-        }
-    } else {
-        return false;
     }*/
+    close(fpint);
     return true;
 }
 
