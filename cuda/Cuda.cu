@@ -289,7 +289,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 
     if (fsize/136 != nobs) {
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
-                  << TNF.size1() << std::endl;
+                  << fsize/136 << std::endl;
         return false;
     }
 
