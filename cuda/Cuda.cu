@@ -253,7 +253,7 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
-void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem, size_t offset) {
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
     while (readSz < _size) {
         size_t _bytesres = _size - readSz;
@@ -323,7 +323,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
             _size = chunk;
         else
             _size = chunk + (fsize % numThreads);
-        readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, TNF, 8);
+        readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, TNF);
     }
     for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
         readerThreads[i].join();
@@ -721,7 +721,7 @@ int main(int argc, char const *argv[]) {
                 _size = chunk;
             else
                 _size = chunk + (fsize % numThreads);
-            readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem, 0);
+            readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
         }
         for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
             readerThreads[i].join();
