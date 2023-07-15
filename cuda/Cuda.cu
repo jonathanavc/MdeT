@@ -283,14 +283,16 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     size_t fsize = ftell(fp);  // obtener el tamaño del archivo
     fclose(fp);
 
+    std::cout << "fsize: " << fsize << std::endl;
+
     fsize = fsize / sizeof(double);
 
     size_t loadedMinContig = 0;
 
     int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
 
-    pread(fpint, (void*) &fsize, 4, 0);
-    std::cout << "fsize: " << fsize << std::endl;
+    pread(fpint, (void*) &loadedMinContig, 4, 0);
+    std::cout << "loadedMinContig: " << fsize << std::endl;
 
     exit(1);
     
