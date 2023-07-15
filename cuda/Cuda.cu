@@ -257,7 +257,7 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
     while (readSz < _size) {
         size_t _bytesres = _size - readSz;
-        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, offset + (id * chunk) + readSz);
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
     }
 }
 
