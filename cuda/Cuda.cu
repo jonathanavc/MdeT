@@ -313,7 +313,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
         return false;
     }
 
-    std::cout << "fsize: " << fsize * sizeof(double) * 136 << std::endl;
+    std::cout << "fsize: " << fsize * sizeof(double) << std::endl;
 
     pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
     close(fpint);
