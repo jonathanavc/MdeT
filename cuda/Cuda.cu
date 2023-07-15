@@ -994,14 +994,14 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
-    cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+    cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU
         double *TNF_d;
         char *seqs_d;
         size_t *seqs_d_index;
         dim3 blkDim(numThreads2, 1, 1);
         dim3 grdDim(numBlocks, 1, 1);
-        cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
+        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
