@@ -290,7 +290,6 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     fseek(fp, 0L, SEEK_END);
     size_t fsize = ftell(fp);  // obtener el tamaño del archivo
     fclose(fp);
-
     std::cout << "fsize: " << fsize << std::endl;
 
     fsize = (fsize / sizeof(double)) - 1;  // el primer valor es el minContig
@@ -300,22 +299,28 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
                   << (fsize / 136) << std::endl;
         return false;
     }
-
     size_t loadedMinContig = 0;
-
     int fpint = open(saveTNFFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
-
-    pread(fpint, (void *)&loadedMinContig, 8, 0);
-
+    size_t ok = pread(fpint, (void *)&loadedMinContig, 8, 0);
+    if (ok != 8) {
+        std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost library. "
+                     "Recalculating..."
+                  << std::endl;
+        return false;
+    }
     if (loadedMinContig != requiredMinContig) {
         std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required " << requiredMinContig
                   << ". Recalculating..." << std::endl;
         return false;
     }
-
-    std::cout << "fsize: " << fsize * sizeof(double) << std::endl;
-
-    pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
+    fsize *= sizeof(double);
+    ok = pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
+    if (ok != fsize) {
+        std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost library. "
+                     "Recalculating..."
+                  << std::endl;
+        return false;
+    }
     close(fpint);
     return true;
 }
