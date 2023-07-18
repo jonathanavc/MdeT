@@ -342,6 +342,12 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
+static void trim_fasta_label(std::string &label) {
+	size_t pos = label.find_first_of(" \t");
+	if (pos != std::string::npos)
+		label = label.substr(0, pos);
+}
+
 std::istream &safeGetline(std::istream &is, std::string &t) {
     t.clear();
 
