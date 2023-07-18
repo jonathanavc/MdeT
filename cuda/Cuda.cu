@@ -890,12 +890,12 @@ int main(int argc, char const *argv[]) {
                         return 1;
                     }
                     if (variance < 0) {
-                        std::cerr << "[Error!] Negative variance is not allowed for the contig " << std::label << ", column " << c + 1
+                        std::cerr << "[Error!] Negative variance is not allowed for the contig " << label << ", column " << c + 1
                                   << ": " << variance << std::endl;
                         return 1;
                     }
                     if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                        std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / " << mean
+                        std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << variance << " / " << mean
                                   << " = " << variance / mean << ": " << label << std::endl;
                         isGood = false;
                         break;
