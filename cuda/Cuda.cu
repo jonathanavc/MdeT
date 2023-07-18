@@ -235,8 +235,8 @@ static ContigSet smallCtgs;
 static size_t nobs = 0;
 static size_t nobs2;  // number of contigs used for binning
 
-// static boost::numeric::ublas::matrix<float> ABD;
-// static boost::numeric::ublas::matrix<float> ABD_VAR;
+static float *ABD;
+static float *ABD_VAR;
 static double *TNF;
 
 // typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
@@ -765,228 +765,227 @@ int main(int argc, char const *argv[]) {
         std::cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << std::endl;
         return 1;
     }
+
     // std::cout << seqs.size() << " contigs" << std::endl;
     // std::cout << nobs << " contigs with size >= " << minContig << std::endl;
 
     // cargar el archivo de abundancias
-    if (1) {
-        /*z
-        size_t nABD = 0;
-        const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
-        if (abdFile.length() > 0) {
-            smallCtgs.clear();
-            std::unordered_map<std::string_view, size_t> lCtgIdx2;
-            std::unordered_map<size_t, size_t> gCtgIdx2;
+    const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
+    if (abdFile.length() > 0) {
+        smallCtgs.clear();
+        std::unordered_map<std::string_view, size_t> lCtgIdx2;
+        std::unordered_map<size_t, size_t> gCtgIdx2;
 
-            nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
-            if (nobs < 1) {
-                cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
-                exit(1);
-            }
-            nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
-            // num of features (excluding the first three columns which is the contigName,
-            // contigLen, and totalAvgDepth);
-            if (!cvExt) {
-                if (nABD % 2 != 0) {
-                    cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
-                            "is not even."
-                         << endl;
-                    return 1;
-                }
-                nABD /= 2;
-            }
-            ABD.resize(nobs, nABD);
-            ABD_VAR.resize(nobs, nABD);
-
-            std::ifstream is(abdFile.c_str());
-            if (!is.is_open()) {
-                cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
+        nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
+        if (nobs < 1) {
+            cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
+            exit(1);
+        }
+        nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
+        // num of features (excluding the first three columns which is the contigName,
+        // contigLen, and totalAvgDepth);
+        if (!cvExt) {
+            if (nABD % 2 != 0) {
+                cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
+                        "is not even."
+                     << endl;
                 return 1;
             }
+            nABD /= 2;
+        }
+        ABD = cudaMallocHost(nobs * nABD * sizeof(float));
+        ABD_VAR = cudaMallocHost(nobs * nABD * sizeof(float));
 
-            int r = -1;
-            int nskip = 0;
+        std::ifstream is(abdFile.c_str());
+        if (!is.is_open()) {
+            cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
+            return 1;
+        }
 
-            for (std::string row; safeGetline(is, row) && is.good(); ++r) {  // leer el archivo linea por linea
-                if (r == -1)                                                 // the first row is header
-                    continue;
+        int r = -1;
+        int nskip = 0;
 
-                std::stringstream ss(row);  // convertir la linea en un stream
-                int c = -nNonFeat;
-                Distance mean, variance, meanSum = 0;
-                std::string label;   // almacena el nombre del contig
-                bool isGood = true;  // indica si el contig se encuentra en el las estucturas de datos
-                DistancePair tmp(0, 0);
+        for (std::string row; safeGetline(is, row) && is.good(); ++r) {  // leer el archivo linea por linea
+            if (r == -1)                                                 // the first row is header
+                continue;
 
-                for (std::string col; getline(ss, col, tab_delim); ++c) {  // leer la linea por columnas
-                    if (col.empty()) break;
-                    if (c == -3 || (cvExt && c == -1)) {  // contig name
-                        trim_fasta_label(col);
-                        label = col;
-                        if (lCtgIdx.find(label) == lCtgIdx.end()) {  // no se encuentra el contig
-                            if (ignored.find(label) == ignored.end()) {
-                                verbose_message(
-                                    "[Warning!] Cannot find the contig (%s) in abundance file from the "
-                                    "assembly file\n",
-                                    label.c_str());
-                            } else if (debug) {
-                                verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n", label.c_str(),
-                                                seqs[ignored[label]].size(), minContig);
-                            }
-                            isGood = false;  // cannot find the contig from fasta file. just skip it!
-                            break;
+            std::stringstream ss(row);  // convertir la linea en un stream
+            int c = -nNonFeat;
+            Distance mean, variance, meanSum = 0;
+            std::string label;   // almacena el nombre del contig
+            bool isGood = true;  // indica si el contig se encuentra en el las estucturas de datos
+            DistancePair tmp(0, 0);
+
+            for (std::string col; getline(ss, col, tab_delim); ++c) {  // leer la linea por columnas
+                if (col.empty()) break;
+                if (c == -3 || (cvExt && c == -1)) {  // contig name
+                    trim_fasta_label(col);
+                    label = col;
+                    if (lCtgIdx.find(label) == lCtgIdx.end()) {  // no se encuentra el contig
+                        if (ignored.find(label) == ignored.end()) {
+                            verbose_message(
+                                "[Warning!] Cannot find the contig (%s) in abundance file from the "
+                                "assembly file\n",
+                                label.c_str());
+                        } else if (debug) {
+                            verbose_message("[Info] Ignored a small contig (%s) having length %d < %d\n", label.c_str(),
+                                            seqs[ignored[label]].size(), minContig);
                         }
-                        continue;
-                    } else if (c == -2) {
-                        continue;
-                    } else if (c == -1) {
-                        meanSum = boost::lexical_cast<Distance>(col.c_str());
-                        if (meanSum < minCVSum) {
-                            if (debug)
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                                label.c_str(), meanSum, minCVSum);
-                            isGood = false;  // cannot find the contig from fasta file. just skip it!
-                            break;
-                        }
-                        continue;
+                        isGood = false;  // cannot find the contig from fasta file. just skip it!
+                        break;
                     }
+                    continue;
+                } else if (c == -2) {
+                    continue;
+                } else if (c == -1) {
+                    meanSum = boost::lexical_cast<Distance>(col.c_str());
+                    if (meanSum < minCVSum) {
+                        if (debug)
+                            verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
+                                            meanSum, minCVSum);
+                        isGood = false;  // cannot find the contig from fasta file. just skip it!
+                        break;
+                    }
+                    continue;
+                }
 
-                    assert(r - nskip >= 0 && r - nskip < (int)nobs);
+                assert(r - nskip >= 0 && r - nskip < (int)nobs);
 
-                    bool checkMean = false, checkVar = false;
+                bool checkMean = false, checkVar = false;
 
-                    if (cvExt) {
-                        mean = ABD(r - nskip, c) = boost::lexical_cast<Distance>(col.c_str());
-                        meanSum += mean;
-                        variance = ABD_VAR(r - nskip, c) = mean;
+                if (cvExt) {
+                    mean = ABD[(r - nskip) * nABD + c] = boost::lexical_cast<Distance>(col.c_str());
+                    meanSum += mean;
+                    variance = ABD_VAR[(r - nskip) * nABD + c] = mean;
+                    checkMean = true;
+                } else {
+                    if (c % 2 == 0) {
+                        mean = ABD[(r - nskip) * nABD + (c/2)] = boost::lexical_cast<Distance>(col.c_str());
                         checkMean = true;
                     } else {
-                        if (c % 2 == 0) {
-                            mean = ABD(r - nskip, c / 2) = boost::lexical_cast<Distance>(col.c_str());
-                            checkMean = true;
-                        } else {
-                            variance = ABD_VAR(r - nskip, c / 2) = boost::lexical_cast<Distance>(col.c_str());
-                            checkVar = true;
-                        }
-                    }
-
-                    if (checkMean) {
-                        if (mean > 1e+7) {
-                            std::cerr << "[Error!] Need to check where the average depth is greater than 1e+7 for "
-                                         "the contig "
-                                      << label << ", column " << c + 1 << std::endl;
-                            return 1;
-                        }
-                        if (mean < 0) {
-                            std::cerr << "[Error!] Negative coverage depth is not allowed for the contig " << label << ", column "
-                                      << c + 1 << ": " << mean << std::endl;
-                            return 1;
-                        }
-                    }
-
-                    if (checkVar) {
-                        if (variance > 1e+14) {
-                            std::cerr << "[Error!] Need to check where the depth variance is greater than 1e+14 "
-                                         "for the contig "
-                                      << label << ", column " << c + 1 << std::endl;
-                            return 1;
-                        }
-                        if (variance < 0) {
-                            std::cerr << "[Error!] Negative variance is not allowed for the contig " << std::label << ", column "
-                                      << c + 1 << ": " << variance << std::endl;
-                            return 1;
-                        }
-                        if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                            std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / "
-                                      << mean << " = " << variance / mean << ": " << label << std::endl;
-                            isGood = false;
-                            break;
-                        }
-                    }
-
-                    if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
-                        if (meanSum < minCVSum) {
-                            if (debug)
-                                verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n",
-                                                label.c_str(), meanSum, minCVSum);
-                            isGood = false;  // cannot find the contig from fasta file. just skip it!
-                            break;
-                        }
-                        tmp.second = meanSum;  // useEB ? rand() : meanSum
+                        variance = ABD_VAR[(r - nskip) * nABD + (c/2)] = boost::lexical_cast<Distance>(col.c_str());
+                        checkVar = true;
                     }
                 }
 
-                if (isGood) {
-                    size_t _gidx = gCtgIdx[lCtgIdx[label]];
-                    if (seqs[_gidx].size() < minContig) {
-                        smallCtgs.insert(r - nskip);
-                        if (seqs[_gidx].size() < minContigByCorr) ++nresv;
+                if (checkMean) {
+                    if (mean > 1e+7) {
+                        std::cerr << "[Error!] Need to check where the average depth is greater than 1e+7 for "
+                                     "the contig "
+                                  << label << ", column " << c + 1 << std::endl;
+                        return 1;
                     }
-                    lCtgIdx2[label] = r - nskip;  // local index
-                    gCtgIdx2[r - nskip] = _gidx;  // global index
-                } else {
-                    ++nskip;
-                    continue;
+                    if (mean < 0) {
+                        std::cerr << "[Error!] Negative coverage depth is not allowed for the contig " << label << ", column " << c + 1
+                                  << ": " << mean << std::endl;
+                        return 1;
+                    }
                 }
 
-                tmp.first = r - nskip;
-                rABD.push_back(tmp);
+                if (checkVar) {
+                    if (variance > 1e+14) {
+                        std::cerr << "[Error!] Need to check where the depth variance is greater than 1e+14 "
+                                     "for the contig "
+                                  << label << ", column " << c + 1 << std::endl;
+                        return 1;
+                    }
+                    if (variance < 0) {
+                        std::cerr << "[Error!] Negative variance is not allowed for the contig " << std::label << ", column " << c + 1
+                                  << ": " << variance << std::endl;
+                        return 1;
+                    }
+                    if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
+                        std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << std::variance << " / " << mean
+                                  << " = " << variance / mean << ": " << label << std::endl;
+                        isGood = false;
+                        break;
+                    }
+                }
 
-                if ((int)nABD != (cvExt ? c : c / 2)) {
-                    cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
-                    return 1;
+                if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {
+                    if (meanSum < minCVSum) {
+                        if (debug)
+                            verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
+                                            meanSum, minCVSum);
+                        isGood = false;  // cannot find the contig from fasta file. just skip it!
+                        break;
+                    }
+                    tmp.second = meanSum;  // useEB ? rand() : meanSum
                 }
             }
-            is.close();
 
-            verbose_message(
-                "Finished reading %d contigs (using %d including %d short contigs) and %d coverages from "
-                "%s\n",
-                r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
-
-            if ((specific || veryspecific) && nABD < minSamples) {
-                cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
-                        "and --veryspecific would be the same as --sensitive when # of samples ("
-                     << nABD << ") < minSamples (" << minSamples << ")" << endl;
-            }
-
-            if (nABD < minSamples) {
-                cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
-                     << minSamples << ")" << endl;
-            }
-
-            for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
-                if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
-                    ignored[it->first] = gCtgIdx[it->second];
+            if (isGood) {
+                size_t _gidx = gCtgIdx[lCtgIdx[label]];
+                if (seqs[_gidx].size() < minContig) {
+                    smallCtgs.insert(r - nskip);
+                    if (seqs[_gidx].size() < minContigByCorr) ++nresv;
                 }
+                lCtgIdx2[label] = r - nskip;  // local index
+                gCtgIdx2[r - nskip] = _gidx;  // global index
+            } else {
+                ++nskip;
+                continue;
             }
 
-            lCtgIdx.clear();
-            gCtgIdx.clear();
+            tmp.first = r - nskip;
+            rABD.push_back(tmp);
 
-            lCtgIdx = lCtgIdx2;
-            gCtgIdx = gCtgIdx2;
-
-            assert(lCtgIdx.size() == gCtgIdx.size());
-            assert(lCtgIdx.size() + ignored.size() == seqs.size());
-
-            nobs = lCtgIdx.size();
-            nobs2 = ignored.size();
-
-            if (ABD.size1() != nobs) {
-                ABD.resize(nobs, nABD, true);
-                ABD_VAR.resize(nobs, nABD, true);
+            if ((int)nABD != (cvExt ? c : c / 2)) {
+                cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
+                return 1;
             }
+        }
+        is.close();
 
-            assert(rABD.size() == nobs);
+        verbose_message(
+            "Finished reading %d contigs (using %d including %d short contigs) and %d coverages from "
+            "%s\n",
+            r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
+
+        if ((specific || veryspecific) && nABD < minSamples) {
+            cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
+                    "and --veryspecific would be the same as --sensitive when # of samples ("
+                 << nABD << ") < minSamples (" << minSamples << ")" << endl;
+        }
+
+        if (nABD < minSamples) {
+            cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
+                 << minSamples << ")" << endl;
+        }
+
+        for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+            if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
+                ignored[it->first] = gCtgIdx[it->second];
+            }
+        }
+
+        lCtgIdx.clear();
+        gCtgIdx.clear();
+
+        lCtgIdx = lCtgIdx2;
+        gCtgIdx = gCtgIdx2;
+
+        assert(lCtgIdx.size() == gCtgIdx.size());
+        assert(lCtgIdx.size() + ignored.size() == seqs.size());
+
+        //nobs_aux = nobs;
+        nobs = lCtgIdx.size();
+        nobs2 = ignored.size();
+
+        /*
+        if (ABD.size1() != nobs) {
+            ABD.resize(nobs, nABD, true);
+            ABD_VAR.resize(nobs, nABD, true);
         }
         */
+
+        assert(rABD.size() == nobs);
     }
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
-    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU
+    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         double *TNF_d;
         char *seqs_d;
         size_t *seqs_d_index;
