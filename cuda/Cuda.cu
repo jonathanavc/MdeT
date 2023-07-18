@@ -743,13 +743,14 @@ int main(int argc, char const *argv[]) {
                         else
                             nresv++;
                     }
+                    seqs_h_index_i.emplace_back(contig_i);
+                    seqs_h_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
-                seqs_h_index_i.emplace_back(contig_i);
-                seqs_h_index_e.emplace_back(contig_e);
+
                 contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
