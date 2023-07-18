@@ -953,7 +953,7 @@ int main(int argc, char const *argv[]) {
                       << minSamples << ")" << std::endl;
         }
 
-        for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+        for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
             if (lCtgIdx2.find(it->first) == lCtgIdx2.end()) {  // given seq but missed depth info or skipped
                 ignored[it->first] = gCtgIdx[it->second];
             }
