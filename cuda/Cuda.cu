@@ -300,7 +300,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     int fpint = open(saveTNFFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
     size_t ok = pread(fpint, (void *)&loadedMinContig, 8, 0);
     if (ok != 8) {
-        std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost library. "
+        std::cerr << "[Warning!] A exception occurred."
                      "Recalculating..."
                   << std::endl;
         return false;
@@ -313,7 +313,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     fsize *= sizeof(double);
     ok = pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
     if (ok != fsize) {
-        std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost library. "
+        std::cerr << "[Warning!] A exception occurred."
                      "Recalculating..."
                   << std::endl;
         return false;
@@ -778,7 +778,7 @@ int main(int argc, char const *argv[]) {
 
         nobs = std::min(nobs, countLines(abdFile.c_str()) - 1);  // la primera linea es el header
         if (nobs < 1) {
-            cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << endl;
+            std::cerr << "[Error!] There are no lines in the abundance depth file or fasta file!" << std::endl;
             exit(1);
         }
         nABD = ncols(abdFile.c_str(), 1) - nNonFeat;
@@ -786,19 +786,19 @@ int main(int argc, char const *argv[]) {
         // contigLen, and totalAvgDepth);
         if (!cvExt) {
             if (nABD % 2 != 0) {
-                cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
+                std::cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
                         "is not even."
-                     << endl;
+                     << std::endl;
                 return 1;
             }
             nABD /= 2;
         }
-        ABD = cudaMallocHost(nobs * nABD * sizeof(float));
-        ABD_VAR = cudaMallocHost(nobs * nABD * sizeof(float));
+        cudaMallocHost((void **)&ABD, nobs * nABD * sizeof(float));
+        cudaMallocHost((void **)&ABD_VAR, nobs * nABD * sizeof(float));
 
         std::ifstream is(abdFile.c_str());
         if (!is.is_open()) {
-            cerr << "[Error!] can't open the contig coverage depth file " << abdFile << endl;
+            std::cerr << "[Error!] can't open the contig coverage depth file " << abdFile << std::endl;
             return 1;
         }
 
@@ -838,7 +838,7 @@ int main(int argc, char const *argv[]) {
                 } else if (c == -2) {
                     continue;
                 } else if (c == -1) {
-                    meanSum = boost::lexical_cast<Distance>(col.c_str());
+                    meanSum = std::stod(col.c_str());
                     if (meanSum < minCVSum) {
                         if (debug)
                             verbose_message("[Info] Ignored a contig (%s) having mean coverage %2.2f < %2.2f \n", label.c_str(),
@@ -854,16 +854,16 @@ int main(int argc, char const *argv[]) {
                 bool checkMean = false, checkVar = false;
 
                 if (cvExt) {
-                    mean = ABD[(r - nskip) * nABD + c] = boost::lexical_cast<Distance>(col.c_str());
+                    mean = ABD[(r - nskip) * nABD + c] = std::stod(col.c_str());
                     meanSum += mean;
                     variance = ABD_VAR[(r - nskip) * nABD + c] = mean;
                     checkMean = true;
                 } else {
                     if (c % 2 == 0) {
-                        mean = ABD[(r - nskip) * nABD + (c/2)] = boost::lexical_cast<Distance>(col.c_str());
+                        mean = ABD[(r - nskip) * nABD + (c / 2)] = std::stod(col.c_str());
                         checkMean = true;
                     } else {
-                        variance = ABD_VAR[(r - nskip) * nABD + (c/2)] = boost::lexical_cast<Distance>(col.c_str());
+                        variance = ABD_VAR[(r - nskip) * nABD + (c / 2)] = std::stod(col.c_str());
                         checkVar = true;
                     }
                 }
@@ -931,7 +931,7 @@ int main(int argc, char const *argv[]) {
             rABD.push_back(tmp);
 
             if ((int)nABD != (cvExt ? c : c / 2)) {
-                cerr << "[Error!] Different number of variables for the object for the contig " << label << endl;
+                std::cerr << "[Error!] Different number of variables for the object for the contig " << label << std::endl;
                 return 1;
             }
         }
@@ -943,14 +943,14 @@ int main(int argc, char const *argv[]) {
             r, r - nskip - nresv, smallCtgs.size() - nresv, nABD, abdFile.c_str());
 
         if ((specific || veryspecific) && nABD < minSamples) {
-            cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
-                    "and --veryspecific would be the same as --sensitive when # of samples ("
-                 << nABD << ") < minSamples (" << minSamples << ")" << endl;
+            std::cerr << "[Warning!] Consider --superspecific for better specificity since both --specific "
+                         "and --veryspecific would be the same as --sensitive when # of samples ("
+                      << nABD << ") < minSamples (" << minSamples << ")" << std::endl;
         }
 
         if (nABD < minSamples) {
-            cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
-                 << minSamples << ")" << endl;
+            std::cerr << "[Info] Correlation binning won't be applied since the number of samples (" << nABD << ") < minSamples ("
+                      << minSamples << ")" << std::endl;
         }
 
         for (std::unordered_map<std::string, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
@@ -968,7 +968,7 @@ int main(int argc, char const *argv[]) {
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
 
-        //nobs_aux = nobs;
+        // nobs_aux = nobs;
         nobs = lCtgIdx.size();
         nobs2 = ignored.size();
 
