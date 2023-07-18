@@ -343,9 +343,8 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
 }
 
 static void trim_fasta_label(std::string &label) {
-	size_t pos = label.find_first_of(" \t");
-	if (pos != std::string::npos)
-		label = label.substr(0, pos);
+    size_t pos = label.find_first_of(" \t");
+    if (pos != std::string::npos) label = label.substr(0, pos);
 }
 
 std::istream &safeGetline(std::istream &is, std::string &t) {
@@ -744,13 +743,13 @@ int main(int argc, char const *argv[]) {
                         else
                             nresv++;
                     }
-                    seqs_h_index_i.emplace_back(contig_i);
-                    seqs_h_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
+                seqs_h_index_i.emplace_back(contig_i);
+                seqs_h_index_e.emplace_back(contig_e);
                 contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
@@ -793,8 +792,8 @@ int main(int argc, char const *argv[]) {
         if (!cvExt) {
             if (nABD % 2 != 0) {
                 std::cerr << "[Error!] Number of columns (excluding the first column) in abundance data file "
-                        "is not even."
-                     << std::endl;
+                             "is not even."
+                          << std::endl;
                 return 1;
             }
             nABD /= 2;
@@ -901,8 +900,8 @@ int main(int argc, char const *argv[]) {
                         return 1;
                     }
                     if (maxVarRatio > 0.0 && mean > 0 && variance / mean > maxVarRatio) {
-                        std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << variance << " / " << mean
-                                  << " = " << variance / mean << ": " << label << std::endl;
+                        std::cerr << "[Warning!] Skipping contig due to >maxVarRatio variance: " << variance << " / " << mean << " = "
+                                  << variance / mean << ": " << label << std::endl;
                         isGood = false;
                         break;
                     }
@@ -987,7 +986,6 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
