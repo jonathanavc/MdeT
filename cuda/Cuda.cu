@@ -926,9 +926,11 @@ int main(int argc, char const *argv[]) {
                     smallCtgs.insert(r - nskip);
                     if (seqs[_gidx].size() < minContigByCorr) ++nresv;
                 }
-                if(label != contig_names[_gidx]){
+                /*
+                if(label != contig_names[_gidx]){ // verificar que el nombre del contig sea el mismo
                     std::cout << "Error: " << label << " != " << contig_names[_gidx] << std::endl;
                 }
+                */
                 lCtgIdx2[contig_names[_gidx]] = r - nskip;  // local index
                 gCtgIdx2[r - nskip] = _gidx;  // global index
             } else {
@@ -983,11 +985,6 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
         }
 
-        std::cout << "lctgidx: " << lCtgIdx.size() << std::endl;
-        std::cout << "cgctidx: " << gCtgIdx.size() << std::endl;
-        std::cout << "seqs: " << seqs.size() << std::endl;
-        std::cout << "ignored: " << ignored.size() << std::endl;
-
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
 
@@ -1006,6 +1003,7 @@ int main(int argc, char const *argv[]) {
     }
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
+    std::cout << nobs << std::endl;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         double *TNF_d;
