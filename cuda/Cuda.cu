@@ -138,6 +138,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     const size_t last_prob = offset + thead_id * contig_per_thread + contig_per_thread;
     for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
+        gprob[i] = 0;
         size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
         size_t r2 = i - (r1 * (r1 - 1) / 2);
         double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
