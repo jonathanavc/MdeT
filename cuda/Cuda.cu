@@ -134,19 +134,30 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_
 }
 
 __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset, size_t *seqs_d_index, size_t seqs_d_index_size,
-                         size_t contig_per_thread) {
+                         size_t contig_per_thread, size_t gprob_size) {
+    size_t r1;
+    size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     const size_t last_prob = offset + thead_id * contig_per_thread + contig_per_thread;
-    for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
-        gprob[i] = 35;
-        size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
-        size_t r2 = i - (r1 * (r1 - 1) / 2);
-        double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
-        if (___aux < 0.5)
-            gprob[i] = 1;
-        else
-            gprob[i] = -1;
+    for (size_t i = 0; i < contig_per_thread; i++) {
+        const size_t gprob_index = (thead_id * contig_per_thread) + i;
+        if (gprob_index >= gprob_size) break;
+        r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
+        r2 = gprob_index - (r1 * (r1 - 1) / 2);
+        gprob[gprob_index] = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
+    /*
+for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
+    gprob[i] = 35;
+    size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
+    size_t r2 = i - (r1 * (r1 - 1) / 2);
+    double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
+    if (___aux < 0.5)
+        gprob[i] = 1;
+    else
+        gprob[i] = -1;
+}
+*/
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
@@ -1149,7 +1160,7 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-    
+
     if (1) {
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
@@ -1167,7 +1178,8 @@ int main(int argc, char const *argv[]) {
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
             std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, 0, _des, seqs_d_index, nobs, prob_per_thread);
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, 0, _des, seqs_d_index, nobs, prob_per_thread,
+                                                                contig_to_process);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
