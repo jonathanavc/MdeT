@@ -158,6 +158,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
     double r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     int cont = 0;
+    /*
     if (thead_id == 0) {
         for (size_t i = 1; i < nobs; i++) {
             for (size_t j = 0; j < i; j++) {
@@ -168,6 +169,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
             if (cont > 100) break;
         }
     }
+    */
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= gprob_size) break;
