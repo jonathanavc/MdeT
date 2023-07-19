@@ -189,7 +189,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
+        gprob_d[gprob_index] = 1. - cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
     }
 }
 
@@ -1214,8 +1214,8 @@ int main(int argc, char const *argv[]) {
             cudaStreamCreate(&streams[i]);
             if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
             size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-            std::cout << "prob_to_process: " << prob_to_process << std::endl;
-            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+            // std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            // std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
