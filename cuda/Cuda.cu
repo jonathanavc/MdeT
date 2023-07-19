@@ -142,7 +142,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     if (b != b) return -3;
     b += 53873.3933743949 * lw12;
     if (b != b) return -4;
-    b += (double)(-156.6547554844 * lw22);
+    //b += (double)(-156.6547554844 * lw22);
     if (b != b) return -5;
     b += -21263.6010657275 * lw13;
     if (b != b) return -6;
