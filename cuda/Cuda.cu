@@ -981,8 +981,8 @@ int main(int argc, char const *argv[]) {
         gCtgIdx = gCtgIdx2;
 
         for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
-            seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
-            seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
+            seqs_h_index_i.emplace_back(&seqs[gCtgIdx[it->second]][0] - &_mem[0]);
+            seqs_h_index_e.emplace_back(&seqs[gCtgIdx[it->second]][0] - &_mem[0] + seqs[gCtgIdx[it->second]].size());
         }
 
         std::sort(seqs_h_index_i.begin(), seqs_h_index_i.end());
