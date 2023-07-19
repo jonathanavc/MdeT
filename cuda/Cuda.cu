@@ -9,10 +9,8 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-
-// #include "ProgressTracker.h"
-//  #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
+#include <cmath>
 #include <cstdarg>
 #include <fstream>
 #include <iostream>
