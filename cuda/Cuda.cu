@@ -1349,7 +1349,6 @@ int main(int argc, char const *argv[]) {
     cudaFreeHost(TNF);
     cudaFreeHost(ABD);
     cudaFreeHost(ABD_VAR);
-    cudaFreeHost(gprob);
     cudaFree(TNF_d);
     cudaFree(seqs_d_index);
     // TIMERSTOP(total);
