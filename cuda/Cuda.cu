@@ -65,8 +65,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
 
-    double lw11 = LOG10(min(ctg1, ctg2));
-    double lw21 = LOG10(max(ctg1, ctg2));
+    double lw11 = log10(min(ctg1, ctg2));
+    double lw21 = log10(max(ctg1, ctg2));
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
