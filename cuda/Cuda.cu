@@ -1160,6 +1160,8 @@ int main(int argc, char const *argv[]) {
             if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
             size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
