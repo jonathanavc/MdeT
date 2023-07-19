@@ -1175,23 +1175,6 @@ int main(int argc, char const *argv[]) {
             cudaStreamDestroy(streams[i]);
         }
         cudaFree(gprob_d);
-        /*
-        for (size_t i = 1; i < nobs; ++i) {
-            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
-                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
-                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
-                        continue;
-                    bool passed = false;
-                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                    if (passed && s >= requiredMinP) {
-                        {
-                            boost::add_edge(i, j, Weight(s), gprob);
-                        }
-                    }
-                }
-            }
-        }*/
-        // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
     verbose_message("Finished building a probabilistic graph.          \n");
