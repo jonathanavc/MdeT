@@ -984,8 +984,8 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
             seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
         }
-        std::sort(seqs_h_index_i);
-        std::sort(seqs_h_index_e);
+        std::sort(seqs_h_index_i.begin(), seqs_h_index_i.end());
+        std::sort(seqs_h_index_e.begin(), seqs_h_index_e.end());
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
