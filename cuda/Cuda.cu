@@ -221,6 +221,8 @@ static std::unordered_map<size_t, size_t> gCtgIdx;            // local index => 
 static std::unordered_map<std::string_view, size_t> ignored;  // map of sequence label => index of contig_names and seqs
 static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
+static std::vector<size_t> seqs_h_index_i;
+static std::vector<size_t> seqs_h_index_e;
 static char *_mem;
 static size_t fsize;
 
@@ -995,12 +997,11 @@ int main(int argc, char const *argv[]) {
         size_t contig_per_kernel = nobs / n_STREAMS;
         // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         for (int i = 0; i < n_STREAMS; i++) {
-            std::vector<size_t> seqs_h_index_i();
-            std::vector<size_t> seqs_h_index_e();
             cudaStreamCreate(&streams[i]);
             size_t contig_to_process = contig_per_kernel;
             size_t _des = contig_per_kernel * i;
             size_t TNF_des = _des * 136;
+
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
 
@@ -1009,9 +1010,9 @@ int main(int argc, char const *argv[]) {
                 seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seqs[gCtgIdx[_des + j]].size());
             }
 
-            cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data(), contig_to_process * sizeof(size_t),
+            cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
                             cudaMemcpyHostToDevice, streams[i]);
-            cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data(), contig_to_process * sizeof(size_t),
+            cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                             cudaMemcpyHostToDevice, streams[i]);
             get_TNF<<<grdDim, blkDim, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                        contigs_per_thread, nobs);
@@ -1022,6 +1023,8 @@ int main(int argc, char const *argv[]) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
+        seqs_h_index_i.clear();
+        seqs_h_index_e.clear();
         cudaFree(TNF_d);
         cudaFree(seqs_d);
         cudaFree(seqs_d_index);
