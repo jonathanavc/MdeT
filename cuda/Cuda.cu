@@ -141,7 +141,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
         size_t r2 = i - (r1 * (r1 - 1) / 2);
         double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
-        gprob[i] = 1;
+        gprob[i] = ___aux;
     }
 }
 
@@ -1163,7 +1163,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
             std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, 0, _des, seqs_d_index, nobs, prob_per_thread);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
