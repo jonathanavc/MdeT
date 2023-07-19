@@ -980,6 +980,11 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
         }
 
+        std::cout << "lctgidx: " << lCtgIdx.size() << std::endl;
+        std::cout << "cgctidx: " << gCtgIdx.size() << std::endl;
+        std::cout << "seqs: " << seqs.size() << std::endl;
+        std::cout << "ignored: " << ignored.size() << std::endl;
+
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
 
