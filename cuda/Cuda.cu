@@ -48,6 +48,97 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
+__device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
+    double d = 0;
+
+    for (size_t i = 0; i < 136; ++i) {
+        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+    }
+
+    d = SQRT(d);
+
+    double b, c;  // parameters
+
+    size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
+    size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
+
+    size_t ctg1 = min(ctg1_s, (size_t)500000);
+    size_t ctg2 = min(ctg2_s.size(), (size_t)500000);
+
+    Distance lw11 = LOG10(min(ctg1, ctg2));
+    Distance lw21 = LOG10(max(ctg1, ctg2));
+    Distance lw12 = lw11 * lw11;
+    Distance lw13 = lw12 * lw11;
+    Distance lw14 = lw13 * lw11;
+    Distance lw15 = lw14 * lw11;
+    Distance lw16 = lw15 * lw11;
+    Distance lw17 = lw16 * lw11;
+    Distance lw22 = lw21 * lw21;
+    Distance lw23 = lw22 * lw21;
+    Distance lw24 = lw23 * lw21;
+    Distance lw25 = lw24 * lw21;
+    Distance lw26 = lw25 * lw21;
+
+    double prob;
+
+    b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
+        -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
+        0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
+        0.7800219061 * lw13 * lw23 + -0.0138723693 * lw14 * lw24 + 0.0001027543 * lw15 * lw25;
+    c = -443565.465710869 + 718862.10804858 * lw11 + 5114.1630934534 * lw21 + -501588.206183097 * lw12 + 784.4442123743 * lw22 +
+        194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
+        -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
+        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
+
+    // logistic model
+    prob = 1.0 / (1 + EXP(-(b + c * d)));
+
+    if (prob >= .1) {  // second logistic model
+        b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
+            -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
+            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
+            -0.0546309127 * lw13 * lw23 + 0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
+        c = 39406.5712626297 + -77863.1741143294 * lw11 + 9586.8761567725 * lw21 + 55360.1701572325 * lw12 + -5825.2491611377 * lw22 +
+            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 +
+            -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
+            449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
+            0.0001235384 * lw15 * lw25;
+        prob = 1.0 / (1 + EXP(-(b + c * d)));
+        prob = prob < .1 ? .1 : prob;
+    }
+
+    return prob;
+}
+
+__device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF) {
+    double abd_dist = 0, tnf_dist = 0;
+    int nnz = 0;
+
+    if (r1 == r2) return 0;
+
+    tnf_dist = cal_tnf_dist(r1, r2, TNF);
+
+    if (abd != NULL) abd_dist = cal_abd_dist(r1, r2, nnz, ABD);
+
+    if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
+        return std::max(tnf_dist, abd_dist * 0.9);
+    } else {
+        Distance w = 0;
+        if (nnz > 0) w = std::min(log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
+        return abd_dist * w + tnf_dist * (1 - w);
+    }
+}
+
+__device__ void cal_graph(double *gprob, double *TNF, double *ABD, size_t offset, size_t contig_per_thread) {
+    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    for (size_t i = 0; i < contig_per_thread; i++) {
+        size_t prob_id = offset + (thead_id * contig_per_thread) + i;
+        size_t r1 = 0.5 * (sqrt(8 * index + 1) + 1);
+        size_t r2 = index - (fila * (fila - 1) / 2);
+        gprob[prob_id] = 1. - call_dist(r1, r2, ABD, TNF);
+    }
+}
+
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
     short tn = 0;
@@ -213,7 +304,7 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
-static std::vector<std::vector<Similarity>> gprob;
+Similarity *gprob;
 // static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
 //  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
@@ -1049,7 +1140,8 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        gprob.m_vertices.resize(nobs, std::vector<Similarity>());
+        cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
+
         /*
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
