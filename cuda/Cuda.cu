@@ -1,6 +1,5 @@
 // nvcc TNF.cu -lz
 // ta bien
-#include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -13,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdarg>
+#include <cuda_fp16.hpp>
 #include <fstream>
 #include <iostream>
 #include <iterator>
