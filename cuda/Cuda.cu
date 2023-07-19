@@ -1165,7 +1165,7 @@ int main(int argc, char const *argv[]) {
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
-    verbose_message("Finished building a probabilistic graph.          \n",);
+    verbose_message("Finished building a probabilistic graph.          \n");
 
     cudaFreeHost(_mem);
     // TIMERSTOP(total);
