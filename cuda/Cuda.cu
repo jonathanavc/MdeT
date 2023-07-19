@@ -142,7 +142,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         size_t r2 = i - (r1 * (r1 - 1) / 2);
         if (caldi) double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
         if (___aux == 1)
-            gprob[i] = 1;
+            gprob[i] = -1;
         else
             gprob = ___aux;
     }
