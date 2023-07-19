@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+
+#include "ProgressTracker.h"
 // #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
 #include <cstdarg>
@@ -1021,9 +1023,14 @@ int main(int argc, char const *argv[]) {
             cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost,
                             streams[i]);
         }
+        ProgressTracker __progress(n_STREAMS);
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
+            if (verbose) {
+                __progress.track();
+                verbose_message("Calculating TNF %s\r", progress.getProgress());
+            }
         }
         seqs_h_index_i.clear();
         seqs_h_index_e.clear();
