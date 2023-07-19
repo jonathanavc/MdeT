@@ -1014,7 +1014,7 @@ int main(int argc, char const *argv[]) {
 
             for (size_t j = 0; j < contig_to_process; j++) {
                 seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem);
-                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seseqs[gCtgIdx[_des + j]].size());
+                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seqs[gCtgIdx[_des + j]].size());
             }
 
             cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
