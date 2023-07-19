@@ -168,16 +168,16 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
             if (cont > 100) break;
         }
     }
-    /*
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= gprob_size) break;
-        r1 = int((sqrtf(8 * gprob_index + 1) - 1) / 2);
-        r2 = gprob_index - i * (i + 1);
-        if (r2 < 0) r2 += seqs_d_index_size;
-        gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, seqs_d_index_size);
+        r1 = nobs - 2 - sqrtf(-8 * gprob_index + 4 * nobs * (nobs - 1) - 7) / 2 - 0.5;
+        r2 = gprob_index - r1 * (nobs - 1) + ((r1 + 2) * (r1 + 1)) / 2;
+        if (r1 > nobs || r2 > nobs)
+            gprob_d[gprob_index] = -999;
+        else
+            gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, seqs_d_index_size);
     }
-    */
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
