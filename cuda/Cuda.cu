@@ -57,6 +57,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
 
     d = sqrt(d);
 
+    return d;
+
     double b, c;  // parameters
 
     size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
@@ -144,7 +146,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-        gprob[gprob_index] = 1.;
+        gprob[gprob_index] = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
     }
 }
 
@@ -1196,8 +1198,8 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished building a probabilistic graph.          \n");
 
-    for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
-        if (gprob[i] != 1) std::cout << gprob[i] << " ";
+    for (size_t i = 0; 15; i++) {
+        std::cout << gprob[i] << " ";
     }
     std::cout << std::endl;
 
