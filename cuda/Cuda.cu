@@ -140,7 +140,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
         size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
         size_t r2 = i - (r1 * (r1 - 1) / 2);
-        gprob[i] = r1 + (double)r2 / 1000;
+        gprob[i] = 1. - cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
 }
 
@@ -1191,7 +1191,7 @@ int main(int argc, char const *argv[]) {
     verbose_message("Finished building a probabilistic graph.          \n");
 
     for (size_t i = 0; i < 100; i++) {
-        std::cout << gprob[i] << " ";
+        if (gprob[i] != 0) std::cout << gprob[i] << " ";
     }
 
     cudaFreeHost(_mem);
