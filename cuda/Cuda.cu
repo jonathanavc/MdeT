@@ -141,7 +141,10 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     const size_t last_prob = offset + thead_id * contig_per_thread + contig_per_thread;
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
-        if (gprob_index >= gprob_size) break;
+        if (gprob_index >= gprob_size){
+            gprob[gprob_index] = -555.555;
+            break;
+        }
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
 
