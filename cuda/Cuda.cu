@@ -95,6 +95,9 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     if (lw11 != lw11) {
         return -21;
     }
+    if (lw12 != lw12) {
+        return -22;
+    }
 
     double prob;
 
