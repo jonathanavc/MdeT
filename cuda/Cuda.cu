@@ -108,7 +108,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
     // logistic model
-    prob = 1.0 / (1 + exp(-(b + c * d)));
+    prob = 1.0 / (1 + exp((double)(-(b + c * d))));
     if (prob != prob) {
         return -14;
     }
