@@ -1029,7 +1029,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamDestroy(streams[i]);
             if (verbose) {
                 __progress.track();
-                verbose_message("Calculating TNF %s\r", progress.getProgress());
+                verbose_message("Calculating TNF %s\r", __progress.getProgress());
             }
         }
         seqs_h_index_i.clear();
