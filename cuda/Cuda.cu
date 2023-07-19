@@ -681,8 +681,8 @@ int main(int argc, char const *argv[]) {
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
-    print_message("Advanced setting. using CPU threads %d, GPU threads(per block) %d, GPU block (per grid) %d\n", numThreads,
-                  numThreads2, numBlocks);
+    print_message("Advanced setting. using CPU threads %d,GPU block (per grid) %d, GPU threads(per block) %d\n", numThreads, numBlocks,
+                  numThreads2);
 
     // TIMERSTART(total);
     nobs = 0;
