@@ -1196,8 +1196,8 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished building a probabilistic graph.          \n");
 
-    for (size_t i = 0; i < 50; i++) {
-        std::cout << gprob[i] << " ";
+    for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
+        if (gprob[i] != 1) std::cout << gprob[i] << " ";
     }
     std::cout << std::endl;
 
