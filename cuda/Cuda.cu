@@ -54,7 +54,6 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-    return d - 5.5;
 
     d = sqrt(d);
 
@@ -145,7 +144,8 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-        gprob[gprob_index] = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
+        gprob[gprob_index] = TNF[r1 * 136];
+        // gprob[gprob_index] = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
     }
 }
 
@@ -1093,8 +1093,6 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(tnf);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-        dim3 blkDim(numThreads2, 1, 1);
-        dim3 grdDim(numBlocks, 1, 1);
         cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
