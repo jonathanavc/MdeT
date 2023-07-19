@@ -116,7 +116,7 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_
 
     if (r1 == r2) return 0;
 
-    tnf_dist = cal_tnf_dist(r1, r2, TNF);
+    tnf_dist = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
 
     return tnf_dist;
     /*
