@@ -1330,14 +1330,10 @@ int main(int argc, char const *argv[]) {
         // cudaFree(TNF_d);
     }
     */
-
     verbose_message("Finished building a probabilistic graph.          \n");
 
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA error: %s\n", cudaGetErrorString(err));
-    }
     /*
+
     std::cout << "NOBS: " << nobs << std::endl;
     for (size_t i = 0; i < 10; i++) {
         std::cout << gprob[i] << " ";
