@@ -932,7 +932,7 @@ int main(int argc, char const *argv[]) {
                 }
                 */
                 lCtgIdx2[contig_names[_gidx]] = r - nskip;  // local index
-                gCtgIdx2[r - nskip] = _gidx;  // global index
+                gCtgIdx2[r - nskip] = _gidx;                // global index
             } else {
                 ++nskip;
                 continue;
@@ -979,13 +979,19 @@ int main(int argc, char const *argv[]) {
 
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
+
         std::cout << "memory: " << (void *)_mem << std::endl;
+
         for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
-            std::cout << "memory index: " << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] << std::endl;
+            if (&contig_names[gCtgIdx[it->second]][0] - &_mem[0] >=
+                &contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size()) {
+                std::cout << "Error: " << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] << " >= "
+                          << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size()
+                          << std::endl;
+            }
             seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
             seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
         }
-
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
@@ -1003,7 +1009,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    
+
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
     std::cout << nobs << std::endl;
