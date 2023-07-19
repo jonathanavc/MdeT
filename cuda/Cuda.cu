@@ -154,8 +154,8 @@ __device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_
 
 __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t offset, size_t *seqs_d_index_d, size_t nobs,
                          size_t contig_per_thread, size_t gprob_size) {
-    double r1;
-    double r2;
+    size_t r1;
+    size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     int cont = 0;
     /*
