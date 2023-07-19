@@ -58,7 +58,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
 
     d = sqrt(d);
 
-    if (isnan(d)) {
+    if (d != d) {
         return -11;
     }
 
@@ -67,14 +67,14 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
     size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
 
-    if (isnan(ctg1_s) || isnan(ctg2_s)) {
+    if (ctg1_s != ctg1_s || ctg2_s != ctg2_s) {
         return -12;
     }
 
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
 
-    if (isnan(ctg1) || isnan(ctg2)) {
+    if (ctg1 != ctg1 || ctg2 != ctg2) {
         return -13;
     }
 
@@ -105,7 +105,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
 
     // logistic model
     prob = 1.0 / (1 + exp(-(b + c * d)));
-    if (isnan(prob)) {
+    if (prob != prob) {
         return -14;
     }
 
@@ -122,7 +122,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
-    if (isnan(prob)) {
+    if (prob != prob) {
         return -15;
     }
 
