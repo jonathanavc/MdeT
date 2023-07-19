@@ -1226,7 +1226,7 @@ int main(int argc, char const *argv[]) {
         std::cout << gprob[i] << " ";
     }
     std::cout << "... ";
-    for (size_t i = ((nobs * (nobs - 1)) / 2) - 1; i < (nobs * (nobs - 1)) / 2; i++) {
+    for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
         std::cout << gprob[i] << " ";
     }
     std::cout << std::endl;
