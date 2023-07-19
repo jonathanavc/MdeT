@@ -174,11 +174,8 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= gprob_size) break;
         r1 = sqrtf(gprob_index * 2) + 1;
-        r2 = gprob_index - (r1 * r1) / 2;
-        if (r1 > nobs || r2 > nobs)
-            gprob_d[gprob_index] = -999;
-        else
-            gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
+        r2 = gprob_index - (r1 * (r1 - 1)) / 2;
+        gprob_d[gprob_index] = r1;
     }
 }
 
