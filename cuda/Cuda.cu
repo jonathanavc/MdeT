@@ -78,10 +78,10 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         return -13;
     }
     // aquí está el problema
-    return min ctg1;
+    //return min ctg1;
     double lw11 = log10((double)min(ctg1, ctg2));
     double lw21 = log10((double)max(ctg1, ctg2));
-    return lw11;
+    //return lw11;
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
