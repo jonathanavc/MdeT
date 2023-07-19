@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/undirected_graph.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
 #include <cstdarg>
@@ -46,7 +48,7 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-
+/*
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
 __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
@@ -142,7 +144,90 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     return prob;
 }
 
-__device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_t *seqs_d_index, size_t seqs_d_index_size) {
+
+double cal_abd_dist2(Normal &p1, Normal &p2) {
+    double k1, k2, tmp, d = 0;
+
+    double m1 = p1.mean();
+    double m2 = p2.mean();
+    double v1 = p1.standard_deviation();
+    v1 = v1 * v1;
+    double v2 = p2.standard_deviation();
+    v2 = v2 * v2;
+
+    // normal_distribution
+    if (FABS(v2 - v1) < 1e-4) {
+        k1 = k2 = (m1 + m2) / 2;
+    } else {
+        tmp = SQRT(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * LOG(SQRT(v2 / v1))));
+        k1 = (tmp - m1 * v2 + m2 * v1) / (v1 - v2);
+        k2 = (tmp + m1 * v2 - m2 * v1) / (v2 - v1);
+    }
+
+    if (k1 > k2) {
+        tmp = k1;
+        k1 = k2;
+        k2 = tmp;
+    }
+    if (v1 > v2) {
+        std::swap(p1, p2);
+    }
+
+    if (k1 == k2)
+        d += LOG(FABS(boost::math::cdf(p1, k1) - boost::math::cdf(p2, k1)));
+    else
+        d += LOG(FABS(boost::math::cdf(p1, k2) - boost::math::cdf(p1, k1) + boost::math::cdf(p2, k1) - boost::math::cdf(p2, k2)));
+
+    return d;
+}
+
+double cal_abd_dist(size_t r1, size_t r2, int &nnz) {
+    double d = 0;
+    int nns = 0;
+    double m1sum = 0, m2sum = 0;
+    for (size_t i = 0; i < nABD; ++i) {
+        Distance m1 = ABD(r1, i);
+        Distance m2 = ABD(r2, i);
+        if (m1 > minCV || m2 > minCV) {  // compare only at least one >2
+            ++nnz;
+            m1 = std::max(m1, (Distance)1e-6);
+            m2 = std::max(m2, (Distance)1e-6);
+            if (m1 == m2) {
+                ++nns;
+                continue;
+            }
+            Distance v1 = ABD_VAR(r1, i) < 1 ? 1 : ABD_VAR(r1, i);
+            Distance v2 = ABD_VAR(r2, i) < 1 ? 1 : ABD_VAR(r2, i);
+
+            Normal p1(m1, SQRT(v1)), p2(m2, SQRT(v2));
+            d += cal_abd_dist2(p1, p2);
+        } else {
+            m1sum += m1;
+            m2sum += m2;
+        }
+    }
+
+    if (sumLowCV && (m1sum > minCV || m2sum > minCV)) {
+        if (FABS(m1sum - m2sum) > 1e-3) {
+            m1sum = std::max(m1sum, (Distance)1e-6);
+            m2sum = std::max(m2sum, (Distance)1e-6);
+            Poisson p1(m1sum), p2(m2sum);
+            d += cal_abd_dist2(p1, p2);
+        }  // else they are the same distribution, so d += 0
+        ++nnz;
+    } else if (nnz == 0) {
+        // both samples are very low abundance, use TNF
+        return 1;
+    }
+
+    if (nns == (int)nABD)  // the same
+        return 0;
+    else
+        return pow(exp(d), (1.0 / (double)nnz));
+}
+
+__device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_t *seqs_d_index, size_t seqs_d_index_size,
+                           double maxDist) {
     double abd_dist = 0, tnf_dist = 0;
     int nnz = 0;
 
@@ -150,19 +235,21 @@ __device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_
 
     tnf_dist = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
 
+    if (tnf_dist > maxDist) {
+        return 1;
+    }
     return tnf_dist;
     /*
 
-    if (abd != NULL) abd_dist = cal_abd_dist(r1, r2, nnz, ABD);
+   if (abd != NULL) abd_dist = cal_abd_dist(r1, r2, nnz, ABD);
 
-    if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
-        return max(tnf_dist, abd_dist * 0.9);
-    } else {
-        Distance w = 0;
-        if (nnz > 0) w = std::min(log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
-        return abd_dist * w + tnf_dist * (1 - w);
-    }
-    */
+   if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
+       return max(tnf_dist, abd_dist * 0.9);
+   } else {
+       Distance w = 0;
+       if (nnz > 0) w = min(log((double)(nnz + 1)) / log(101.), 0.9);  // progressive weight depending on sample sizes
+       return abd_dist * w + tnf_dist * (1 - w);
+   }
 }
 
 __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t offset, size_t *seqs_d_index_d, size_t nobs,
@@ -180,6 +267,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         gprob_d[gprob_index] = 1. - cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
     }
 }
+*/
 
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
@@ -346,8 +434,8 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
-Similarity *gprob;
-// static UndirectedGraph gprob;
+// Similarity *gprob;
+static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
 //  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
 //  static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
@@ -1181,12 +1269,36 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA error: %s\n", cudaGetErrorString(err));
-    }
+    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        gprob.m_vertices.resize(nobs);
+#pragma omp parallel for schedule(dynamic)
+        for (size_t i = 1; i < nobs; ++i) {
+            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
+                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
+                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
+                        continue;
+                    bool passed = false;
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    if (passed && s >= requiredMinP) {
+#pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
+                    }
+                }
+            }
 
+            if (verbose) {
+                progress.track(i);
+                if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                    verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+            }
+        }
+
+        saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
+    }
+    /*
     if (1) {
+
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
@@ -1212,9 +1324,10 @@ int main(int argc, char const *argv[]) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
-        cudaFree(gprob_d);
+        // cudaFree(gprob_d);
         // cudaFree(TNF_d);
     }
+    */
 
     verbose_message("Finished building a probabilistic graph.          \n");
 
