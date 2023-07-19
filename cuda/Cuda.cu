@@ -176,7 +176,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        gprob_d[gprob_index] = r1;
+        gprob_d[gprob_index] =  r2;
     }
 }
 
