@@ -65,19 +65,19 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s.size(), (size_t)500000);
 
-    Distance lw11 = LOG10(min(ctg1, ctg2));
-    Distance lw21 = LOG10(max(ctg1, ctg2));
-    Distance lw12 = lw11 * lw11;
-    Distance lw13 = lw12 * lw11;
-    Distance lw14 = lw13 * lw11;
-    Distance lw15 = lw14 * lw11;
-    Distance lw16 = lw15 * lw11;
-    Distance lw17 = lw16 * lw11;
-    Distance lw22 = lw21 * lw21;
-    Distance lw23 = lw22 * lw21;
-    Distance lw24 = lw23 * lw21;
-    Distance lw25 = lw24 * lw21;
-    Distance lw26 = lw25 * lw21;
+    double lw11 = LOG10(min(ctg1, ctg2));
+    double lw21 = LOG10(max(ctg1, ctg2));
+    double lw12 = lw11 * lw11;
+    double lw13 = lw12 * lw11;
+    double lw14 = lw13 * lw11;
+    double lw15 = lw14 * lw11;
+    double lw16 = lw15 * lw11;
+    double lw17 = lw16 * lw11;
+    double lw22 = lw21 * lw21;
+    double lw23 = lw22 * lw21;
+    double lw24 = lw23 * lw21;
+    double lw25 = lw24 * lw21;
+    double lw26 = lw25 * lw21;
 
     double prob;
 
