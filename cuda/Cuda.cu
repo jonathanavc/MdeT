@@ -140,7 +140,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
         size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
         size_t r2 = i - (r1 * (r1 - 1) / 2);
-        gprob[i] = r1;
+        gprob[i] = r1 + (double)r2 / 1000000;
     }
 }
 
