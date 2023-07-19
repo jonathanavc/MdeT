@@ -55,7 +55,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
 
-    d = SQRT(d);
+    d = sqrt(d);
 
     double b, c;  // parameters
 
@@ -63,7 +63,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
 
     size_t ctg1 = min(ctg1_s, (size_t)500000);
-    size_t ctg2 = min(ctg2_s.size(), (size_t)500000);
+    size_t ctg2 = min(ctg2_s, (size_t)500000);
 
     double lw11 = LOG10(min(ctg1, ctg2));
     double lw21 = LOG10(max(ctg1, ctg2));
