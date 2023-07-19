@@ -1012,9 +1012,9 @@ int main(int argc, char const *argv[]) {
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
 
-            for (size_t i = 0; i < contig_to_process; i++) {
-                seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + i]] - _mem);
-                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + i]] - _mem + seseqs[gCtgIdx[_des + i]].size());
+            for (size_t j = 0; j < contig_to_process; j++) {
+                seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + j]] - _mem);
+                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]] - _mem + seseqs[gCtgIdx[_des + j]].size());
             }
 
             cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
