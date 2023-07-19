@@ -50,12 +50,12 @@ __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
 __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
-    return 1.1;
 
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-    
+    return d - 5.5;
+
     d = sqrt(d);
 
     double b, c;  // parameters
