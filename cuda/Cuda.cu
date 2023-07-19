@@ -1214,8 +1214,8 @@ int main(int argc, char const *argv[]) {
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
 
-    // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-    if (1) {
+    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+
         cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc((void **)&seqs_d, fsize);
@@ -1272,7 +1272,8 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+    // if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+    if (1) {
         // ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
 #pragma omp parallel for schedule(dynamic)
