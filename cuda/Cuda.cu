@@ -162,7 +162,11 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-        gprob[gprob_index] = seqs_d_index[r1+ seqs_d_index_size] - seqs_d_index[r1];
+        double d = 0;
+        for (size_t j = 0; j < 136; ++j) {
+            d += (TNF[r1 * 136 + j] - TNF[r2 * 136 + j]) * (TNF[r1 * 136 + j] - TNF[r2 * 136 + j]);  // euclidean distance
+        }
+        gprob[gprob_index] = d;
     }
 }
 
