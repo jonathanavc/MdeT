@@ -980,18 +980,12 @@ int main(int argc, char const *argv[]) {
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
 
-        std::cout << "memory: " << (void *)_mem << std::endl;
-
         for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
-            if (&contig_names[gCtgIdx[it->second]][0] - &_mem[0] >=
-                &contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size()) {
-                std::cout << "Error: " << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] << " >= "
-                          << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size()
-                          << std::endl;
-            }
             seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
             seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
         }
+        sort(seqs_h_index_i);
+        sort(seqs_h_index_e);
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
