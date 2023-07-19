@@ -47,7 +47,7 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-__device__ double log10_device(double x) { return logf(x) / logf(10.0); }
+__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
 __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
@@ -78,8 +78,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         return -13;
     }
 
-    double lw11 = log10_device(min(ctg1, ctg2));
-    double lw21 = log10_device(max(ctg1, ctg2));
+    double lw11 = log10((double)min(ctg1, ctg2));
+    double lw21 = log10((double)max(ctg1, ctg2));
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
@@ -177,10 +177,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         double d = 0.0;
-        for (size_t i = 0; i < 136; ++i) {
-            d += (TNF_d[r1 * 136 + i] - TNF_d[r2 * 136 + i]) * (TNF_d[r1 * 136 + i] - TNF_d[r2 * 136 + i]);  // euclidean distance
-        }
-        gprob_d[gprob_index] = sqrt(d);
+        gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, offset);
     }
 }
 
