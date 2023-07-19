@@ -144,20 +144,8 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-        gprob[gprob_index] = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
+        gprob[gprob_index] = 1. - cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
-    /*
-for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
-    gprob[i] = 35;
-    size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
-    size_t r2 = i - (r1 * (r1 - 1) / 2);
-    double ___aux = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
-    if (___aux < 0.5)
-        gprob[i] = 1;
-    else
-        gprob[i] = -1;
-}
-*/
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
