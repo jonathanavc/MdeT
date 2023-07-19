@@ -750,7 +750,6 @@ int main(int argc, char const *argv[]) {
                 } else {
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
-
                 contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
@@ -967,9 +966,18 @@ int main(int argc, char const *argv[]) {
 
         lCtgIdx.clear();
         gCtgIdx.clear();
+        seqs_h_index_i.clear();  // limpiar vectores de indices
+        seqs_h_index_e.clear();  // limpiar vectores de indices
+        seqs_h_index_i.reserve(nobs);
+        seqs_h_index_e.reserve(nobs);
 
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
+
+        for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
+            seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
+            seqs_h_index_e.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0] + contig_names[gCtgIdx[it->second]].size());
+        }
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
