@@ -129,7 +129,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     return prob;
 }
 
-__device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double abd_dist = 0, tnf_dist = 0;
     int nnz = 0;
 
