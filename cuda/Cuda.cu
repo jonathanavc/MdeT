@@ -1149,12 +1149,11 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-
+    double *gprob_d;
     if (1) {
-        double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
-        cudaMalloc(&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
