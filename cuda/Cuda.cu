@@ -173,7 +173,8 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= limit) break;
-        r1 = int(1 + sqrtf(1 + 8 * gprob_index) / 2);
+        long long discriminante = 1 + 8 * gprob_index;
+        r1 = (1 + sqrt(discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         gprob_d[gprob_index] = r1;
     }
