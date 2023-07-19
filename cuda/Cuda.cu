@@ -984,7 +984,6 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
-    std::cout << nobs << std::endl;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         double *TNF_d;
