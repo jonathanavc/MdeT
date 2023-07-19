@@ -926,7 +926,10 @@ int main(int argc, char const *argv[]) {
                     smallCtgs.insert(r - nskip);
                     if (seqs[_gidx].size() < minContigByCorr) ++nresv;
                 }
-                lCtgIdx2[label] = r - nskip;  // local index
+                if(label != contig_names[_gidx]){
+                    std::cout << "Error: " << label << " != " << contig_names[_gidx] << std::endl;
+                }
+                lCtgIdx2[contig_names[_gidx]] = r - nskip;  // local index
                 gCtgIdx2[r - nskip] = _gidx;  // global index
             } else {
                 ++nskip;
