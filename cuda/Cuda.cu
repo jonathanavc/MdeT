@@ -1153,7 +1153,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        cudaFree(TNF_d);
+        // cudaFree(TNF_d);
         // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
@@ -1171,8 +1171,8 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+        // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
@@ -1191,14 +1191,15 @@ int main(int argc, char const *argv[]) {
 
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread,
                                                                 prob_to_process);
-            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+            // cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
+        cudaMemcpy(gprob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
         cudaFree(gprob_d);
-        cudaFree(TNF_d);
+        // cudaFree(TNF_d);
     }
 
     verbose_message("Finished building a probabilistic graph.          \n");
