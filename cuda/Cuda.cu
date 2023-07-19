@@ -10,8 +10,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-//#include "ProgressTracker.h"
-// #include <boost/numeric/ublas/matrix.hpp>
+// #include "ProgressTracker.h"
+//  #include <boost/numeric/ublas/matrix.hpp>
 #include <chrono>
 #include <cstdarg>
 #include <fstream>
@@ -213,6 +213,7 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
+static std::vector<std::vector<Similarity>> gprob;
 // static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
 //  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
@@ -1036,6 +1037,40 @@ int main(int argc, char const *argv[]) {
     }
     verbose_message("Finished TNF calculation.                                  \n");
     // TIMERSTOP(tnf);
+
+    if (rABD.size() == 0) {
+        for (size_t i = 0; i < nobs; ++i) {
+            rABD.push_back(std::make_pair(i, rand()));
+        }
+    }
+
+    Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
+    if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
+        requiredMinP = .75;
+
+    if (1) {
+        gprob.m_vertices.resize(nobs, std::vector<Similarity>());
+        /*
+        for (size_t i = 1; i < nobs; ++i) {
+            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
+                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
+                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
+                        continue;
+                    bool passed = false;
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    if (passed && s >= requiredMinP) {
+                        {
+                            boost::add_edge(i, j, Weight(s), gprob);
+                        }
+                    }
+                }
+            }
+        }*/
+        // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
+    }
+
+    verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
+                    boost::num_edges(gprob));
 
     cudaFreeHost(_mem);
     // TIMERSTOP(total);
