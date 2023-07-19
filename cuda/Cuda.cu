@@ -1198,6 +1198,7 @@ int main(int argc, char const *argv[]) {
     for (size_t i = 0; i < 50; i++) {
         std::cout << gprob[i] << " ";
     }
+    std::cout << std::endl;
 
     cudaFreeHost(_mem);
     cudaFreeHost(TNF);
