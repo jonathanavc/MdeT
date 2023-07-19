@@ -91,7 +91,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
     // logistic model
-    prob = 1.0 / (1 + EXP(-(b + c * d)));
+    prob = 1.0 / (1 + exp(-(b + c * d)));
 
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -103,7 +103,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
             -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
             449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
             0.0001235384 * lw15 * lw25;
-        prob = 1.0 / (1 + EXP(-(b + c * d)));
+        prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
 
