@@ -1289,12 +1289,12 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
-
+            /*
             if (verbose) {
                 progress.track(i);
                 if (omp_get_thread_num() == 0 && progress.isStepMarker())
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
-            }
+            }*/
         }
 
         saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
