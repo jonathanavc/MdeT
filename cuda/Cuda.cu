@@ -1190,7 +1190,7 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished building a probabilistic graph.          \n");
 
-    for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
+    for (size_t i = 0; i < 100; i++) {
         std::cout << gprob[i] << " ";
     }
 
