@@ -160,7 +160,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *
         if (col >= nobs) break;
         for (int fil = 0; fil < col; fil++) {
             size_t index = (col * (col - 1) / 2) + fil;
-            gprob_d[index] = cal_dist(col, fil, TNF_d, ABD_d, seqs_d_index_d, nobs);
+            gprob_d[index] = 1. - cal_dist(col, fil, TNF_d, ABD_d, seqs_d_index_d, nobs);
             // gprob_d[index] = index;
         }
     }
@@ -1208,12 +1208,8 @@ int main(int argc, char const *argv[]) {
         printf("CUDA error: %s\n", cudaGetErrorString(err));
     }
     std::cout << "NOBS: " << nobs << std::endl;
-    for (size_t i = 0; i < 10; i++) {
-        std::cout << gprob[i] << " ";
-    }
-    std::cout << "... ";
-    for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
-        std::cout << (int)gprob[i] << " ";
+    for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
+        if (gprob[i] < 0) std::cout << gprob[i] << " ";
     }
     std::cout << std::endl;
 
