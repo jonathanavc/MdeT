@@ -154,15 +154,13 @@ __device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_
 
 __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *seqs_d_index_d, size_t nobs,
                          size_t contig_per_thread) {
-    size_t r1;
-    size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= nobs) break;
         for (int j = 0; j < gprob_index; j++) {
             size_t index = (i * (i - 1) / 2) + j;
-            //gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
+            // gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
             gprob_d[gprob_index * nobs + i] = index;
         }
     }
@@ -1177,7 +1175,7 @@ int main(int argc, char const *argv[]) {
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
-        cudaStream_t streams[1];  // para probar
+        cudaStream_t streams[n_STREAMS];  // para probar
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         cudaMallocHost((void **)&gprob, total_prob * sizeof(double));  // matriz de probabilidades (triangular inferior)
         cudaMalloc((void **)&gprob_d, total_prob * sizeof(double));
@@ -1186,8 +1184,7 @@ int main(int argc, char const *argv[]) {
         size_t nobs_per_kernel = nobs / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-            size_t _des = nobs_per_kernel * i;
-            size_t nobs_to_process = prob_per_kernel;
+            size_t nobs_to_process = nobs_per_kernel;
             if (i == n_STREAMS - 1) nobs_to_process += (total_prob % n_STREAMS);
             size_t nobs_per_thread = (nobs_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             std::cout << "prob_to_process: " << nobs_to_process << std::endl;
@@ -1195,7 +1192,7 @@ int main(int argc, char const *argv[]) {
 
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, seqs_d_index, nobs, nobs_per_thread);
         }
-        cudaMemcpy(gprob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+        cudaMemcpy(gprob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
