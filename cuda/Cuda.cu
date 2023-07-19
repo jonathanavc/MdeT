@@ -1205,7 +1205,7 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished building a probabilistic graph.          \n");
 
-    cudaError_t err = cudaGetLastError();
+    err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("CUDA error: %s\n", cudaGetErrorString(err));
     }
