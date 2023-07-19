@@ -48,7 +48,7 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-__device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
+__device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
 
     for (size_t i = 0; i < 136; ++i) {
@@ -110,7 +110,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF) {
     return prob;
 }
 
-__device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF) {
+__device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double abd_dist = 0, tnf_dist = 0;
     int nnz = 0;
 
@@ -133,13 +133,14 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF) {
     */
 }
 
-__device__ void cal_graph(double *gprob, double *TNF, double *ABD, size_t offset, size_t contig_per_thread) {
+__device__ void cal_graph(double *gprob, double *TNF, double *ABD, size_t offset, size_t *seqs_d_index, size_t seqs_d_index_size,
+                          size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         size_t prob_id = offset + (thead_id * contig_per_thread) + i;
         size_t r1 = 0.5 * (sqrt(8 * prob_id + 1) + 1);
         size_t r2 = prob_id - (r1 * (r1 - 1) / 2);
-        gprob[prob_id] = 1. - cal_dist(r1, r2, ABD, TNF);
+        gprob[prob_id] = 1. - cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
 }
 
