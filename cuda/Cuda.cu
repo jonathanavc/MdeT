@@ -156,10 +156,10 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *
                          size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
-        const size_t gprob_index = (thead_id * contig_per_thread) + i;
-        if (gprob_index >= nobs) break;
-        for (int j = 0; j < gprob_index; j++) {
-            size_t index = (i * (i - 1) / 2) + j;
+        size_t col = (thead_id * contig_per_thread) + i;
+        if (col >= nobs) break;
+        for (int fil = 0; fil < col; fil++) {
+            size_t index = (col * (col - 1) / 2) + fil;
             // gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
             gprob_d[gprob_index * nobs + i] = index;
         }
