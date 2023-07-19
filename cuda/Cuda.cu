@@ -92,6 +92,10 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     double lw25 = lw24 * lw21;
     double lw26 = lw25 * lw21;
 
+    if (lw11 != lw11) {
+        return -21;
+    }
+
     double prob;
 
     b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
