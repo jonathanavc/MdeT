@@ -140,7 +140,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     for (size_t i = offset + thead_id * contig_per_thread; i < last_prob; i++) {
         size_t r1 = 0.5 * (sqrtf(8 * i + 1) + 1);
         size_t r2 = i - (r1 * (r1 - 1) / 2);
-        gprob[i] = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
+        gprob[i] = i;
     }
 }
 
@@ -309,7 +309,7 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
-double *gprob;
+Similarity *gprob;
 // static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
 //  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
