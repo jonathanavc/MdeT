@@ -138,27 +138,21 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
     size_t r1;
     size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    const size_t last_prob = offset + thead_id * contig_per_thread + contig_per_thread;
+    for (size_t i = 0; i < contig_per_thread; i++){
+        const size_t gprob_index = (thead_id * contig_per_thread) + i;
+        if (gprob_index >= gprob_size) break;
+        gprob[gprob_index] = TNF[seqs_d_index_size]
+    }
+
+    /*
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
-        if (gprob_index >= gprob_size){
-            gprob[gprob_index] = -555.555;
-            break;
-        }
+        if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-
-        double d = 0;
-
-        for (size_t i = 0; i < 136; ++i) {
-            d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
-        }
-        if (d == 0)
-            gprob[gprob_index] = -1.1;
-        else
-            gprob[gprob_index] = d;
-        // gprob[gprob_index] = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
+        gprob[gprob_index] = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
+    */
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
