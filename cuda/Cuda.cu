@@ -144,7 +144,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (___aux < 0.5)
             gprob[i] = 1;
         else
-            gprob = -1;
+            gprob[i] = -1;
     }
 }
 
