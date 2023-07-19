@@ -178,7 +178,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         if (r1 > nobs || r2 > nobs)
             gprob_d[gprob_index] = -999;
         else
-            gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, seqs_d_index_size);
+            gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
     }
 }
 
