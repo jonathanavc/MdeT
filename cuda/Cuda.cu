@@ -1195,7 +1195,7 @@ int main(int argc, char const *argv[]) {
     verbose_message("Finished building a probabilistic graph.          \n");
 
     for (size_t i = 0; i < 50; i++) {
-        if (gprob[i] != 0) std::cout << gprob[i] << " ";
+        std::cout << gprob[i] << " ";
     }
 
     cudaFreeHost(_mem);
