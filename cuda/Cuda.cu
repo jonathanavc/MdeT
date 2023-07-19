@@ -140,7 +140,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         size_t prob_id = offset + (thead_id * contig_per_thread) + i;
         size_t r1 = 0.5 * (sqrt(double(8 * prob_id + 1)) + 1);
         size_t r2 = prob_id - (r1 * (r1 - 1) / 2);
-        gprob[prob_id] = 1. - cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
+        gprob[prob_id] = 1. - .1;
     }
 }
 
