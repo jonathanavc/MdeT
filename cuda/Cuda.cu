@@ -152,21 +152,21 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_
     */
 }
 
-__global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset, size_t *seqs_d_index, size_t seqs_d_index_size,
-                         size_t contig_per_thread, size_t gprob_size) {
+__global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t offset, size_t *seqs_d_index_d,
+                         size_t seqs_d_index_size, size_t contig_per_thread, size_t gprob_size) {
     size_t r1;
     size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= gprob_size) break;
-        r1 = floor(0.5 * (sqrtf(8 * gprob_index + 1) - 1));
+        r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
         double d = 5;
         for (size_t j = 0; j < 136; ++j) {
-            d += (TNF[r1 * 136 + j] - TNF[r2 * 136 + j]) * (TNF[r1 * 136 + j] - TNF[r2 * 136 + j]);  // euclidean distance
+            d += (TNF_d[r1 * 136 + j] - TNF_d[r2 * 136 + j]) * (TNF_d[r1 * 136 + j] - TNF_d[r2 * 136 + j]);  // euclidean distance
         }
-        gprob[gprob_index] = d;
+        gprob_d[gprob_index] = d;
     }
 }
 
@@ -1187,7 +1187,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
             std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, 0, _des, seqs_d_index, nobs, prob_per_thread,
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread,
                                                                 prob_to_process);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
