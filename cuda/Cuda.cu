@@ -1115,9 +1115,9 @@ int main(int argc, char const *argv[]) {
 
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
-        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        cudaMalloc(&seqs_d, fsize);
-        cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
+        cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(double));
+        cudaMalloc((void **)&seqs_d, fsize);
+        cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
         cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         size_t contig_per_kernel = nobs / n_STREAMS;
@@ -1191,9 +1191,8 @@ int main(int argc, char const *argv[]) {
 
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread,
                                                                 prob_to_process);
-            // cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
-        cudaMemcpy(gprob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
