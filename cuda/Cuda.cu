@@ -1146,11 +1146,13 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
+
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
         cudaMalloc(&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         size_t total_prob = (nobs * (nobs - 1)) / 2;
+        std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             size_t _des = prob_per_kernel * i;
@@ -1158,6 +1160,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamCreate(&streams[i]);
             if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
             size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            std::cout << "prob_to_process: " << prob_to_process << std::endl;
             get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
