@@ -133,8 +133,8 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF, size_
     */
 }
 
-__device__ void cal_graph(double *gprob, double *TNF, double *ABD, size_t offset, size_t *seqs_d_index, size_t seqs_d_index_size,
-                          size_t contig_per_thread) {
+__device__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset, size_t *seqs_d_index, size_t seqs_d_index_size,
+                         size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         size_t prob_id = offset + (thead_id * contig_per_thread) + i;
@@ -322,6 +322,9 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
+double *TNF_d;
+char *seqs_d;
+size_t *seqs_d_index;
 static char *_mem;
 static size_t fsize;
 
@@ -1085,9 +1088,6 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(tnf);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-        double *TNF_d;
-        char *seqs_d;
-        size_t *seqs_d_index;
         dim3 blkDim(numThreads2, 1, 1);
         dim3 grdDim(numBlocks, 1, 1);
         cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
@@ -1126,9 +1126,10 @@ int main(int argc, char const *argv[]) {
         }
         seqs_h_index_i.clear();
         seqs_h_index_e.clear();
-        cudaFree(TNF_d);
         cudaFree(seqs_d);
-        cudaFree(seqs_d_index);
+        // se usarán más adelante
+        // cudaFree(TNF_d);
+        // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
@@ -1145,8 +1146,25 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
+        double *gprob_d;
+        cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
-
+        cudaMalloc(&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        size_t prob_per_kernel = total_prob / n_STREAMS;
+        for (int i = 0; i < n_STREAMS; i++) {
+            size_t _des = prob_per_kernel * i;
+            size_t prob_to_process = prob_per_kernel;
+            cudaStreamCreate(&streams[i]);
+            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+        }
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
+        }
         /*
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
