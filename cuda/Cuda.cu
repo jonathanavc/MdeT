@@ -118,15 +118,19 @@ __device__ double cal_dist(size_t r1, size_t r2, double *ABD, double *TNF) {
 
     tnf_dist = cal_tnf_dist(r1, r2, TNF);
 
+    return tnf_dist;
+    /*
+
     if (abd != NULL) abd_dist = cal_abd_dist(r1, r2, nnz, ABD);
 
     if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
-        return std::max(tnf_dist, abd_dist * 0.9);
+        return max(tnf_dist, abd_dist * 0.9);
     } else {
         Distance w = 0;
         if (nnz > 0) w = std::min(log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
         return abd_dist * w + tnf_dist * (1 - w);
     }
+    */
 }
 
 __device__ void cal_graph(double *gprob, double *TNF, double *ABD, size_t offset, size_t contig_per_thread) {
