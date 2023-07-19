@@ -165,6 +165,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
                 gprob_d[cont] = r1;
                 cont++;
             }
+            if (cont > 100) break;
         }
     }
     /*
