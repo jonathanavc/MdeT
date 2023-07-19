@@ -1272,7 +1272,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
-        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        //ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
