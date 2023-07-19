@@ -1172,7 +1172,7 @@ int main(int argc, char const *argv[]) {
 
     if (1) {
         cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        cudaMemCpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+        cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
