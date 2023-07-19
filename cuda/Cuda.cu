@@ -724,8 +724,6 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-        seqs_h_index_i.reserve(fsize % __min);
-        seqs_h_index_e.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] == fasta_delim) {
                 i++;
@@ -744,8 +742,6 @@ int main(int argc, char const *argv[]) {
                         else
                             nresv++;
                     }
-                    seqs_h_index_i.emplace_back(contig_i);
-                    seqs_h_index_e.emplace_back(contig_e);
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
@@ -755,10 +751,8 @@ int main(int argc, char const *argv[]) {
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
-        seqs_h_index_i.shrink_to_fit();  // liberar memoria no usada
-        seqs_h_index_e.shrink_to_fit();  // liberar memoria no usada
-        seqs.shrink_to_fit();            // liberar memoria no usada
-        contig_names.shrink_to_fit();    // liberar memoria no usada
+        seqs.shrink_to_fit();          // liberar memoria no usada
+        contig_names.shrink_to_fit();  // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
     // std::cout << contig_names[0] << std::endl;
@@ -964,20 +958,16 @@ int main(int argc, char const *argv[]) {
 
         lCtgIdx.clear();
         gCtgIdx.clear();
-        seqs_h_index_i.clear();  // limpiar vectores de indices
-        seqs_h_index_e.clear();  // limpiar vectores de indices
-        seqs_h_index_i.reserve(lCtgIdx.size());
-        seqs_h_index_e.reserve(lCtgIdx.size());
+        // seqs_h_index_i.clear();  // limpiar vectores de indices
+        // seqs_h_index_e.clear();  // limpiar vectores de indices
+        /// seqs_h_index_i.reserve(lCtgIdx.size());
+        // seqs_h_index_e.reserve(lCtgIdx.size());
 
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
 
-        std::sort(seqs_h_index_i.begin(), seqs_h_index_i.end());
-        std::sort(seqs_h_index_e.begin(), seqs_h_index_e.end());
-
-        for (size_t i = 0; i < seqs_h_index_i.size(); i++) {
-            std::cout << seqs_h_index_i[i] << " " << seqs_h_index_e[i] << std::endl;
-        }
+        // std::sort(seqs_h_index_i.begin(), seqs_h_index_i.end());
+        // std::sort(seqs_h_index_e.begin(), seqs_h_index_e.end());
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
@@ -1010,21 +1000,23 @@ int main(int argc, char const *argv[]) {
         cudaMalloc(&seqs_d, fsize);
         cudaMalloc(&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
+        cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         size_t contig_per_kernel = nobs / n_STREAMS;
         // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-
             size_t contig_to_process = contig_per_kernel;
-            size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             size_t _des = contig_per_kernel * i;
-
-            if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
-            size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
-            size_t _mem_size = seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des];  // tamaño de la memoria a copiar
             size_t TNF_des = _des * 136;
 
-            cudaMemcpyAsync(seqs_d + _mem_i, _mem + _mem_i, _mem_size, cudaMemcpyHostToDevice, streams[i]);
+            if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
+            size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+
+            for (size_t i = 0; i < contig_to_process; i++) {
+                seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + i]] - _mem);
+                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + i]] - _mem + seseqs[gCtgIdx[_des + i]].size());
+            }
+
             cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
                             cudaMemcpyHostToDevice, streams[i]);
             cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
