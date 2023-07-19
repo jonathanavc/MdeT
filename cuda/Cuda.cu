@@ -309,7 +309,7 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
-Similarity *gprob;
+double *gprob;
 // static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
 //  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
