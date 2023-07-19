@@ -770,6 +770,9 @@ int main(int argc, char const *argv[]) {
         std::cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << std::endl;
         return 1;
     }
+    for(int i = 0; i < contig_names.size(); i++){
+        std::cout << contig_names[i] << std::endl;
+    }
 
     // std::cout << seqs.size() << " contigs" << std::endl;
     // std::cout << nobs << " contigs with size >= " << minContig << std::endl;
@@ -1016,9 +1019,6 @@ int main(int argc, char const *argv[]) {
             size_t contig_to_process = contig_per_kernel;
             size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             size_t _des = contig_per_kernel * i;
-
-            // std::cout << "stream: " << i << ", contig_to_process: " << contig_to_process << ", contigs_per_thread: " <<
-            // contigs_per_thread << std::endl;
 
             if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
             size_t _mem_i = seqs_h_index_i[_des];  // puntero al inicio del primer contig a procesar
