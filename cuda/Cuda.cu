@@ -162,7 +162,7 @@ __global__ void get_prob(double *gprob, double *TNF, double *ABD, size_t offset,
         if (gprob_index >= gprob_size) break;
         r1 = 0.5 * (sqrtf(8 * gprob_index + 1) + 1);
         r2 = gprob_index - (r1 * (r1 - 1) / 2);
-        gprob[gprob_index] = r1;
+        gprob[gprob_index] = cal_dist(r1, r2, ABD, TNF, seqs_d_index, seqs_d_index_size);
     }
 }
 
