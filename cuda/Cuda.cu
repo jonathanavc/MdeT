@@ -175,7 +175,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         if (gprob_index >= limit) break;
         r1 = 1 + sqrt(double(1 + 8 * gprob_index));
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        gprob_d[gprob_index] = r1;
+        gprob_d[gprob_index] = r2;
     }
 }
 
