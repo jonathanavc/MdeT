@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <math.h>
+#include <omp.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -909,7 +910,7 @@ int main(int argc, char const *argv[]) {
         pairFile.length() > 0, useEB ? B : 0);
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
-
+    omp_set_num_threads(numThreads);
     print_message("Advanced setting. using CPU threads %d,GPU block (per grid) %d, GPU threads(per block) %d\n", numThreads, numBlocks,
                   numThreads2);
 
