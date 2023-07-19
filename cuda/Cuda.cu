@@ -3,6 +3,7 @@
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -11,7 +12,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
-#include <cmath>
 #include <cstdarg>
 #include <fstream>
 #include <iostream>
