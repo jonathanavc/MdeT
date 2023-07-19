@@ -162,7 +162,8 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *
         if (gprob_index >= nobs) break;
         for (int j = 0; j < gprob_index; j++) {
             size_t index = (i * (i - 1) / 2) + j;
-            gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
+            //gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
+            gprob_d[gprob_index * nobs + i] = index;
         }
     }
 }
