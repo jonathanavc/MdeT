@@ -731,11 +731,11 @@ int main(int argc, char const *argv[]) {
             if (_mem[i] == fasta_delim) {
                 i++;
                 contig_name_i = i;  // guardar el inicio del nombre del contig
-                while (_mem[i] != 10) i++;
+                while (_mem[i] != line_delim) i++;
                 contig_name_e = i;  // guardar el final del nombre del contig
                 i++;
                 contig_i = i;  // guardar el inicio del contig
-                while (i < fsize && _mem[i] != 10) i++;
+                while (i < fsize && _mem[i] != line_delim) i++;
                 contig_e = i;  // guardar el final del contig
                 contig_size = contig_e - contig_i;
                 if (contig_size >= __min) {
