@@ -57,6 +57,10 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
 
     d = sqrt(d);
 
+    if(isnan(d)){
+        return -99;
+    }
+
     double b, c;  // parameters
 
     size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
