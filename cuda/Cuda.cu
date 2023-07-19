@@ -161,7 +161,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
     if (thead_id == 0) {
         for (size_t i = 1; i < nobs; i++) {
             for (size_t j = 0; j < i; i++) {
-                r1 = cont;//cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
+                r1 = cont;  // cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
                 gprob_d[cont] = r1;
                 cont++;
             }
@@ -1223,6 +1223,10 @@ int main(int argc, char const *argv[]) {
     }
 
     for (size_t i = 0; i < 10; i++) {
+        std::cout << gprob[i] << " ";
+    }
+    std::cout "... ";
+    for (size_t i = ((nobs * (nobs - 1)) / 2) - 1; i < (nobs * (nobs - 1)) / 2; i++) {
         std::cout << gprob[i] << " ";
     }
     std::cout << std::endl;
