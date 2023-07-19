@@ -679,10 +679,10 @@ int main(int argc, char const *argv[]) {
         version.c_str(), p1 * 100, p2 * 100, p3 * 100, minProb * 100, minBinned * 100, minCV, minContig, minContigByCorr, minCorr,
         pairFile.length() > 0, useEB ? B : 0);
 
-    print_message("Advanced setting CPU threads %s, GPU threads(per block) %s, GPU block (per grid) %s\n", numThreads, numThreads2,
-                  numBlocks);
+    if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
 
-        if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
+    print_message("Advanced setting. using CPU threads %s, GPU threads(per block) %s, GPU block (per grid) %s\n", numThreads,
+                  numThreads2, numBlocks);
 
     // TIMERSTART(total);
     nobs = 0;
