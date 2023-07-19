@@ -1169,6 +1169,10 @@ int main(int argc, char const *argv[]) {
     verbose_message("Finished building a probabilistic graph.          \n");
 
     cudaFreeHost(_mem);
+    cudaFreeHost(TNF);
+    cudaFreeHost(ABD);
+    cudaFreeHost(ABD_VAR);
+    cudaFreeHost(gprob);
     // TIMERSTOP(total);
     return 0;
 }
