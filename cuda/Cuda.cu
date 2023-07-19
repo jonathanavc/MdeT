@@ -380,6 +380,8 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
 
 typedef double Distance;
 typedef double Similarity;
+typedef boost::property<boost::edge_weight_t, double> Weight;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
 
 static std::string version = "Metabat cuda 0.1";
 static std::string DATE = "2023-07-14";
@@ -437,8 +439,8 @@ static size_t commandline_hash;
 // Similarity *gprob;
 static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
-//  static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
-//  static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
+static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
+static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
 
 static std::unordered_map<std::string_view, size_t> lCtgIdx;  // map of sequence label => local index
 static std::unordered_map<size_t, size_t> gCtgIdx;            // local index => global index of contig_names and seqs
@@ -1279,7 +1281,7 @@ int main(int argc, char const *argv[]) {
                     if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
                         continue;
                     bool passed = false;
-                    //Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    // Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     Similarity s = 1.;
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
