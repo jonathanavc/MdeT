@@ -178,7 +178,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         double d = 0.0;
         for (size_t i = 0; i < 136; ++i) {
-            d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+            d += (TNF_d[r1 * 136 + i] - TNF_d[r2 * 136 + i]) * (TNF_d[r1 * 136 + i] - TNF_d[r2 * 136 + i]);  // euclidean distance
         }
         gprob_d[gprob_index] = sqrt(d);
     }
