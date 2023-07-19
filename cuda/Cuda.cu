@@ -54,10 +54,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-
-    d = sqrt(d);
-
     return d;
+    d = sqrt(d);
 
     double b, c;  // parameters
 
