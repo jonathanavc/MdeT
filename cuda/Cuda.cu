@@ -771,9 +771,6 @@ int main(int argc, char const *argv[]) {
         std::cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << std::endl;
         return 1;
     }
-    for(int i = 0; i < contig_names.size(); i++){
-        std::cout << contig_names[i] << std::endl;
-    }
 
     // std::cout << seqs.size() << " contigs" << std::endl;
     // std::cout << nobs << " contigs with size >= " << minContig << std::endl;
