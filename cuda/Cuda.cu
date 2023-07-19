@@ -1338,6 +1338,7 @@ int main(int argc, char const *argv[]) {
     if (err != cudaSuccess) {
         printf("CUDA error: %s\n", cudaGetErrorString(err));
     }
+    /*
     std::cout << "NOBS: " << nobs << std::endl;
     for (size_t i = 0; i < 10; i++) {
         std::cout << gprob[i] << " ";
@@ -1347,6 +1348,7 @@ int main(int argc, char const *argv[]) {
         std::cout << (int)gprob[i] << " ";
     }
     std::cout << std::endl;
+    */
 
     cudaFreeHost(_mem);
     cudaFreeHost(TNF);
