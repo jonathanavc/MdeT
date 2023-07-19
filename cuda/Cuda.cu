@@ -56,7 +56,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
 
-    d = sqrt(d);
+    d = sqrtf(d);
 
     if (d != d) {
         return -11;
@@ -67,8 +67,16 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
     size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
 
+    if (ctg1_s != ctg1_s || ctg2_s != ctg2_s) {
+        return -12;
+    }
+
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
+
+    if (ctg1 != ctg1 || ctg2 != ctg2) {
+        return -13;
+    }
 
     double lw11 = log10_device(min(ctg1, ctg2));
     double lw21 = log10_device(max(ctg1, ctg2));
@@ -97,6 +105,9 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
 
     // logistic model
     prob = 1.0 / (1 + expf(-(b + c * d)));
+    if (prob != prob) {
+        return -14;
+    }
 
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -110,6 +121,9 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
             0.0001235384 * lw15 * lw25;
         prob = 1.0 / (1 + expf(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
+    }
+    if (prob != prob) {
+        return -15;
     }
 
     return prob;
@@ -138,17 +152,30 @@ __device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_
     */
 }
 
-__global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *seqs_d_index_d, size_t nobs,
+__global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t offset, size_t *seqs_d_index_d, size_t nobs,
                          size_t contig_per_thread) {
+    size_t limit = (nobs * (nobs - 1)) / 2;
+    size_t r1;
+    size_t r2;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    for (size_t i = 0; i < contig_per_thread; i++) {
-        size_t col = (thead_id * contig_per_thread) + i;
-        if (col >= nobs) break;
-        for (int fil = 0; fil < col; fil++) {
-            size_t index = (col * (col - 1) / 2) + fil;
-            gprob_d[index] = 1. - cal_dist(col, fil, TNF_d, ABD_d, seqs_d_index_d, nobs);
-            // gprob_d[index] = index;
+    /*
+    if (thead_id == 0) {
+        for (size_t i = 1; i < nobs; i++) {
+            for (size_t j = 0; j < i; j++) {
+                r1 = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, offset);
+                gprob_d[cont] = r1;
+                cont++;
+            }
+            if (cont > 100) break;
         }
+    }
+    */
+    for (size_t i = 0; i < contig_per_thread; i++) {
+        const size_t gprob_index = (thead_id * contig_per_thread) + i;
+        if (gprob_index >= limit) break;
+        r1 = 1 + sqrt(double(1 + 8 * gprob_index));
+        r2 = gprob_index - r1 * (r1 - 1) / 2;
+        gprob_d[gprob_index] = r1;
     }
 }
 
@@ -1161,24 +1188,24 @@ int main(int argc, char const *argv[]) {
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
-        cudaStream_t streams[n_STREAMS];  // para probar
+        cudaStream_t streams[n_STREAMS];
+        cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
+        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         size_t total_prob = (nobs * (nobs - 1)) / 2;
-        cudaMallocHost((void **)&gprob, total_prob * sizeof(double));  // matriz de probabilidades (triangular inferior)
-        cudaMalloc((void **)&gprob_d, total_prob * sizeof(double));
-
         std::cout << "total_prob: " << total_prob << std::endl;
-        size_t nobs_per_kernel = nobs / n_STREAMS;
+        size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
+            size_t _des = prob_per_kernel * i;
+            size_t prob_to_process = prob_per_kernel;
             cudaStreamCreate(&streams[i]);
-            size_t nobs_to_process = nobs_per_kernel;
-            if (i == n_STREAMS - 1) nobs_to_process += (total_prob % n_STREAMS);
-            size_t nobs_per_thread = (nobs_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-            std::cout << "prob_to_process: " << nobs_to_process << std::endl;
-            std::cout << "prob_per_thread: " << nobs_per_thread << std::endl;
+            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, seqs_d_index, nobs, nobs_per_thread);
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
-        cudaMemcpy(gprob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
@@ -1194,12 +1221,14 @@ int main(int argc, char const *argv[]) {
         printf("CUDA error: %s\n", cudaGetErrorString(err));
     }
     std::cout << "NOBS: " << nobs << std::endl;
-    for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
-        if (gprob[i] < 0) {
-            std::cout << gprob[i] << "ERROR\n";
-            break;
-        }
+    for (size_t i = 0; i < 10; i++) {
+        std::cout << gprob[i] << " ";
     }
+    std::cout << "... ";
+    for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
+        std::cout << (int)gprob[i] << " ";
+    }
+    std::cout << std::endl;
 
     cudaFreeHost(_mem);
     cudaFreeHost(TNF);
