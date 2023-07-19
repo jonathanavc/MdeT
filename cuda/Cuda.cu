@@ -979,7 +979,7 @@ int main(int argc, char const *argv[]) {
 
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
-        std::cout << "memory: " << _mem << std::endl;
+        std::cout << "memory: " << (void *)_mem << std::endl;
         for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
             std::cout << "memory index: " << &contig_names[gCtgIdx[it->second]][0] - &_mem[0] << std::endl;
             seqs_h_index_i.emplace_back(&contig_names[gCtgIdx[it->second]][0] - &_mem[0]);
