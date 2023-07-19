@@ -160,8 +160,8 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = (thead_id * contig_per_thread) + i;
         if (gprob_index >= gprob_size) break;
-        r1 = ((sqrtf(8 * gprob_index + 1) - 1) / 2) - 1;
-        r2 = gprob_index - (r1 * (r1 - 1) / 2) - 1;
+        r1 = ((sqrtf(8 * gprob_index + 1) - 1) / 2);
+        r2 = gprob_index - (r1 * (r1 - 1) / 2);
         double d = 5;
         for (size_t j = 0; j < 136; ++j) {
             d += (TNF_d[0 * 136 + j] - TNF_d[1 * 136 + j]) * (TNF_d[0 * 136 + j] - TNF_d[1 * 136 + j]);  // euclidean distance
