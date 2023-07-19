@@ -161,7 +161,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t *
         for (int fil = 0; fil < col; fil++) {
             size_t index = (col * (col - 1) / 2) + fil;
             // gprob_d[gprob_index * nobs + i] = cal_dist(i, j, TNF_d, ABD_d, seqs_d_index_d, nobs);
-            gprob_d[gprob_index * nobs + i] = index;
+            gprob_d[index] = index;
         }
     }
 }
