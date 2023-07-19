@@ -47,7 +47,7 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-//__device__ double log10_device(double x) { return logf(x) / logf(10.0); }
+__device__ double log10_device(double x) { return logf(x) / logf(10.0); }
 
 __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
@@ -78,8 +78,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         return -13;
     }
 
-    double lw11 = log10l(min(ctg1, ctg2));
-    double lw21 = log10l(max(ctg1, ctg2));
+    double lw11 = log10_device(min(ctg1, ctg2));
+    double lw21 = log10_device(max(ctg1, ctg2));
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
@@ -104,7 +104,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
     // logistic model
-    prob = 1.0 / (1 + expl(-(b + c * d)));
+    prob = 1.0 / (1 + expf(-(b + c * d)));
     if (prob != prob) {
         return -14;
     }
@@ -119,7 +119,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
             -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
             449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
             0.0001235384 * lw15 * lw25;
-        prob = 1.0 / (1 + expl(-(b + c * d)));
+        prob = 1.0 / (1 + expf(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
     if (prob != prob) {
