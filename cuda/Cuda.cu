@@ -78,7 +78,7 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         return -13;
     }
     // aquí está el problema
-    return min(ctg1, ctg2);
+    return min ctg1;
     double lw11 = log10((double)min(ctg1, ctg2));
     double lw21 = log10((double)max(ctg1, ctg2));
     return lw11;
@@ -230,7 +230,7 @@ __global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t o
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, offset);
+        gprob_d[gprob_index] = cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
     }
 }
 
