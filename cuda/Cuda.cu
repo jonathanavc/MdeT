@@ -1196,11 +1196,10 @@ int main(int argc, char const *argv[]) {
     std::cout << "NOBS: " << nobs << std::endl;
     for (size_t i = 0; i < (nobs * (nobs - 1)) / 2; i++) {
         if (gprob[i] < 0) {
-            std::cout << gprob[i] << "ERROR";
+            std::cout << gprob[i] << "ERROR\n";
             break;
         }
     }
-    std::cout << std::endl;
 
     cudaFreeHost(_mem);
     cudaFreeHost(TNF);
