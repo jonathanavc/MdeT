@@ -77,7 +77,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     if (ctg1 != ctg1 || ctg2 != ctg2) {
         return -13;
     }
-
+    // aquí está el problema
+    return min(ctg1, ctg2);
     double lw11 = log10((double)min(ctg1, ctg2));
     double lw21 = log10((double)max(ctg1, ctg2));
     return lw11;
