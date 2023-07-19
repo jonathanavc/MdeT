@@ -1153,7 +1153,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        // cudaFree(TNF_d);
+        cudaFree(TNF_d);
         // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
@@ -1171,6 +1171,8 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
+        cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        cudaMemCpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular inferior)
@@ -1196,6 +1198,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamDestroy(streams[i]);
         }
         cudaFree(gprob_d);
+        cudaFree(TNF_d);
     }
 
     verbose_message("Finished building a probabilistic graph.          \n");
