@@ -772,9 +772,6 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    // std::cout << seqs.size() << " contigs" << std::endl;
-    // std::cout << nobs << " contigs with size >= " << minContig << std::endl;
-
     // cargar el archivo de abundancias
     const int nNonFeat = cvExt ? 1 : 3;  // number of non-feature columns
     if (abdFile.length() > 0) {
@@ -926,11 +923,6 @@ int main(int argc, char const *argv[]) {
                     smallCtgs.insert(r - nskip);
                     if (seqs[_gidx].size() < minContigByCorr) ++nresv;
                 }
-                /*
-                if(label != contig_names[_gidx]){ // verificar que el nombre del contig sea el mismo
-                    std::cout << "Error: " << label << " != " << contig_names[_gidx] << std::endl;
-                }
-                */
                 lCtgIdx2[contig_names[_gidx]] = r - nskip;  // local index
                 gCtgIdx2[r - nskip] = _gidx;                // global index
             } else {
@@ -980,18 +972,12 @@ int main(int argc, char const *argv[]) {
         lCtgIdx = lCtgIdx2;
         gCtgIdx = gCtgIdx2;
 
-        for (std::unordered_map<std::string_view, size_t>::const_iterator it = lCtgIdx.begin(); it != lCtgIdx.end(); ++it) {
-            seqs_h_index_i.emplace_back(&seqs[gCtgIdx[it->second]][0] - &_mem[0]);
-            seqs_h_index_e.emplace_back(&seqs[gCtgIdx[it->second]][0] - &_mem[0] + seqs[gCtgIdx[it->second]].size());
-        }
-
         std::sort(seqs_h_index_i.begin(), seqs_h_index_i.end());
         std::sort(seqs_h_index_e.begin(), seqs_h_index_e.end());
 
-        for(size_t i = 0; i < seqs_h_index_i.size(); i++){
+        for (size_t i = 0; i < seqs_h_index_i.size(); i++) {
             std::cout << seqs_h_index_i[i] << " " << seqs_h_index_e[i] << std::endl;
         }
-        
 
         assert(lCtgIdx.size() == gCtgIdx.size());
         assert(lCtgIdx.size() + ignored.size() == seqs.size());
