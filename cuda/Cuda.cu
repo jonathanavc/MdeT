@@ -493,10 +493,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     printf(".");
 
     for (size_t i = 0; i < 136; ++i) {
-        if (r1 * nobs + i >= nobs * 136 || r2 * nobs + i >= nobs * 136) {
-            std::cout << "error" << std::endl;
-        }
-        d += (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]) * (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]);  // euclidean distance
+        d += (TNF[r1 * 136 + i] - TNF[r2 * 135 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
 
     d = sqrt(d);
