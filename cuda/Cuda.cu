@@ -486,11 +486,6 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
-static Distance cal_tnf_dist(size_t r1, size_t r2);
-static Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool& passed);
-static Distance cal_dist(size_t r1, size_t r2);
-static Distance cal_abd_corr(size_t r1, size_t r2);
-
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
 
@@ -586,7 +581,7 @@ Distance cal_abd_dist2(Normal &p1, Normal &p2) {
 }
 
 // for Poisson distributions
-Distance cal_abd_dist2(Poisson &p1, Poisson &p2) {
+Distance cal_abd_dist2_poisson(Poisson &p1, Poisson &p2) {
     Distance k, m1, m2;
     m1 = p1.mean();
     m2 = p2.mean();
