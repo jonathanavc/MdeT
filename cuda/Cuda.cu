@@ -13,6 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
+#include <boost/math/distributions/normal.hpp>
 #include <boost/math/special_functions.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
