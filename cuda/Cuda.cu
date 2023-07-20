@@ -1333,7 +1333,8 @@ int main(int argc, char const *argv[]) {
         // cudaFree(TNF_d);
     }
     */
-    verbose_message("Finished building a probabilistic graph.          \n");
+    verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
+                    boost::num_edges(gprob));
 
     /*
 
