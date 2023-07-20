@@ -486,6 +486,11 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+static Distance cal_tnf_dist(size_t r1, size_t r2);
+static Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool& passed);
+static Distance cal_dist(size_t r1, size_t r2);
+static Distance cal_abd_corr(size_t r1, size_t r2);
+
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
 
@@ -558,7 +563,7 @@ Distance cal_abd_dist2(Normal &p1, Normal &p2) {
     if (fabs(v2 - v1) < 1e-4) {
         k1 = k2 = (m1 + m2) / 2;
     } else {
-        tmp = SQRT(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * log(sqrt(v2 / v1))));
+        tmp = sqrt(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * log(sqrt(v2 / v1))));
         k1 = (tmp - m1 * v2 + m2 * v1) / (v1 - v2);
         k2 = (tmp + m1 * v2 - m2 * v1) / (v2 - v1);
     }
