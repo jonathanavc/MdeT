@@ -383,6 +383,7 @@ typedef double Distance;
 typedef double Similarity;
 typedef boost::property<boost::edge_weight_t, double> Weight;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
+typedef boost::math::normal_distribution<Distance> Normal;
 
 static std::string version = "Metabat cuda 0.1";
 static std::string DATE = "2023-07-14";
@@ -482,6 +483,79 @@ static int B = 0;
 static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
+
+Distance cal_abd_dist2(Normal &p1, Normal &p2) {
+    Distance k1, k2, tmp, d = 0;
+
+    Distance m1 = p1.mean();
+    Distance m2 = p2.mean();
+    Distance v1 = p1.standard_deviation();
+    v1 = v1 * v1;
+    Distance v2 = p2.standard_deviation();
+    v2 = v2 * v2;
+
+    // normal_distribution
+    if (FABS(v2 - v1) < 1e-4) {
+        k1 = k2 = (m1 + m2) / 2;
+    } else {
+        tmp = SQRT(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * LOG(SQRT(v2 / v1))));
+        k1 = (tmp - m1 * v2 + m2 * v1) / (v1 - v2);
+        k2 = (tmp + m1 * v2 - m2 * v1) / (v2 - v1);
+    }
+
+    if (k1 > k2) {
+        tmp = k1;
+        k1 = k2;
+        k2 = tmp;
+    }
+    if (v1 > v2) {
+        std::swap(p1, p2);
+    }
+
+    if (k1 == k2)
+        d += LOG(FABS(boost::math::cdf(p1, k1) - boost::math::cdf(p2, k1)));
+    else
+        d += LOG(FABS(boost::math::cdf(p1, k2) - boost::math::cdf(p1, k1) + boost::math::cdf(p2, k1) - boost::math::cdf(p2, k2)));
+
+    return d;
+}
+
+// for Poisson distributions
+Distance cal_abd_dist2(Poisson &p1, Poisson &p2) {
+    Distance k, m1, m2;
+    m1 = p1.mean();
+    m2 = p2.mean();
+    k = (m1 - m2) / (LOG(m1) - LOG(m2));
+    return LOG(FABS(boost::math::cdf(p1, k) - boost::math::cdf(p2, k)));
+}
+
+// maxDist: maximum distance for further calculation (to avoid unnecessary calculation)
+Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
+    assert(smallCtgs.find(r1) == smallCtgs.end());
+    assert(smallCtgs.find(r2) == smallCtgs.end());
+    Distance abd_dist = 0, tnf_dist = 0;
+    int nnz = 0;
+    if (r1 == r2) return 0;
+    tnf_dist = cal_tnf_dist(r1, r2);
+    if (!passed && tnf_dist > maxDist) {
+        return 1;
+    }
+    if (abdFile.length() > 0) abd_dist = cal_abd_dist(r1, r2, nnz);
+    passed = true;
+    if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
+        return std::max(tnf_dist, abd_dist * 0.9);
+    } else {
+        Distance w = 0;
+        if (nnz > 0) w = std::min(log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
+        return abd_dist * w + tnf_dist * (1 - w);
+    }
+}
+
+Distance cal_dist(size_t r1, size_t r2) {
+    Distance maxDist = 1;
+    bool passed = true;
+    return cal_dist(r1, r2, maxDist, passed);
+}
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
@@ -1284,8 +1358,8 @@ int main(int argc, char const *argv[]) {
                     if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
                         continue;
                     bool passed = false;
-                    // Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                    Similarity s = 1.;
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    // Similarity s = 1.;
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
