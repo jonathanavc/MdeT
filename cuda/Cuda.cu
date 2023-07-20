@@ -386,6 +386,7 @@ typedef double Similarity;
 typedef boost::property<boost::edge_weight_t, double> Weight;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
 typedef boost::math::normal_distribution<Distance> Normal;
+typedef boost::math::poisson_distribution<Distance> Poisson;
 
 static std::string version = "Metabat cuda 0.1";
 static std::string DATE = "2023-07-14";
@@ -581,7 +582,7 @@ Distance cal_abd_dist2(Normal &p1, Normal &p2) {
 }
 
 // for Poisson distributions
-Distance cal_abd_dist2_poisson(Poisson &p1, Poisson &p2) {
+Distance cal_abd_dist2(Poisson &p1, Poisson &p2) {
     Distance k, m1, m2;
     m1 = p1.mean();
     m2 = p2.mean();
