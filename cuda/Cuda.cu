@@ -13,8 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
-#include <boost/math/distributions/normal.hpp>
-#include <boost/math/special_functions.hpp>
+#include <boost/math/distributions.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
 #include <cstdarg>
@@ -383,10 +382,12 @@ __global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *s
 
 typedef double Distance;
 typedef double Similarity;
-typedef boost::property<boost::edge_weight_t, double> Weight;
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
+
 typedef boost::math::normal_distribution<Distance> Normal;
 typedef boost::math::poisson_distribution<Distance> Poisson;
+
+typedef boost::property<boost::edge_weight_t, double> Weight;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
 
 static std::string version = "Metabat cuda 0.1";
 static std::string DATE = "2023-07-14";
@@ -612,7 +613,7 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
             Distance v1 = ABD_VAR[r1 * nABD + i] < 1 ? 1 : ABD_VAR[r1 * nABD + i];
             Distance v2 = ABD_VAR[r2 * nABD + i] < 1 ? 1 : ABD_VAR[r2 * nABD + i];
 
-            Normal p1(m1, sqrt(v1)), p2(m2, SQRT(v2));
+            Normal p1(m1, sqrt(v1)), p2(m2, sqrt(v2));
             d += cal_abd_dist2(p1, p2);
         } else {
             m1sum += m1;
