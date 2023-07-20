@@ -590,6 +590,59 @@ Distance cal_abd_dist2(Poisson &p1, Poisson &p2) {
     return log(fabs(boost::math::cdf(p1, k) - boost::math::cdf(p2, k)));
 }
 
+Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
+    Distance d = 0;
+    int nns = 0;
+
+    assert(r1 < nobs && r2 < nobs);
+
+    Distance m1sum = 0, m2sum = 0;
+    //	Distance v1sum = 0, v2sum = 0;
+    for (size_t i = 0; i < nABD; ++i) {
+        Distance m1 = ABD[r1 * nABD + i];
+        Distance m2 = ABD[r2 * nABD + i];
+        if (m1 > minCV || m2 > minCV) {  // compare only at least one >2
+            ++nnz;
+            m1 = std::max(m1, (Distance)1e-6);
+            m2 = std::max(m2, (Distance)1e-6);
+            if (m1 == m2) {
+                ++nns;
+                continue;
+            }
+            Distance v1 = ABD_VAR[r1 * nABD + i] < 1 ? 1 : ABD_VAR[r1 * nABD + i];
+            Distance v2 = ABD_VAR[r2 * nABD + i] < 1 ? 1 : ABD_VAR[r2 * nABD + i];
+
+            Normal p1(m1, sqrt(v1)), p2(m2, SQRT(v2));
+            d += cal_abd_dist2(p1, p2);
+        } else {
+            m1sum += m1;
+            m2sum += m2;
+            //			v1sum += ABD_VAR(r1,i);
+            //			v2sum += ABD_VAR(r2,i);
+        }
+    }
+
+    if (sumLowCV && (m1sum > minCV || m2sum > minCV)) {
+        if (fabs(m1sum - m2sum) > 1e-3) {
+            // now include the sum of all samples that failed the minCV test
+            m1sum = std::max(m1sum, (Distance)1e-6);
+            m2sum = std::max(m2sum, (Distance)1e-6);
+            Poisson p1(m1sum), p2(m2sum);
+            // Normal p1(m1sum, SQRT(v1sum)), p2(m2sum, SQRT(v2sum));
+            d += cal_abd_dist2(p1, p2);
+        }  // else they are the same distribution, so d += 0
+        ++nnz;
+    } else if (nnz == 0) {
+        // both samples are very low abundance, use TNF
+        return 1;
+    }
+
+    if (nns == (int)nABD)  // the same
+        return 0;
+    else
+        return pow(exp(d), 1.0 / nnz);
+}
+
 // maxDist: maximum distance for further calculation (to avoid unnecessary calculation)
 Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     assert(smallCtgs.find(r1) == smallCtgs.end());
