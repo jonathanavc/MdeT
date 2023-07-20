@@ -491,7 +491,11 @@ static std::chrono::steady_clock::time_point t1, t2;
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     printf(".");
+
     for (size_t i = 0; i < 136; ++i) {
+        if (r1 * nobs + i >= nobs * 136 || r2 * nobs + i >= nobs * 136) {
+            printf("r1: %d, r2: %d, i: %d, nobs: %d\n", r1, r2, i, nobs);
+        }
         d += (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]) * (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]);  // euclidean distance
     }
 
