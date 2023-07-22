@@ -574,7 +574,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     c = _c[0];
     c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
-    c += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
+    //c += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
     c += -3282.8510348085 * lw[0] * lw[1];
     c += 164.0438603974 * lw[2] * lw[8];
     c += -5.2778800755 * lw[3] * lw[9];
