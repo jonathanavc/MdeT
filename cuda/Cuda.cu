@@ -1457,8 +1457,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        // cudaFree(TNF_d);
-        // cudaFree(seqs_d_index);
+        cudaFree(TNF_d);
+        cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
