@@ -521,7 +521,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
 
-    distance lw[13];
+    Distance lw[13];
     lw[0] = log10(std::min(ctg1, ctg2));
     lw[1] = log10(std::max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
@@ -538,11 +538,11 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     Distance prob;
 
-    __m512d aux1 = _mm512_loadu_pd(_b + 1);
-    __m256d aux2 = _mm256_loadu_pd(_b + 9);
+    __m512d aux1 = _mm512_load_pd(_b + 1);
+    __m256d aux2 = _mm256_load_pd(_b + 9);
     b = _b[0];
-    b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_loadu_pd(lw)));
-    b += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_loadu_pd(lw + 8)));
+    b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
+    b += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
     b += 474.0850141891 * lw[0] * lw[1];
     b += -23.966597785 * lw[2] * lw[8];
     b += 0.7800219061 * lw[3] * lw[9];
@@ -569,12 +569,12 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     + -0.0138723693 * lw[4] * lw[10]
     + 0.0001027543 * lw[5] * lw[11];
     */
-    aux1 = _mm512_loadu_pd(_c + 1);
-    aux2 = _mm256_loadu_pd(_c + 9);
+    aux1 = _mm512_load_pd(_c + 1);
+    aux2 = _mm256_load_pd(_c + 9);
 
     c = _c[0];
-    c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_loadu_pd(lw)));
-    c += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_loadu_pd(lw + 8)));
+    c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
+    c += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
     c += -3282.8510348085 * lw[0] * lw[1];
     c += 164.0438603974 * lw[2] * lw[8];
     c += -5.2778800755 * lw[3] * lw[9];
