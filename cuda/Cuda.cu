@@ -492,11 +492,11 @@ static std::chrono::steady_clock::time_point t1, t2;
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     // no mejora proacticamente nada
-    __m512d vec1, vec2, dis;
+    __m512d dis;//, vec1, vec2, ;
     for (int i = 0; i < 17; i++) {
-        vec1 = _mm512_loadu_pd(TNF + r1 * 136 + i * 8);
-        vec2 = _mm512_loadu_pd(TNF + r2 * 136 + i * 8);
-        dis = _mm512_sub_pd(vec1, vec2);
+        // vec1 = _mm512_loadu_pd(TNF + r1 * 136 + i * 8);
+        // vec2 = _mm512_loadu_pd(TNF + r2 * 136 + i * 8);
+        dis = _mm512_sub_pd(_mm512_loadu_pd(TNF + r1 * 136 + i * 8), _mm512_loadu_pd(TNF + r2 * 136 + i * 8));
         dis = _mm512_mul_pd(dis, dis);
         d += _mm512_reduce_add_pd(_mm512_load_pd(&diff));
     }
