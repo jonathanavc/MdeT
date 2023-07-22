@@ -506,7 +506,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     }
     */
 
-    d = sqrt(d);
+    d = std::sqrt(d);
 
     Distance b, c;  // parameters
 
@@ -568,10 +568,10 @@ Distance cal_abd_dist2(Normal &p1, Normal &p2) {
     v2 = v2 * v2;
 
     // normal_distribution
-    if (fabs(v2 - v1) < 1e-4) {
+    if (std::fabs(v2 - v1) < 1e-4) {
         k1 = k2 = (m1 + m2) / 2;
     } else {
-        tmp = sqrt(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * log(sqrt(v2 / v1))));
+        tmp = std::sqrt(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * std::log(std::sqrt(v2 / v1))));
         k1 = (tmp - m1 * v2 + m2 * v1) / (v1 - v2);
         k2 = (tmp + m1 * v2 - m2 * v1) / (v2 - v1);
     }
@@ -586,9 +586,9 @@ Distance cal_abd_dist2(Normal &p1, Normal &p2) {
     }
 
     if (k1 == k2)
-        d += log(fabs(boost::math::cdf(p1, k1) - boost::math::cdf(p2, k1)));
+        d += std::log(std::fabs(boost::math::cdf(p1, k1) - boost::math::cdf(p2, k1)));
     else
-        d += log(fabs(boost::math::cdf(p1, k2) - boost::math::cdf(p1, k1) + boost::math::cdf(p2, k1) - boost::math::cdf(p2, k2)));
+        d += std::log(std::fabs(boost::math::cdf(p1, k2) - boost::math::cdf(p1, k1) + boost::math::cdf(p2, k1) - boost::math::cdf(p2, k2)));
 
     return d;
 }
@@ -624,7 +624,7 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
             Distance v1 = ABD_VAR[r1 * nABD + i] < 1 ? 1 : ABD_VAR[r1 * nABD + i];
             Distance v2 = ABD_VAR[r2 * nABD + i] < 1 ? 1 : ABD_VAR[r2 * nABD + i];
 
-            Normal p1(m1, sqrt(v1)), p2(m2, sqrt(v2));
+            Normal p1(m1, sqrt(v1)), p2(m2, std::sqrt(v2));
             d += cal_abd_dist2(p1, p2);
         } else {
             m1sum += m1;
@@ -635,7 +635,7 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
     }
 
     if (sumLowCV && (m1sum > minCV || m2sum > minCV)) {
-        if (fabs(m1sum - m2sum) > 1e-3) {
+        if (std::fabs(m1sum - m2sum) > 1e-3) {
             // now include the sum of all samples that failed the minCV test
             m1sum = std::max(m1sum, (Distance)1e-6);
             m2sum = std::max(m2sum, (Distance)1e-6);
@@ -652,7 +652,7 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
     if (nns == (int)nABD)  // the same
         return 0;
     else
-        return pow(exp(d), 1.0 / nnz);
+        return std::pow(std::exp(d), 1.0 / nnz);
 }
 
 // maxDist: maximum distance for further calculation (to avoid unnecessary calculation)
@@ -672,7 +672,7 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
         return std::max(tnf_dist, abd_dist * 0.9);
     } else {
         Distance w = 0;
-        if (nnz > 0) w = std::min(log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
+        if (nnz > 0) w = std::min(std::log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
         return abd_dist * w + tnf_dist * (1 - w);
     }
 }
