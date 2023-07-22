@@ -490,7 +490,7 @@ static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
-    double *diff[4];
+    double diff[4];
     Distance d = 0;
     __m512 vec1;
     __m512 vec2;
