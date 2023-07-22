@@ -490,15 +490,15 @@ static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
-    double diff[8];
     Distance d = 0;
     __m512d vec1;
     __m512d vec2;
+    __m512d diff;
     for (int i = 0; i < 17; i++) {
         vec1 = _mm512_loadu_pd(TNF + r1 * 136 + i * 8);
         vec2 = _mm512_loadu_pd(TNF + r2 * 136 + i * 8);
         _mm512_store_pd(diff, _mm512_sub_pd(vec1, vec2));
-        _mm512_store_pd(diff, _mm512_sub_pd(_mm512_load_pd(&diff), _mm512_load_pd(&diff)));
+        _mm512_store_pd(diff, _mm512_sub_pd(diff, diff));
         d += _mm512_reduce_add_pd(_mm512_load_pd(&diff));
     }
     /*
