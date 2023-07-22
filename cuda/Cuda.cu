@@ -545,9 +545,9 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     aux512 = _mm512_load_pd(_b + 1);
     b = _b[0];
-    b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
+    b += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw)));
     _aux512 = _mm512_load_pd(_b + 9);
-    b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw + 8)));
+    b += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw + 8)));
     b += 0.0001027543 * lw[16];
 
     /**
@@ -572,9 +572,9 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     */
     aux512 = _mm512_load_pd(_c + 1);
     c = _c[0];
-    c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
+    c += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw)));
     _aux512 = _mm512_load_pd(_c + 9);
-    c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw + 8)));
+    c += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw + 8)));
     c += -0.0006826817 * lw[16];
     /*
     c = -443565.465710869
