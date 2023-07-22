@@ -498,7 +498,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         vec1 = _mm512_load_ps(TNF + r1 * 136 + i * 4);
         vec2 = _mm512_load_ps(TNF + r2 * 136 + i * 4);
         _mm512_store_ps(diff, _mm512_sub_ps(vec1, vec2));
-        _mm512_store_ps(diff, _mm512_mul_ps(diff, diff));
+        _mm512_store_ps(diff, _mm512_mul_ps(_mm512_load_ps(&diff), _mm512_load_ps(&diff)));
         d += diff[0] + diff[1] + diff[2] + diff[3];
     }
     /*
