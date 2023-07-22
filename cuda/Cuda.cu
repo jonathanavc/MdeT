@@ -3,6 +3,7 @@
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
+#include <immintrin.h>
 #include <math.h>
 #include <omp.h>
 #include <sys/stat.h>
@@ -489,11 +490,22 @@ static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
+    double *diff[4];
     Distance d = 0;
-
-    for (size_t i = 0; i < 136; ++i) {
+    __m512 vec1;
+    __m512 vec2;
+    for (int i = 0; i < 34; i++) {
+        vec1 = __mm512_load_ps(TNF + r1 * 136 + i * 4);
+        vec2 = __mm512_load_ps(TNF + r2 * 136 + i * 4);
+        __mm512_store_ps(diff, __mm512_sub_ps(vec1, vec2));
+        __mm512_store_ps(diff, __mm512_mul_ps(diff, diff));
+        d += diff[0] + diff[1] + diff[2] + diff[3];
+    }
+    /*
+    for (int i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
+    */
 
     d = sqrt(d);
 
