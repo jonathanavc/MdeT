@@ -500,13 +500,13 @@ const double _c[] = {-443565.465710869, 718862.10804858,  5114.1630934534, -5015
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     // no mejora proacticamente nada
-    __m512d dis;  //, vec1, vec2, ;
+    __m512d _aux512;  //, vec1, vec2, ;
     for (int i = 0; i < 17; i++) {
         // vec1 = _mm512_loadu_pd(TNF + r1 * 136 + i * 8);
         // vec2 = _mm512_loadu_pd(TNF + r2 * 136 + i * 8);
-        dis = _mm512_sub_pd(_mm512_load_pd(TNF + r1 * 136 + i * 8), _mm512_load_pd(TNF + r2 * 136 + i * 8));
-        dis = _mm512_mul_pd(dis, dis);
-        d += _mm512_reduce_add_pd(dis);
+        _aux512 = _mm512_sub_pd(_mm512_load_pd(TNF + r1 * 136 + i * 8), _mm512_load_pd(TNF + r2 * 136 + i * 8));
+        _aux512 = _mm512_mul_pd(_aux512, _aux512);
+        d += _mm512_reduce_add_pd(_aux512);
     }
     /*
     for (int i = 0; i < 136; ++i) {
@@ -521,7 +521,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
 
-    Distance lw[13];
+    Distance lw[18];
     lw[0] = log10(std::min(ctg1, ctg2));
     lw[1] = log10(std::max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
@@ -534,20 +534,21 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     lw[9] = lw[8] * lw[1];
     lw[10] = lw[9] * lw[1];
     lw[11] = lw[10] * lw[1];
-    lw[12] = lw[11] * lw[1];
+    lw[12] = lw[0] * lw[1];
+    lw[13] = lw[2] * lw[8];
+    lw[14] = lw[3] * lw[9];
+    lw[15] = lw[4] * lw[10];
+    lw[16] = lw[5] * lw[11];
+    lw[17] = lw[11] * lw[1];
 
     Distance prob;
 
-    __m512d aux1 = _mm512_load_pd(_b + 1);
-    __m256d aux2 = _mm256_load_pd(_b + 9);
+    aux512 = _mm512_load_pd(_b + 1);
     b = _b[0];
     b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
-    //b += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
-    b += 474.0850141891 * lw[0] * lw[1];
-    b += -23.966597785 * lw[2] * lw[8];
-    b += 0.7800219061 * lw[3] * lw[9];
-    b += -0.0138723693 * lw[4] * lw[10];
-    b += 0.0001027543 * lw[5] * lw[11];
+    _aux512 = _mm512_load_pd(_b + 9);
+    b += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw + 8)));
+    b += 0.0001027543 * lw[16];
 
     /**
     b = 46349.1624324381
@@ -569,17 +570,12 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     + -0.0138723693 * lw[4] * lw[10]
     + 0.0001027543 * lw[5] * lw[11];
     */
-    aux1 = _mm512_load_pd(_c + 1);
-    aux2 = _mm256_load_pd(_c + 9);
-
+    aux512 = _mm512_load_pd(_c + 1);
     c = _c[0];
     c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw)));
-    c += _mm256_reduce_add_pd(_mm256_mul_pd(aux2, _mm256_load_pd(lw + 8)));
-    c += -3282.8510348085 * lw[0] * lw[1];
-    c += 164.0438603974 * lw[2] * lw[8];
-    c += -5.2778800755 * lw[3] * lw[9];
-    c += 0.0929379305 * lw[4] * lw[10];
-    c += -0.0006826817 * lw[5] * lw[11];
+    _aux512 = _mm512_load_pd(_c + 9);
+    c += _mm512_reduce_add_pd(_mm512_mul_pd(aux1, _mm512_load_pd(lw + 8)));
+    c += -0.0006826817 * lw[16];
     /*
     c = -443565.465710869
     + 718862.10804858 * lw[0]
@@ -607,13 +603,13 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw[0] + -2976.2879986855 * lw[1] + 3279.7524685865 * lw[2] + 1602.7544794819 * lw[8] +
             -967.2906583423 * lw[3] + -462.0149190219 * lw[9] + 159.8317289682 * lw[4] + 74.4884405822 * lw[10] +
-            -14.0267151808 * lw[5] + -6.3644917671 * lw[11] + 0.5108811613 * lw[6] + 0.2252455343 * lw[12] +
+            -14.0267151808 * lw[5] + -6.3644917671 * lw[11] + 0.5108811613 * lw[6] + 0.2252455343 * lw[18] +
             0.965040193 * lw[2] * lw[8] + -0.0546309127 * lw[3] * lw[9] + 0.0012917084 * lw[4] * lw[10] +
             -1.14383e-05 * lw[5] * lw[11];
         c = 39406.5712626297 + -77863.1741143294 * lw[0] + 9586.8761567725 * lw[1] + 55360.1701572325 * lw[2] +
             -5825.2491611377 * lw[8] + -21887.8400068324 * lw[3] + 1751.6803621934 * lw[9] + 5158.3764225203 * lw[4] +
             -290.1765894829 * lw[10] + -724.0348081819 * lw[5] + 25.364646181 * lw[11] + 56.0522105105 * lw[6] +
-            -0.9172073892 * lw[12] + -1.8470088417 * lw[7] + 449.4660736502 * lw[0] * lw[1] + -24.4141920625 * lw[2] * lw[8] +
+            -0.9172073892 * lw[18] + -1.8470088417 * lw[7] + 449.4660736502 * lw[0] * lw[1] + -24.4141920625 * lw[2] * lw[8] +
             0.8465834103 * lw[3] * lw[9] + -0.0158943762 * lw[4] * lw[10] + 0.0001235384 * lw[5] * lw[11];
         prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
