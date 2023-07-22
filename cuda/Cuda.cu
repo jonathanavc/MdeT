@@ -543,7 +543,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     Distance prob;
 
-    aux512 = _mm512_load_pd(_b + 1);
+    _aux512 = _mm512_load_pd(_b + 1);
     b = _b[0];
     b += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw)));
     _aux512 = _mm512_load_pd(_b + 9);
@@ -570,7 +570,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     + -0.0138723693 * lw[4] * lw[10]
     + 0.0001027543 * lw[5] * lw[11];
     */
-    aux512 = _mm512_load_pd(_c + 1);
+    _aux512 = _mm512_load_pd(_c + 1);
     c = _c[0];
     c += _mm512_reduce_add_pd(_mm512_mul_pd(_aux512, _mm512_load_pd(lw)));
     _aux512 = _mm512_load_pd(_c + 9);
