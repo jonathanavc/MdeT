@@ -513,7 +513,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
 
-    Distance lw[13];
+    Distance lw[18];
      lw[0] = log10(std::min(ctg1, ctg2));
      lw[1] = log10(std::max(ctg1, ctg2));
      lw[2] = lw[0] * lw[0];
