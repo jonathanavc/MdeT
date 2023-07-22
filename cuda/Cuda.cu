@@ -3,12 +3,12 @@
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
-#include <immintrin.h>
 #include <math.h>
 #include <omp.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <zmmintrin.h>
 
 #include <algorithm>
 #include <boost/filesystem.hpp>
