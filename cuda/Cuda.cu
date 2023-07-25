@@ -493,6 +493,129 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *membership, igraph_weight_vector_t *weights) {
+    node_t no_of_nodes = igraph_vcount(graph);
+    edge_t no_of_edges = igraph_ecount(graph);
+    node_t no_of_not_fixed_nodes = no_of_nodes;
+    igraph_bool_t running = 1;
+
+    igraph_node_vector_t node_order;
+
+    /* The implementation uses a trick to avoid negative array indexing:
+     * elements of the membership vector are increased by 1 at the start
+     * of the algorithm; this to allow us to denote unlabeled vertices
+     * (if any) by zeroes. The membership vector is shifted back in the end
+     */
+
+    /* Do some initial checks */
+    if (weights) {
+        if (igraph_vector_size(weights) != no_of_edges) {
+            cerr << "Invalid weight vector length" << endl;
+            exit(1);
+        } else if (igraph_vector_min(weights) < 0) {
+            cerr << "Weights must be non-negative" << endl;
+            exit(1);
+        }
+    }
+
+    verbose_message("Running Ensemble Binning [%.1fGb / %.1fGb]\r", getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+
+    RNG_BEGIN();
+
+    /* Initialize node ordering vector with only the not fixed nodes */
+    igraph_vector_init(&node_order, no_of_nodes);
+    igraph_vector_init(membership, no_of_nodes);
+
+#pragma omp parallel for
+    for (node_t i = 0; i < no_of_nodes; ++i) {
+        VECTOR(node_order)[i] = i;
+        VECTOR(*membership)[i] = i + 1;
+    }
+
+    size_t iter = 0;
+    running = 1;
+    while (running) {
+        running = 0;
+
+        /* Shuffle the node ordering vector */
+        igraph_vector_shuffle(&node_order);
+/* In the prescribed order, loop over the vertices and reassign labels */
+#pragma omp parallel for schedule(static, 1)  // non-reproducible
+        for (node_t i = 0; i < no_of_not_fixed_nodes; i++) {
+            node_t v1 = VECTOR(node_order)[i];
+
+            /* Count the weights corresponding to different labels */
+            double max_count = 0.0;
+
+            std::vector<node_t> dominant_labels;
+            std::unordered_map<node_t, float> label_counters;
+
+            igraph_edge_vector_t *ineis = &graph->incs[v1];
+            for (edge_t j = 0; j < igraph_vector_size(ineis); j++) {                         // # of neighbors
+                node_t k = VECTOR(*membership)[IGRAPH_OTHER(graph, VECTOR(*ineis)[j], v1)];  // community membership of a neighbor
+                if (k == 0) continue;                                                        /* skip if it has no label yet */
+                if (label_counters.find(k) == label_counters.end()) label_counters[k] = 0.;
+                label_counters[k] += VECTOR(*weights)[VECTOR(*ineis)[j]];  // sum of neighbors weights to cluster k
+                if (max_count < label_counters[k]) {                       // found better community membership
+                    max_count = label_counters[k];
+                    dominant_labels.resize(1);
+                    dominant_labels[0] = k;                   // new potential community membership
+                } else if (max_count == label_counters[k]) {  // found equal contender
+                    dominant_labels.push_back(k);
+                }
+            }
+
+            if (dominant_labels.size() > 0) {
+                /* Select randomly from the dominant labels */
+                node_t k = dominant_labels[RNG_INTEGER(0, dominant_labels.size() - 1)];
+                /* Check if the _current_ label of the node is also dominant */
+                if (label_counters[VECTOR(*membership)[v1]] != max_count) {
+                    /* Nope, we need at least one more iteration */
+                    running = 1;
+                }
+                VECTOR(*membership)[v1] = k;
+            }
+        }
+        verbose_message("Running Ensemble Binning %d [%.1fGb / %.1fGb]\r", ++iter, getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+    }
+
+    RNG_END();
+
+    igraph_inclist_destroy(graph);
+    igraph_vector_destroy(&node_order);
+
+    /* Shift back the membership vector, permute labels in increasing order */
+
+    igraph_vector_t<int_least32_t> label_counters2;
+    igraph_vector_init(&label_counters2, no_of_nodes + 1);
+
+    igraph_vector_fill<int_least32_t>(&label_counters2, -1);
+
+    verbose_message("Running Ensemble Binning %d [%.1fGb / %.1fGb]\n", iter, getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+
+    node_t j = 0;
+    for (node_t i = 0; i < no_of_nodes; i++) {
+        int_fast32_t k = (int_fast32_t)VECTOR(*membership)[i] - 1;
+        if (k >= 0) {
+            if (VECTOR(label_counters2)[k] == -1) {
+                /* We have seen this label for the first time */
+                VECTOR(label_counters2)[k] = j;
+                k = j;
+                j++;
+            } else {
+                k = VECTOR(label_counters2)[k];
+            }
+        } else {
+            /* This is an unlabeled vertex */
+        }
+        VECTOR(*membership)[i] = k;
+    }
+
+    igraph_vector_destroy(&label_counters2);
+
+    return 0;
+}
+
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     __m512d dis;  //, vec1, vec2, ;
