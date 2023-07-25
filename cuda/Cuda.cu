@@ -1019,6 +1019,72 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
+void fish_objects(int m, ContigSet &mems, Similarity p1, Similarity p2, ContigVector &medoid_ids,
+                  ContigSet &binned) {  // fish (assign) objects to medoid m.
+    if (debug) {
+        std::cout << "---------------------" << std::endl;
+        std::cout << "medoid: " << medoid_ids[m] << " with non-zero friends: " << boost::out_degree(medoid_ids[m], gprob) << std::endl;
+    }
+
+    mems.insert(medoid_ids[m]);
+
+    out_edge_iterator e, e_end;
+    vertex_descriptor v = boost::vertex(medoid_ids[m], gprob);
+
+    int maxFriends = boost::out_degree(v, gprob);
+    if (maxFriends == 0) return;
+
+    boost::tie(e, e_end) = boost::out_edges(v, gprob);
+
+// find all friends of medoid >= p1
+#pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < maxFriends; ++i) {
+        out_edge_iterator ee = e + i;
+        Similarity p = boost::get(gWgt, *ee);
+        if (p >= p1) {
+            int f = boost::get(gIdx, boost::target(*ee, gprob));
+#pragma omp critical(FISH_OBJECTS_ADD_TO_CLUSTER)
+            {
+                if (binned.find(f) == binned.end()) {  // add only if it is fuzzy binning or f is still unbinned
+                    mems.insert(f);
+                }
+            }
+        }
+    }
+
+    ContigSet newbies;
+
+#pragma omp parallel for schedule(dynamic)
+    for (size_t i = 0; i < mems.size(); ++i) {
+        ContigSet::iterator it = mems.begin();
+        std::advance(it, i);
+        if (*it == medoid_ids[m]) continue;
+        vertex_descriptor v = boost::vertex(*it, gprob);
+        out_edge_iterator e2, e_end2;
+        for (boost::tie(e2, e_end2) = boost::out_edges(v, gprob); e2 != e_end2; ++e2) {
+            Similarity pp = boost::get(gWgt, *e2);
+            if (pp >= p2) {
+                int ff = boost::get(gIdx, boost::target(*e2, gprob));
+#pragma omp critical(FISH_OBJECTS_ADD_TO_CLUSTER_2)
+                {
+                    if (binned.find(ff) == binned.end()) {  // add only if it is fuzzy binning or ff is still unbinned
+                        newbies.insert(ff);
+                    }
+                }
+            }
+        }
+    }
+    mems.insert(newbies.begin(), newbies.end());
+    if (debug) {
+        std::cout << "cls[m].size(): " << mems.size() << std::endl;
+        for (ContigSet::iterator it = mems.begin(); it != mems.end(); ++it) {
+            std::cout << *it << ", ";
+        }
+        std::cout << std::endl << "---------------------" << std::endl;
+    }
+    return;
+}
+
 void init_medoids_by_ABD(size_t k, ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned) {
     std::list<DistancePair>::iterator it = rABD.begin();
     while (it != rABD.end()) {
