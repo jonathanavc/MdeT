@@ -25,8 +25,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
-#include <boost/interprocess/detail/os_file_functions.hpp>
-#include <boost/interprocess/detail/utilities.hpp>
 #include <boost/math/distributions.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
@@ -316,7 +314,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
     return seqs_d + seqs_d_index[contig_index];
 }
 
-__global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs, const size_t contigs_per_thread,
+__global__ void get_TNF(float *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs, const size_t contigs_per_thread,
                         const size_t seqs_d_index_size) {
     // const size_t minContig = 2500;
     // const size_t minContigByCorr = 1000;
@@ -357,7 +355,7 @@ __global__ void get_TNF(double *TNF_d, const char *seqs_d, const size_t *seqs_d_
     }
 }
 
-__global__ void get_TNF_local(double *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
+__global__ void get_TNF_local(float *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
                               const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     // const size_t minContig = 2500;
     // const size_t minContigByCorr = 1000;
@@ -488,7 +486,7 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
-double *TNF_d;
+float *TNF_d;
 char *seqs_d;
 size_t *seqs_d_index;
 static char *_mem;
@@ -505,7 +503,8 @@ static size_t nobs2;  // number of contigs used for binning
 
 static boost::numeric::ublas::matrix<float> ABD;
 static boost::numeric::ublas::matrix<float> ABD_VAR;
-static double *TNF;
+//static boost::numeric::ublas::matrix<float> TNF;
+static float *TNF;
 
 // typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
 
@@ -542,9 +541,18 @@ int getFreeMem() {
     if (kernReturn != KERN_SUCCESS) return 0;
     return (vm_page_size * vmStats.free_count) / 1024;
 #else
-    size_t pageSize = boost::interprocess::detail::get_mem_page_size();
-    size_t freeMem = boost::interprocess::detail::get_free_system_memory();
-    return freeMem / (1024 * pageSize);  // Kb
+    FILE *file = fopen("/proc/meminfo", "r");
+    size_t result = 0;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL) {
+        if (strncmp(line, "MemFree:", 6) == 0 || strncmp(line, "Buffers:", 6) == 0 || strncmp(line, "Cached:", 6) == 0 ||
+            strncmp(line, "SwapFree:", 6) == 0) {
+            result += parseLine(line);
+        }
+    }
+    fclose(file);
+    return result;  // Kb
 #endif
 }
 
@@ -1129,7 +1137,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     fseek(fp, 0L, SEEK_END);
     size_t fsize = ftell(fp);  // obtener el tamaño del archivo
     fclose(fp);
-    fsize = (fsize / sizeof(double)) - 1;  // el primer valor es el minContig
+    fsize = (fsize / sizeof(float)) - 2;  // el primer valor es el minContig
     if ((fsize / 136) != nobs) {
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
                   << (fsize / 136) << std::endl;
@@ -2349,8 +2357,8 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(tnf);
 
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-        cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
-        cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(double));
+        cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
+        cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
         cudaMalloc((void **)&seqs_d, fsize);
         cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
@@ -2378,7 +2386,7 @@ int main(int argc, char const *argv[]) {
                             cudaMemcpyHostToDevice, streams[i]);
             get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                                contigs_per_thread, nobs);
-            cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(double), cudaMemcpyDeviceToHost,
+            cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
                             streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
