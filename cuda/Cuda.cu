@@ -719,57 +719,62 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
 }
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
-	Distance d = 0;
+    Distance d = 0;
 
-	for (size_t i = 0; i < nTNF; ++i) {
-		d += (TNF(r1,i) - TNF(r2,i)) * (TNF(r1,i) - TNF(r2,i)); //euclidean distance
-	}
+    for (size_t i = 0; i < nTNF; ++i) {
+        d += (TNF(r1, i) - TNF(r2, i)) * (TNF(r1, i) - TNF(r2, i));  // euclidean distance
+    }
 
-	d = SQRT(d);
+    d = SQRT(d);
 
-	Distance b,c; //parameters
+    Distance b, c;  // parameters
 
-	size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
-	size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
+    size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
+    size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
 
-	Distance lw11 = LOG10(std::min(ctg1, ctg2));
-	Distance lw21 = LOG10(std::max(ctg1, ctg2));
-	Distance lw12 = lw11 * lw11;
-	Distance lw13 = lw12 * lw11;
-	Distance lw14 = lw13 * lw11;
-	Distance lw15 = lw14 * lw11;
-	Distance lw16 = lw15 * lw11;
-	Distance lw17 = lw16 * lw11;
-	Distance lw22 = lw21 * lw21;
-	Distance lw23 = lw22 * lw21;
-	Distance lw24 = lw23 * lw21;
-	Distance lw25 = lw24 * lw21;
-	Distance lw26 = lw25 * lw21;
+    Distance lw11 = LOG10(std::min(ctg1, ctg2));
+    Distance lw21 = LOG10(std::max(ctg1, ctg2));
+    Distance lw12 = lw11 * lw11;
+    Distance lw13 = lw12 * lw11;
+    Distance lw14 = lw13 * lw11;
+    Distance lw15 = lw14 * lw11;
+    Distance lw16 = lw15 * lw11;
+    Distance lw17 = lw16 * lw11;
+    Distance lw22 = lw21 * lw21;
+    Distance lw23 = lw22 * lw21;
+    Distance lw24 = lw23 * lw21;
+    Distance lw25 = lw24 * lw21;
+    Distance lw26 = lw25 * lw21;
 
-	Distance prob;
+    Distance prob;
 
-	b = 46349.1624324381 + -76092.3748553155*lw11 + -639.918334183*lw21 + 53873.3933743949*lw12 + -156.6547554844*lw22 + -21263.6010657275*lw13 + 64.7719132839*lw23 +
-			5003.2646455284*lw14 + -8.5014386744*lw24 + -700.5825500292*lw15 + 0.3968284526*lw25 + 54.037542743*lw16 + -1.7713972342*lw17 + 474.0850141891*lw11*lw21 +
-			-23.966597785*lw12*lw22 + 0.7800219061*lw13*lw23 + -0.0138723693*lw14*lw24 + 0.0001027543*lw15*lw25;
-	c = -443565.465710869 + 718862.10804858*lw11 + 5114.1630934534*lw21 + -501588.206183097*lw12 + 784.4442123743*lw22 + 194712.394138513*lw13 + -377.9645994741*lw23 +
-			-45088.7863182741*lw14 + 50.5960513287*lw24 + 6220.3310639927*lw15 + -2.3670776453*lw25 + -473.269785487*lw16 + 15.3213264134*lw17 + -3282.8510348085*lw11*lw21 +
-			164.0438603974*lw12*lw22 + -5.2778800755*lw13*lw23 + 0.0929379305*lw14*lw24 + -0.0006826817*lw15*lw25;
+    b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
+        -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
+        0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
+        0.7800219061 * lw13 * lw23 + -0.0138723693 * lw14 * lw24 + 0.0001027543 * lw15 * lw25;
+    c = -443565.465710869 + 718862.10804858 * lw11 + 5114.1630934534 * lw21 + -501588.206183097 * lw12 + 784.4442123743 * lw22 +
+        194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
+        -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
+        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
-	//logistic model
-	prob = 1.0 / ( 1 + exp(-(b + c * d)) );
+    // logistic model
+    prob = 1.0 / (1 + exp(-(b + c * d)));
 
-	if(prob >= .1) { //second logistic model
-		b = 6770.9351457442 + -5933.7589419767*lw11 + -2976.2879986855*lw21 + 3279.7524685865*lw12 + 1602.7544794819*lw22 + -967.2906583423*lw13 + -462.0149190219*lw23 +
-				159.8317289682*lw14 + 74.4884405822*lw24 + -14.0267151808*lw15 + -6.3644917671*lw25 + 0.5108811613*lw16 + 0.2252455343*lw26 + 0.965040193*lw12*lw22 +
-				-0.0546309127*lw13*lw23 + 0.0012917084*lw14*lw24 + -1.14383e-05*lw15*lw25;
-		c = 39406.5712626297 + -77863.1741143294*lw11 + 9586.8761567725*lw21 + 55360.1701572325*lw12 + -5825.2491611377*lw22 + -21887.8400068324*lw13 + 1751.6803621934*lw23 +
-				5158.3764225203*lw14 + -290.1765894829*lw24 + -724.0348081819*lw15 + 25.364646181*lw25 + 56.0522105105*lw16 + -0.9172073892*lw26 + -1.8470088417*lw17 +
-				449.4660736502*lw11*lw21 + -24.4141920625*lw12*lw22 + 0.8465834103*lw13*lw23 + -0.0158943762*lw14*lw24 + 0.0001235384*lw15*lw25;
-		prob = 1.0 / ( 1 + exp(-(b + c * d)) );
-		prob = prob < .1 ? .1 : prob;
-	}
+    if (prob >= .1) {  // second logistic model
+        b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
+            -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
+            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
+            -0.0546309127 * lw13 * lw23 + 0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
+        c = 39406.5712626297 + -77863.1741143294 * lw11 + 9586.8761567725 * lw21 + 55360.1701572325 * lw12 + -5825.2491611377 * lw22 +
+            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 +
+            -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
+            449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
+            0.0001235384 * lw15 * lw25;
+        prob = 1.0 / (1 + exp(-(b + c * d)));
+        prob = prob < .1 ? .1 : prob;
+    }
 
-	return prob;
+    return prob;
 }
 
 /*
@@ -2339,12 +2344,10 @@ int main(int argc, char const *argv[]) {
         nobs = lCtgIdx.size();
         nobs2 = ignored.size();
 
-        /*
         if (ABD.size1() != nobs) {
             ABD.resize(nobs, nABD, true);
             ABD_VAR.resize(nobs, nABD, true);
         }
-        */
 
         assert(rABD.size() == nobs);
     }
@@ -2353,7 +2356,6 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(tnf);
 
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-
         cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(double));
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(double));
         cudaMalloc((void **)&seqs_d, fsize);
