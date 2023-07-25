@@ -835,8 +835,8 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
                 ++nns;
                 continue;
             }
-            Distance v1 = ABD_VAR[r1 * nABD + i] < 1 ? 1 : ABD_VAR[r1 * nABD + i];
-            Distance v2 = ABD_VAR[r2 * nABD + i] < 1 ? 1 : ABD_VAR[r2 * nABD + i];
+            Distance v1 = ABD_VAR(r1, i) < 1 ? 1 : ABD_VAR(r1, i);
+            Distance v2 = ABD_VAR(r2, i) < 1 ? 1 : ABD_VAR(r2, i);
 
             Normal p1(m1, sqrt(v1)), p2(m2, std::sqrt(v2));
             d += cal_abd_dist2(p1, p2);
@@ -1999,7 +1999,7 @@ int main(int argc, char const *argv[]) {
                 if (cvExt) {
                     mean = ABD(r - nskip, c) = std::stod(col.c_str());
                     meanSum += mean;
-                    variance = ABD_VAR[(r - nskip) * nABD + c] = mean;
+                    variance = ABD_VAR(r - nskip, c) = mean;
                     checkMean = true;
                 } else {
                     if (c % 2 == 0) {
