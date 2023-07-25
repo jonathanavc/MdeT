@@ -398,6 +398,7 @@ typedef boost::math::poisson_distribution<Distance> Poisson;
 
 typedef boost::property<boost::edge_weight_t, double> Weight;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, boost::no_property, Weight> UndirectedGraph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> DirectedSimpleGraph;
 typedef boost::graph_traits<UndirectedGraph>::edge_descriptor edge_descriptor;
 typedef boost::graph_traits<UndirectedGraph>::out_edge_iterator out_edge_iterator;
 typedef boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_descriptor;
@@ -465,6 +466,7 @@ double totalPhysMem = 0.;
 
 // Similarity *gprob;
 static UndirectedGraph gprob;
+static DirectedSimpleGraph paired;
 // static DirectedSimpleGraph paired;
 static boost::property_map<UndirectedGraph, boost::vertex_index_t>::type gIdx;
 static boost::property_map<UndirectedGraph, boost::edge_weight_t>::type gWgt;
