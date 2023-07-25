@@ -1398,6 +1398,35 @@ size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &lef
     return fished;
 }
 
+void fish_more(int m, ClassMap& cls, ContigSet& leftovers) {
+
+	ContigSet newbies;
+
+	#pragma omp parallel for schedule (dynamic)
+	for(size_t i = 0; i < cls[m].size(); ++i) {
+		out_edge_iterator e, e_end;
+		vertex_descriptor v = boost::vertex(cls[m][i], gprob);
+		for (boost::tie(e, e_end) = boost::out_edges(v, gprob); e != e_end; ++e) {
+			if(boost::get(gWgt, *e) >= p3) {
+				int ff = boost::get(gIdx, boost::target(*e, gprob));
+				if(leftovers.find(ff) != leftovers.end()) { //add only if it is fuzzy binning or fff is still unbinned
+#pragma omp critical (FISH_MORE)
+					{
+						newbies.insert(ff);
+//						std::cout << "new friends: " << v << " -> " << ff << " with " << boost::get(gWgt, *e) << endl;
+					}
+				}
+			}
+		}
+	}
+
+	for(ContigSet::iterator it = newbies.begin(); it != newbies.end(); ++it) {
+		leftovers.erase(*it);
+	}
+
+	cls[m].insert(cls[m].end(), newbies.begin(), newbies.end());
+}
+
 void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
     // profile distribution of friends and assign isolates to a bin using majority vote
 
