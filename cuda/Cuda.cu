@@ -7,6 +7,7 @@
 #include <math.h>
 #include <omp.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <unistd.h>
 
