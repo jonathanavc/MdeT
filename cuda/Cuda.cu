@@ -721,10 +721,16 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-
+    __m256 dis;  //, vec1, vec2, ;
+    for (int i = 0; i < 17; i++) {
+        dis = _mm256_sub_ps(_mm256_load_ps(TNF + r1 * 136 + i * 8), _mm256_load_ps(TNF + r2 * 136 + i * 8));
+        dis = _mm256_mul_ps(dis, dis);
+        d += _mm256_reduce_add_ps(dis);
+    }
+    /*
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
-    }
+    }*/
 
     d = sqrt(d);
 
@@ -2425,10 +2431,8 @@ int main(int argc, char const *argv[]) {
                     bool passed = false;
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        /*
-      #pragma omp critical(ADD_EDGE_1)
-                              { boost::add_edge(i, j, Weight(s), gprob); }
-                              */
+#pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
             }
