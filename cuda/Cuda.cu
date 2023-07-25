@@ -723,7 +723,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     __m512 dis;  //, vec1, vec2, ;
     for (int i = 0; i < 8; i++) {
-        dis = _mm512_sub_ps(_mm512_load_ps(TNF + r1 * 136 + i * 8), _mm512_load_ps(TNF + r2 * 136 + i * 8));
+        dis = _mm512_sub_ps(_mm512_load_ps(TNF + r1 * 136 + i * 16), _mm512_load_ps(TNF + r2 * 136 + i * 16));
         dis = _mm512_mul_ps(dis, dis);
         d += _mm512_reduce_add_ps(dis);
     }
