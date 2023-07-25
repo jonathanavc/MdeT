@@ -447,6 +447,11 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
+#ifdef __APPLE__
+vm_statistics_data_t vmStats;
+mach_msg_type_number_t infoCount = HOST_VM_INFO_COUNT;
+#else
+struct sysinfo memInfo;
 double totalPhysMem = 0.;
 
 // Similarity *gprob;
