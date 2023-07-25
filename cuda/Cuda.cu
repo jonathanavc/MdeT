@@ -540,18 +540,8 @@ int getFreeMem() {
     if (kernReturn != KERN_SUCCESS) return 0;
     return (vm_page_size * vmStats.free_count) / 1024;
 #else
-    FILE *file = fopen("/proc/meminfo", "r");
-    size_t result = 0;
-    char line[128];
-
-    while (fgets(line, 128, file) != NULL) {
-        if (strncmp(line, "MemFree:", 6) == 0 || strncmp(line, "Buffers:", 6) == 0 || strncmp(line, "Cached:", 6) == 0 ||
-            strncmp(line, "SwapFree:", 6) == 0) {
-            result += parseLine(line);
-        }
-    }
-    fclose(file);
-    return result;  // Kb
+    sysinfo(&memInfo);
+    return memInfo.freeram / 1024;  // Convertir a kilobytes
 #endif
 }
 
@@ -1172,7 +1162,7 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     if (saveTNFFile.empty()) return;
     std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
     if (out) {
-        if (1) {  // quitar small contigs de TNF
+        if (0) {  // quitar small contigs de TNF
             for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
                 for (size_t i = 0; i < 136; i++) {
                     TNF[*it * 136 + i] = 0;
@@ -2398,11 +2388,6 @@ int main(int argc, char const *argv[]) {
         // se usarán más adelante
         cudaFree(TNF_d);
         cudaFree(seqs_d_index);
-        for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
-            for (size_t i = 0; i < 136; i++) {
-                TNF[*it * 136 + i] = 0;
-            }
-        }
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
