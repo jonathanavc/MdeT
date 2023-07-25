@@ -1157,8 +1157,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
                   << ". Recalculating..." << std::endl;
         return false;
     }
-    fsize *= sizeof(double);
-    ok = pread(fpint, (void *)TNF, fsize * sizeof(double) * 136, 8);
+    ok = pread(fpint, (void *)TNF, fsize * sizeof(float) * 136, 8);
     if (ok != fsize) {
         std::cerr << "[Warning!] A exception occurred."
                      "Recalculating..."
@@ -1181,7 +1180,7 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
             }
         }
         out.write((char *)&minContig, sizeof(size_t));
-        out.write((char *)TNF, nobs * 136 * sizeof(double));
+        out.write((char *)TNF, nobs * 136 * sizeof(float));
         out.close();
     } else {
         std::cout << "Error al guardar en TNF.bin" << std::endl;
