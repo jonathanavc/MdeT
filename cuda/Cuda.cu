@@ -713,6 +713,46 @@ static void verbose_message(const char *format, ...) {
     }
 }
 
+bool loadDistanceFromFile(std::string saveDistanceFile, Distance requiredMinP, size_t requiredMinContig) {
+    if (saveDistanceFile.empty()) return false;
+    std::ifstream is(saveDistanceFile.c_str());
+    if (is.good()) {
+        verbose_message("Loading saved graph from %s\n", saveDistanceFile.c_str());
+        try {
+            boost::archive::binary_iarchive ia(is);
+            Distance loadedMinP;
+            ia >> loadedMinP;
+            if (loadedMinP > requiredMinP) {
+                std::cerr << "[Warning!] Saved probability graph file has greater minP " << loadedMinP << " vs required "
+                          << requiredMinP << ". Recalculating..." << std::endl;
+                return false;
+            }
+            size_t loadedMinContig;
+            ia >> loadedMinContig;
+            if (loadedMinContig != requiredMinContig) {
+                std::cerr << "[Warning!] Saved probability graph file has different minContig " << loadedMinContig << " vs required "
+                          << requiredMinContig << ". Recalculating..." << std::endl;
+                return false;
+            }
+            ia >> gprob;
+
+            if (boost::num_vertices(gprob) != nobs) {
+                std::cerr << "[Warning!] Saved probability graph file has different number of contigs " << boost::num_vertices(gprob)
+                          << " vs required " << nobs << ". Recalculating..." << std::endl;
+                return false;
+            }
+        } catch (...) {
+            std::cerr << "[Warning!] A exception occurred. Saved graph file was possibly generated from different version of boost "
+                         "library. Recalculating..."
+                      << std::endl;
+            return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
 bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     if (saveTNFFile.empty()) return false;
     FILE *fp = fopen(saveTNFFile.c_str(), "r");
@@ -1473,8 +1513,7 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    // if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
-    if (1) {
+    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
 #pragma omp parallel for schedule(dynamic)
