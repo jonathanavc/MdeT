@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <boost/archive/binary_iarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
