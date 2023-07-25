@@ -2031,7 +2031,7 @@ int main(int argc, char const *argv[]) {
                     if (onlyLabel) {
                         os << contig_names[i] << line_delim;
                     } else {
-                        std::string &seq = seqs[i];
+                        std::string_view &seq = seqs[i];
                         os << fasta_delim << contig_names[i] << line_delim;
                         for (size_t s = 0; s < seq.length(); s += 60) {
                             os << seq.substr(s, 60) << line_delim;
