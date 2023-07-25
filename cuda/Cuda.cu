@@ -495,6 +495,14 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+int parseLine(char *line) {
+    int i = strlen(line);
+    while (*line < '0' || *line > '9') line++;
+    line[i - 3] = '\0';
+    i = atoi(line);
+    return i;
+}
+
 int getFreeMem() {
 #ifdef __APPLE__
     kern_return_t kernReturn = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
