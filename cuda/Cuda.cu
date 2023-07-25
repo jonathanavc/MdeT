@@ -489,8 +489,8 @@ static ContigSet smallCtgs;
 static size_t nobs = 0;
 static size_t nobs2;  // number of contigs used for binning
 
-static float *ABD;
-static float *ABD_VAR;
+static boost::numeric::ublas::matrix<float> ABD;
+static boost::numeric::ublas::matrix<float> ABD_VAR;
 static double *TNF;
 
 // typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
@@ -824,8 +824,8 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
     Distance m1sum = 0, m2sum = 0;
     //	Distance v1sum = 0, v2sum = 0;
     for (size_t i = 0; i < nABD; ++i) {
-        Distance m1 = ABD[r1 * nABD + i];
-        Distance m2 = ABD[r2 * nABD + i];
+        Distance m1 = ABD(r1, i);
+        Distance m2 = ABD(r2, i);
         if (m1 > minCV || m2 > minCV) {  // compare only at least one >2
             ++nnz;
             m1 = std::max(m1, (Distance)1e-6);
@@ -1996,16 +1996,16 @@ int main(int argc, char const *argv[]) {
                 bool checkMean = false, checkVar = false;
 
                 if (cvExt) {
-                    mean = ABD[(r - nskip) * nABD + c] = std::stod(col.c_str());
+                    mean = ABD(r - nskip , c) = std::stod(col.c_str());
                     meanSum += mean;
                     variance = ABD_VAR[(r - nskip) * nABD + c] = mean;
                     checkMean = true;
                 } else {
                     if (c % 2 == 0) {
-                        mean = ABD[(r - nskip) * nABD + (c / 2)] = std::stod(col.c_str());
+                        mean = ABD(r - nskip , c / 2) = std::stod(col.c_str());
                         checkMean = true;
                     } else {
-                        variance = ABD_VAR[(r - nskip) * nABD + (c / 2)] = std::stod(col.c_str());
+                        variance = ABD_VAR(r - nskip , c / 2) = std::stod(col.c_str());
                         checkVar = true;
                     }
                 }
