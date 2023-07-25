@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/dynamic_bitset.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
@@ -1936,7 +1937,7 @@ int main(int argc, char const *argv[]) {
             nABD /= 2;
         }
         ABD.resize(nobs, nABD);
-		ABD_VAR.resize(nobs, nABD);
+        ABD_VAR.resize(nobs, nABD);
 
         std::ifstream is(abdFile.c_str());
         if (!is.is_open()) {
@@ -1996,16 +1997,16 @@ int main(int argc, char const *argv[]) {
                 bool checkMean = false, checkVar = false;
 
                 if (cvExt) {
-                    mean = ABD(r - nskip , c) = std::stod(col.c_str());
+                    mean = ABD(r - nskip, c) = std::stod(col.c_str());
                     meanSum += mean;
                     variance = ABD_VAR[(r - nskip) * nABD + c] = mean;
                     checkMean = true;
                 } else {
                     if (c % 2 == 0) {
-                        mean = ABD(r - nskip , c / 2) = std::stod(col.c_str());
+                        mean = ABD(r - nskip, c / 2) = std::stod(col.c_str());
                         checkMean = true;
                     } else {
-                        variance = ABD_VAR(r - nskip , c / 2) = std::stod(col.c_str());
+                        variance = ABD_VAR(r - nskip, c / 2) = std::stod(col.c_str());
                         checkVar = true;
                     }
                 }
@@ -2443,8 +2444,8 @@ int main(int argc, char const *argv[]) {
     }
 
     cudaFreeHost(TNF);
-    //cudaFreeHost(ABD);
-    //cudaFreeHost(ABD_VAR);
+    // cudaFreeHost(ABD);
+    // cudaFreeHost(ABD_VAR);
     gprob.clear();
     gprob.m_edges.resize(0);
     gprob.m_vertices.resize(0);
