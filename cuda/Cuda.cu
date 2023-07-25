@@ -2398,6 +2398,11 @@ int main(int argc, char const *argv[]) {
         // se usarán más adelante
         cudaFree(TNF_d);
         cudaFree(seqs_d_index);
+        for (auto it = smallCtgs.begin(); it != smallCtgs.end(); it++) {
+            for (size_t i = 0; i < 136; i++) {
+                TNF[*it * 136 + i] = 0;
+            }
+        }
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
