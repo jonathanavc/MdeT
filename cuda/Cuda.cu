@@ -26,6 +26,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
 #include <boost/interprocess/detail/os_file_functions.hpp>
+#include <boost/interprocess/detail/utilities.hpp>
 #include <boost/math/distributions.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
