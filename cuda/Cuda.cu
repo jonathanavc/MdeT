@@ -1083,12 +1083,12 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
 bool readPairFile() {
     std::ifstream is(pairFile.c_str());
     if (!is.is_open()) {
-        cerr << "[Error!] can't open the paired read coverage file " << pairFile << endl;
+        std::cerr << "[Error!] can't open the paired read coverage file " << pairFile << std::endl;
         return false;
     }
 
     if (ncols(is, 1) != 3) {
-        cerr << "[Error!] Number of columns in paired read coverage data file is not 3." << endl;
+        std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3." << std::endl;
         return false;
     }
 
@@ -1120,14 +1120,14 @@ bool readPairFile() {
         }
 
         if (c != 3) {
-            cerr << "[Error!] Number of columns in paired read coverage data file is not 3 in the row " << nRow + 1 << endl;
+            std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3 in the row " << nRow + 1 << std::endl;
             isGood = false;
             break;
         }
 
         if (contigIdx >= seqs.size() || pastContigIdx >= seqs.size()) {
-            cerr << "[Error!] Contig index " << contigIdx << " >= the number of total sequences " << seqs.size()
-                 << " in assembly file " << inFile << endl;
+            std::cerr << "[Error!] Contig index " << contigIdx << " >= the number of total sequences " << seqs.size()
+                      << " in assembly file " << inFile << std::endl;
             isGood = false;
             break;
         }
@@ -1172,7 +1172,8 @@ bool readPairFile() {
     assert(boost::out_degree(contigIdx, paired) <= 2);
 
     if (contigIdx != seqs.size() - 1) {  // the last index doesn't cover
-        cerr << "[Error!] The last index does not cover all sequences given " << contigIdx << " != " << seqs.size() - 1 << endl;
+        std::cerr << "[Error!] The last index does not cover all sequences given " << contigIdx << " != " << seqs.size() - 1
+                  << std::endl;
         isGood = false;
     }
 
