@@ -1372,7 +1372,7 @@ size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &lef
 
         // 1000=>90, 100000=>99
         if (max_corr >= minCorr / 100.) {  // smallCtgs.find(*it) == smallCtgs.end() ? minCorr * 1.05 : minCorr
-            double cutCorr = ((99. - minCorr) / (max_size - min_size) * LOG10(seqs[gCtgIdx[leftovers2[i]]].size()) +
+            double cutCorr = ((99. - minCorr) / (max_size - min_size) * std::log10(seqs[gCtgIdx[leftovers2[i]]].size()) +
                               (max_size * minCorr - min_size * 99.) / (max_size - min_size)) /
                              100.;
             if (max_corr >= std::min(cutCorr, .99)) {
@@ -2326,7 +2326,7 @@ int main(int argc, char const *argv[]) {
                 fished++;
             }
 
-            if (!useEB) std::cout << endl;
+            if (!useEB) std::cout << std::endl;
 
             for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
                 fish_more(*it, cls, leftovers);
