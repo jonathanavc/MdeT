@@ -685,6 +685,10 @@ Distance cal_dist(size_t r1, size_t r2) {
     return cal_dist(r1, r2, maxDist, passed);
 }
 
+static bool cmp_abd(const DistancePair &i, const DistancePair &j) {
+    return j.second < i.second;  // decreasing
+}
+
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
     while (readSz < _size) {
@@ -1874,7 +1878,7 @@ int main(int argc, char const *argv[]) {
                 os << contig_names[gCtgIdx[i]] << tab_delim;
                 os << VECTOR(membership)[i] << line_delim;
             }
-            for (std::unordered_map<std::string, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
+            for (std::unordered_map<std::string_view, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
                 os << contig_names[it->second] << tab_delim << 0 << line_delim;
             }
             os.close();
@@ -1951,11 +1955,11 @@ int main(int argc, char const *argv[]) {
             os.rdbuf()->pubsetbuf(os_buffer, buf_size);
 
             for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                std::string &label = contig_names[gCtgIdx[*it2]];
+                std::string_view &label = contig_names[gCtgIdx[*it2]];
                 if (onlyLabel) {
                     os << label << line_delim;
                 } else {
-                    std::string &seq = seqs[gCtgIdx[*it2]];
+                    std::string_view &seq = seqs[gCtgIdx[*it2]];
                     os << fasta_delim << label << line_delim;
                     for (size_t s = 0; s < seq.length(); s += 60) {
                         os << seq.substr(s, 60) << line_delim;
