@@ -28,6 +28,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ProgressTracker.hpp"
+
 // #include "../extra/metrictime2.hpp"
 
 namespace po = boost::program_options;
@@ -491,11 +493,8 @@ static std::chrono::steady_clock::time_point t1, t2;
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    // no mejora proacticamente nada
     __m512d dis;  //, vec1, vec2, ;
     for (int i = 0; i < 17; i++) {
-        // vec1 = _mm512_loadu_pd(TNF + r1 * 136 + i * 8);
-        // vec2 = _mm512_loadu_pd(TNF + r2 * 136 + i * 8);
         dis = _mm512_sub_pd(_mm512_load_pd(TNF + r1 * 136 + i * 8), _mm512_load_pd(TNF + r2 * 136 + i * 8));
         dis = _mm512_mul_pd(dis, dis);
         d += _mm512_reduce_add_pd(dis);
@@ -1476,7 +1475,7 @@ int main(int argc, char const *argv[]) {
 
     // if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
     if (1) {
-        // ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
@@ -1486,19 +1485,17 @@ int main(int argc, char const *argv[]) {
                         continue;
                     bool passed = false;
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                    // Similarity s = 1.;
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
             }
-            /*
             if (verbose) {
                 progress.track(i);
                 if (omp_get_thread_num() == 0 && progress.isStepMarker())
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
-            }*/
+            }
         }
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
