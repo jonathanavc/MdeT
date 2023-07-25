@@ -773,7 +773,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
                         -41.9040003466 * lw24 + -5177.2480020358 * lw15 + 1.9706794111 * lw25 + 413.1872281978 * lw16 +
                         -13.4050718215 * lw17 + 2861.5810344001 * lw11 * lw21 + -142.9237373876 * lw12 * lw22 +
                         4.5821419819 * lw13 * lw23 + -0.0808204392 * lw14 * lw24 + 0.0005949736 * lw15 * lw25;
-    std::cout << b << " " << c << " " << b_plus_c << std::endl;
+    std::cout << b + c << " " << b_plus_c << std::endl;
     // logistic model
     prob = 1.0 / (1 + exp(-(b_plus_c * d)));
 
