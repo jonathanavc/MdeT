@@ -720,17 +720,17 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
+    /*
     __m512d dis;  //, vec1, vec2, ;
     for (int i = 0; i < 17; i++) {
         dis = _mm512_sub_pd(_mm512_load_pd(TNF + r1 * 136 + i * 8), _mm512_load_pd(TNF + r2 * 136 + i * 8));
         dis = _mm512_mul_pd(dis, dis);
         d += _mm512_reduce_add_pd(dis);
     }
-    /*
+    */
     for (int i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-    */
 
     d = std::sqrt(d);
 
