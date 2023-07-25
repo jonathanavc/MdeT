@@ -967,6 +967,39 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     }
 }
 
+bool loadENSFromFile(igraph_t& g, igraph_weight_vector_t& weights) {
+	if(true)
+		return false; //TODO need to handle g.incs
+
+	std::string saveENSFile = "ens." + std::to_string(commandline_hash);
+
+	std::ifstream is(saveENSFile);
+	if (is.good()) {
+		verbose_message("Loading ensemble intermediate file from %s\n", saveENSFile.c_str());
+		try {
+			boost::archive::binary_iarchive ia(is);
+
+			edge_t num_edges;
+			ia >> num_edges;
+
+			igraph_vector_resize(&weights, num_edges);
+			igraph_vector_resize(&g.from, num_edges);
+			igraph_vector_resize(&g.to, num_edges);
+
+			ia >> boost::serialization::make_array(weights.stor_begin, num_edges);
+			ia >> boost::serialization::make_array(g.from.stor_begin, num_edges);
+			ia >> boost::serialization::make_array(g.to.stor_begin, num_edges);
+
+		} catch (...) {
+			return false;
+		}
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
 bool loadDistanceFromFile(std::string saveDistanceFile, Distance requiredMinP, size_t requiredMinContig) {
     if (saveDistanceFile.empty()) return false;
     std::ifstream is(saveDistanceFile.c_str());
