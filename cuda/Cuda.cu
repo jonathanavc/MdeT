@@ -1079,6 +1079,7 @@ void gen_commandline_hash() {
     // cout << commandline_hash << endl;
 }
 
+/*
 bool readPairFile() {
     std::ifstream is(pairFile.c_str());
     if (!is.is_open()) {
@@ -1179,6 +1180,7 @@ bool readPairFile() {
 
     return isGood;
 }
+*/
 
 int main(int argc, char const *argv[]) {
     /*
