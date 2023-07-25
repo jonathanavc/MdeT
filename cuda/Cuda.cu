@@ -1496,6 +1496,93 @@ void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassI
     }
 }
 
+void fish_pairs(ContigSet& binned, ClassMap& cls, ClassIdType& good_class_ids) {
+
+	binned.clear();
+
+	for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+
+		ContigVector& clsV = cls[*it];
+
+		//convert to global index
+		for(size_t m = 0; m < clsV.size(); ++m) {
+			clsV[m] = gCtgIdx[clsV[m]];
+			binned.insert(clsV[m]);
+		}
+	}
+
+	//for each cls
+	//grab any reciprocal pairs
+	boost::property_map<DirectedSimpleGraph, boost::vertex_index_t>::type gsIdx = boost::get(boost::vertex_index, paired);
+
+	ContigVector good_class_ids2(good_class_ids.begin(), good_class_ids.end());
+
+	#pragma omp parallel for schedule (dynamic)
+	for (size_t k = 0; k < good_class_ids2.size(); ++k) {
+
+		ContigVector& clsV = cls[good_class_ids2[k]];
+		ContigSet clsS(clsV.begin(), clsV.end());
+		assert(clsV.size() == clsS.size());
+
+		boost::graph_traits<DirectedSimpleGraph>::out_edge_iterator e, ee, e_end, ee_end;
+
+		bool updated = true;
+
+		while(updated) {
+			updated = false;
+
+			ContigSet newbies;
+
+			//grab any reciprocal pairs
+			for(size_t m = 0; m < clsV.size(); ++m) {
+				size_t idx = clsV[m];
+				//v = boost::vertex(clsV[m], paired);
+				assert(boost::out_degree(idx, paired) <= 2);
+				for (boost::tie(e, e_end) = boost::out_edges(idx, paired); e != e_end; ++e) {
+					int pp = boost::get(gsIdx, boost::target(*e, paired));
+					if(binned.find(pp) != binned.end()) //don't recruit already binned contigs
+						continue;
+					if(clsS.find(pp) == clsS.end()) {
+						//check if it is reciprocal pairs
+						assert(boost::out_degree(pp, paired) <= 2);
+						for (boost::tie(ee, ee_end) = boost::out_edges(pp, paired); ee != ee_end; ++ee) {
+							if(idx == boost::get(gsIdx, boost::target(*ee, paired))) {
+								newbies.insert(pp);
+								updated = true;
+							}
+						}
+					}
+				}
+			}
+
+			if(debug && newbies.size() > 0)
+				verbose_message("Bin %d recruited %d contigs by paired infomation\n", good_class_ids2[k], newbies.size());
+
+			clsV.insert(clsV.end(), newbies.begin(), newbies.end());
+			clsS.insert(newbies.begin(), newbies.end());
+			assert(clsV.size() == clsS.size());
+		}
+	}
+
+	binned.clear();
+
+	good_class_ids2.clear();
+	good_class_ids2.insert(good_class_ids2.begin(), good_class_ids.begin(), good_class_ids.end());
+
+	#pragma omp parallel for
+	for (size_t j = 0; j < good_class_ids2.size(); ++j) {
+		ContigVector& clsV = cls[good_class_ids2[j]];
+
+		//convert to local index
+		for(size_t m = 0; m < clsV.size(); ++m) {
+			clsV[m] = lCtgIdx[contig_names[clsV[m]]];
+			binned.insert(clsV[m]);
+		}
+	}
+
+}
+
+
 bool readPairFile() {
     std::ifstream is(pairFile.c_str());
     if (!is.is_open()) {
