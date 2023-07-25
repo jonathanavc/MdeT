@@ -1974,7 +1974,7 @@ int main(int argc, char const *argv[]) {
 
     if (verbose) {
         unsigned long long totalSize = 0;
-        for (std::vector<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
+        for (std::vector<std::string_view>::iterator it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
         verbose_message("%2.2f%% (%lld out of %lld bases) was binned.\n", (double)binnedSize / totalSize * 100,
                         (unsigned long long)binnedSize, totalSize);
     }
