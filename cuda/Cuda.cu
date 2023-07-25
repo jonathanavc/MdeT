@@ -11,6 +11,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define BOOST_UBLAS_INLINE inline
+#define BOOST_UBLAS_CHECK_ENABLE 0
+#define BOOST_UBLAS_USE_FAST_SAME
+#define BOOST_UBLAS_TYPE_CHECK 0
+
 #include <algorithm>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
