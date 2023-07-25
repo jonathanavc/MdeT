@@ -1654,7 +1654,7 @@ int main(int argc, char const *argv[]) {
                 fished++;
             }
 
-            if (!useEB) cout << endl;
+            if (!useEB) std::cout << endl;
 
             for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
                 fish_more(*it, cls, leftovers);
@@ -1749,7 +1749,7 @@ int main(int argc, char const *argv[]) {
                         ++k;
                     }
 
-                    if (debug) cout << "good_class_ids.size(): " << good_class_ids.size() << ", kk: " << k << endl;
+                    if (debug) std::cout << "good_class_ids.size(): " << good_class_ids.size() << ", kk: " << k << std::endl;
                 }
             }
 
@@ -1964,8 +1964,8 @@ int main(int argc, char const *argv[]) {
             os.close();
 
             if (debug)
-                cout << "Bin " << bin_id << " (" << cls_size[kk] << " bases in " << cls[kk].size()
-                     << " contigs) was saved to: " << outFile_cls << endl;
+                std::cout << "Bin " << bin_id << " (" << cls_size[kk] << " bases in " << cls[kk].size()
+                          << " contigs) was saved to: " << outFile_cls << std::endl;
         }
 
         bin_id++;
@@ -1978,7 +1978,7 @@ int main(int argc, char const *argv[]) {
                         (unsigned long long)binnedSize, totalSize);
     }
 
-    cout << "Number of clusters formed: " << bin_id - 1 << std::endl;
+    std::cout << "Number of clusters formed: " << bin_id - 1 << std::endl;
 
     if (saveCls || outUnbinned) {
 #pragma omp parallel for
