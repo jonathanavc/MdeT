@@ -25,7 +25,6 @@
 #include <chrono>
 #include <cstdarg>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <sstream>
