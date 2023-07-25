@@ -908,6 +908,10 @@ static Similarity get_prob(size_t r1, size_t r2) {
     return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
 }
 
+static bool cmp_cls_size(const ClsSizePair &i, const ClsSizePair &j) {
+    return j.second == i.second ? j.first > i.first : j.second > i.second;  // increasing
+}
+
 static bool cmp_abd(const DistancePair &i, const DistancePair &j) {
     return j.second < i.second;  // decreasing
 }
@@ -1398,33 +1402,33 @@ size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &lef
     return fished;
 }
 
-void fish_more(int m, ClassMap& cls, ContigSet& leftovers) {
+void fish_more(int m, ClassMap &cls, ContigSet &leftovers) {
+    ContigSet newbies;
 
-	ContigSet newbies;
+#pragma omp parallel for schedule(dynamic)
+    for (size_t i = 0; i < cls[m].size(); ++i) {
+        out_edge_iterator e, e_end;
+        vertex_descriptor v = boost::vertex(cls[m][i], gprob);
+        for (boost::tie(e, e_end) = boost::out_edges(v, gprob); e != e_end; ++e) {
+            if (boost::get(gWgt, *e) >= p3) {
+                int ff = boost::get(gIdx, boost::target(*e, gprob));
+                if (leftovers.find(ff) != leftovers.end()) {  // add only if it is fuzzy binning or fff is still unbinned
+#pragma omp critical(FISH_MORE)
+                    {
+                        newbies.insert(ff);
+                        //						std::cout << "new friends: " << v << " -> " << ff << " with " <<
+                        //boost::get(gWgt, *e) << endl;
+                    }
+                }
+            }
+        }
+    }
 
-	#pragma omp parallel for schedule (dynamic)
-	for(size_t i = 0; i < cls[m].size(); ++i) {
-		out_edge_iterator e, e_end;
-		vertex_descriptor v = boost::vertex(cls[m][i], gprob);
-		for (boost::tie(e, e_end) = boost::out_edges(v, gprob); e != e_end; ++e) {
-			if(boost::get(gWgt, *e) >= p3) {
-				int ff = boost::get(gIdx, boost::target(*e, gprob));
-				if(leftovers.find(ff) != leftovers.end()) { //add only if it is fuzzy binning or fff is still unbinned
-#pragma omp critical (FISH_MORE)
-					{
-						newbies.insert(ff);
-//						std::cout << "new friends: " << v << " -> " << ff << " with " << boost::get(gWgt, *e) << endl;
-					}
-				}
-			}
-		}
-	}
+    for (ContigSet::iterator it = newbies.begin(); it != newbies.end(); ++it) {
+        leftovers.erase(*it);
+    }
 
-	for(ContigSet::iterator it = newbies.begin(); it != newbies.end(); ++it) {
-		leftovers.erase(*it);
-	}
-
-	cls[m].insert(cls[m].end(), newbies.begin(), newbies.end());
+    cls[m].insert(cls[m].end(), newbies.begin(), newbies.end());
 }
 
 void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
@@ -1496,92 +1500,87 @@ void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassI
     }
 }
 
-void fish_pairs(ContigSet& binned, ClassMap& cls, ClassIdType& good_class_ids) {
+void fish_pairs(ContigSet &binned, ClassMap &cls, ClassIdType &good_class_ids) {
+    binned.clear();
 
-	binned.clear();
+    for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+        ContigVector &clsV = cls[*it];
 
-	for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+        // convert to global index
+        for (size_t m = 0; m < clsV.size(); ++m) {
+            clsV[m] = gCtgIdx[clsV[m]];
+            binned.insert(clsV[m]);
+        }
+    }
 
-		ContigVector& clsV = cls[*it];
+    // for each cls
+    // grab any reciprocal pairs
+    boost::property_map<DirectedSimpleGraph, boost::vertex_index_t>::type gsIdx = boost::get(boost::vertex_index, paired);
 
-		//convert to global index
-		for(size_t m = 0; m < clsV.size(); ++m) {
-			clsV[m] = gCtgIdx[clsV[m]];
-			binned.insert(clsV[m]);
-		}
-	}
+    ContigVector good_class_ids2(good_class_ids.begin(), good_class_ids.end());
 
-	//for each cls
-	//grab any reciprocal pairs
-	boost::property_map<DirectedSimpleGraph, boost::vertex_index_t>::type gsIdx = boost::get(boost::vertex_index, paired);
+#pragma omp parallel for schedule(dynamic)
+    for (size_t k = 0; k < good_class_ids2.size(); ++k) {
+        ContigVector &clsV = cls[good_class_ids2[k]];
+        ContigSet clsS(clsV.begin(), clsV.end());
+        assert(clsV.size() == clsS.size());
 
-	ContigVector good_class_ids2(good_class_ids.begin(), good_class_ids.end());
+        boost::graph_traits<DirectedSimpleGraph>::out_edge_iterator e, ee, e_end, ee_end;
 
-	#pragma omp parallel for schedule (dynamic)
-	for (size_t k = 0; k < good_class_ids2.size(); ++k) {
+        bool updated = true;
 
-		ContigVector& clsV = cls[good_class_ids2[k]];
-		ContigSet clsS(clsV.begin(), clsV.end());
-		assert(clsV.size() == clsS.size());
+        while (updated) {
+            updated = false;
 
-		boost::graph_traits<DirectedSimpleGraph>::out_edge_iterator e, ee, e_end, ee_end;
+            ContigSet newbies;
 
-		bool updated = true;
+            // grab any reciprocal pairs
+            for (size_t m = 0; m < clsV.size(); ++m) {
+                size_t idx = clsV[m];
+                // v = boost::vertex(clsV[m], paired);
+                assert(boost::out_degree(idx, paired) <= 2);
+                for (boost::tie(e, e_end) = boost::out_edges(idx, paired); e != e_end; ++e) {
+                    int pp = boost::get(gsIdx, boost::target(*e, paired));
+                    if (binned.find(pp) != binned.end())  // don't recruit already binned contigs
+                        continue;
+                    if (clsS.find(pp) == clsS.end()) {
+                        // check if it is reciprocal pairs
+                        assert(boost::out_degree(pp, paired) <= 2);
+                        for (boost::tie(ee, ee_end) = boost::out_edges(pp, paired); ee != ee_end; ++ee) {
+                            if (idx == boost::get(gsIdx, boost::target(*ee, paired))) {
+                                newbies.insert(pp);
+                                updated = true;
+                            }
+                        }
+                    }
+                }
+            }
 
-		while(updated) {
-			updated = false;
+            if (debug && newbies.size() > 0)
+                verbose_message("Bin %d recruited %d contigs by paired infomation\n", good_class_ids2[k], newbies.size());
 
-			ContigSet newbies;
+            clsV.insert(clsV.end(), newbies.begin(), newbies.end());
+            clsS.insert(newbies.begin(), newbies.end());
+            assert(clsV.size() == clsS.size());
+        }
+    }
 
-			//grab any reciprocal pairs
-			for(size_t m = 0; m < clsV.size(); ++m) {
-				size_t idx = clsV[m];
-				//v = boost::vertex(clsV[m], paired);
-				assert(boost::out_degree(idx, paired) <= 2);
-				for (boost::tie(e, e_end) = boost::out_edges(idx, paired); e != e_end; ++e) {
-					int pp = boost::get(gsIdx, boost::target(*e, paired));
-					if(binned.find(pp) != binned.end()) //don't recruit already binned contigs
-						continue;
-					if(clsS.find(pp) == clsS.end()) {
-						//check if it is reciprocal pairs
-						assert(boost::out_degree(pp, paired) <= 2);
-						for (boost::tie(ee, ee_end) = boost::out_edges(pp, paired); ee != ee_end; ++ee) {
-							if(idx == boost::get(gsIdx, boost::target(*ee, paired))) {
-								newbies.insert(pp);
-								updated = true;
-							}
-						}
-					}
-				}
-			}
+    binned.clear();
 
-			if(debug && newbies.size() > 0)
-				verbose_message("Bin %d recruited %d contigs by paired infomation\n", good_class_ids2[k], newbies.size());
+    good_class_ids2.clear();
+    good_class_ids2.insert(good_class_ids2.begin(), good_class_ids.begin(), good_class_ids.end());
 
-			clsV.insert(clsV.end(), newbies.begin(), newbies.end());
-			clsS.insert(newbies.begin(), newbies.end());
-			assert(clsV.size() == clsS.size());
-		}
-	}
+#pragma omp parallel for
+    for (size_t j = 0; j < good_class_ids2.size(); ++j) {
+        ContigVector &clsV = cls[good_class_ids2[j]];
 
-	binned.clear();
-
-	good_class_ids2.clear();
-	good_class_ids2.insert(good_class_ids2.begin(), good_class_ids.begin(), good_class_ids.end());
-
-	#pragma omp parallel for
-	for (size_t j = 0; j < good_class_ids2.size(); ++j) {
-		ContigVector& clsV = cls[good_class_ids2[j]];
-
-		//convert to local index
-		for(size_t m = 0; m < clsV.size(); ++m) {
-			clsV[m] = lCtgIdx[contig_names[clsV[m]]];
-			binned.insert(clsV[m]);
-		}
-	}
-
+        // convert to local index
+        for (size_t m = 0; m < clsV.size(); ++m) {
+            clsV[m] = lCtgIdx[contig_names[clsV[m]]];
+            binned.insert(clsV[m]);
+        }
+    }
 }
-
 
 bool readPairFile() {
     std::ifstream is(pairFile.c_str());
