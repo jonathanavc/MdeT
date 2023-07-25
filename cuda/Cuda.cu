@@ -1260,7 +1260,7 @@ void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals,
     cls[i].insert(cls[i].end(), mems.begin(), mems.end());
     binned.insert(mems.begin(), mems.end());
     if (updates > 1)
-        medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), bind(pair_equal_to<int, double>(), medoid_ids[i]))->second;
+        medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), std::bind(pair_equal_to<int, double>(), medoid_ids[i]))->second;
 
     if (debug)
         std::cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
