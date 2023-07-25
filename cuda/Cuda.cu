@@ -1135,12 +1135,12 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     FILE *fp = fopen(saveTNFFile.c_str(), "r");
     if (fp == NULL) return false;
     fseek(fp, 0L, SEEK_END);
-    size_t _fsize = ftell(fp);  // obtener el tamaño del archivo
+    size_t fsize = ftell(fp);  // obtener el tamaño del archivo
     fclose(fp);
-    _fsize = (_fsize / sizeof(float)) - 2;  // el primer valor es el minContig
-    if ((_fsize / 136) != nobs) {
+    fsize = (fsize / sizeof(float)) - 2;  // el primer valor es el minContig
+    if ((fsize / 136) != nobs) {
         std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs << " contigs, but have "
-                  << (_fsize / 136) << std::endl;
+                  << (fsize / 136) << std::endl;
         return false;
     }
     size_t loadedMinContig = 0;
@@ -1157,11 +1157,9 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
                   << ". Recalculating..." << std::endl;
         return false;
     }
-    _fsize = _fsize * sizeof(float);
-    std::cout << "_fsize: " << _fsize << std::endl;
-    ok = pread(fpint, (void *)TNF, 500, 8);
-    if (ok != _fsize) {
-        std::cerr << "Error during read: " << strerror(errno) << std::endl;
+    fsize *= sizeof(float);
+    ok = pread(fpint, (void *)TNF, fsize, 8);
+    if (ok != fsize) {
         std::cerr << "[Warning!] A exception occurred."
                      "Recalculating..."
                   << std::endl;
