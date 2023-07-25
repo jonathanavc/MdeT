@@ -1167,7 +1167,7 @@ void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals,
     if (updates > 1)
         medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), std::bind(pair_equal_to<int, double>(), medoid_ids[i]))->second;
 
-    if (debug) cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
+    if (debug) std::cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
 }
 
 int pam(ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned, ClassMap &cls, ContigSet &leftovers,
