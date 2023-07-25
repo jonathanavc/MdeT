@@ -447,6 +447,8 @@ static const std::size_t buf_size = 1024 * 1024;
 static char os_buffer[buf_size];
 static size_t commandline_hash;
 
+double totalPhysMem = 0.;
+
 // Similarity *gprob;
 static UndirectedGraph gprob;
 // static DirectedSimpleGraph paired;
