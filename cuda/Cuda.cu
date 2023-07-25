@@ -25,6 +25,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
+#include <boost/interprocess/detail/os_file_functions.hpp>
 #include <boost/math/distributions.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
@@ -540,8 +541,9 @@ int getFreeMem() {
     if (kernReturn != KERN_SUCCESS) return 0;
     return (vm_page_size * vmStats.free_count) / 1024;
 #else
-    sysinfo(&memInfo);
-    return memInfo.freeram * memInfo.mem_unit / 1024;  // Convertir a kilobytes
+    size_t pageSize = boost::interprocess::detail::get_mem_page_size();
+    size_t freeMem = boost::interprocess::detail::get_free_system_memory();
+    return freeMem / (1024 * pageSize);  // Kb
 #endif
 }
 
