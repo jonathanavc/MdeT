@@ -452,6 +452,7 @@ vm_statistics_data_t vmStats;
 mach_msg_type_number_t infoCount = HOST_VM_INFO_COUNT;
 #else
 struct sysinfo memInfo;
+#endif
 double totalPhysMem = 0.;
 
 // Similarity *gprob;
@@ -1959,11 +1960,11 @@ int main(int argc, char const *argv[]) {
     gprob.m_edges.resize(0);
     gprob.m_vertices.resize(0);
     gprob.m_vertices.shrink_to_fit();
-    
-    //ABD.clear();
-    //ABD_VAR.clear();
-    //ABD.resize(0, 0, false);
-    //ABD_VAR.resize(0, 0, false);
+
+    // ABD.clear();
+    // ABD_VAR.clear();
+    // ABD.resize(0, 0, false);
+    // ABD_VAR.resize(0, 0, false);
 
     if (useEB) {
         igraph_t g;
