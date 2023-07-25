@@ -939,6 +939,27 @@ bool loadDistanceFromFile(std::string saveDistanceFile, Distance requiredMinP, s
     return true;
 }
 
+bool loadBootFromFile(boost::numeric::ublas::matrix<size_t> &boot) {
+    std::string saveBootFile = "boot." + std::to_string(commandline_hash);
+
+    std::ifstream is(saveBootFile);
+    if (is.good()) {
+        verbose_message("Loading bootstrap intermediate file from %s\n", saveBootFile.c_str());
+        try {
+            boost::archive::binary_iarchive ia(is);
+
+            ia >> boot;
+
+        } catch (...) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     if (saveTNFFile.empty()) return false;
     FILE *fp = fopen(saveTNFFile.c_str(), "r");
