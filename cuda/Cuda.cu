@@ -1087,6 +1087,16 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
+void saveBootToFile(boost::numeric::ublas::matrix<size_t> &boot) {
+    std::ofstream oos("boot." + std::to_string(commandline_hash));
+    if (oos.good()) {
+        boost::archive::binary_oarchive ooa(oos);
+        ooa << boot;
+        verbose_message("Saved bootstrap intermediate file (boot.%zu) for reuse in case of failure\n", commandline_hash);
+    }
+    oos.close();
+}
+
 void fish_objects(int m, ContigSet &mems, Similarity p1, Similarity p2, ContigVector &medoid_ids,
                   ContigSet &binned) {  // fish (assign) objects to medoid m.
     if (debug) {
@@ -1416,8 +1426,8 @@ void fish_more(int m, ClassMap &cls, ContigSet &leftovers) {
 #pragma omp critical(FISH_MORE)
                     {
                         newbies.insert(ff);
-                        //						std::cout << "new friends: " << v << " -> " << ff << " with " <<
-                        //boost::get(gWgt, *e) << endl;
+                        //						std::cout << "new friends: " << v << " -> " << ff << " with "
+                        //<< boost::get(gWgt, *e) << endl;
                     }
                 }
             }
