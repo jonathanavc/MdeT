@@ -1080,108 +1080,6 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
-bool readPairFile() {
-    std::ifstream is(pairFile.c_str());
-    if (!is.is_open()) {
-        std::cerr << "[Error!] can't open the paired read coverage file " << pairFile << std::endl;
-        return false;
-    }
-
-    if (ncols(is, 1) != 3) {
-        std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3." << std::endl;
-        return false;
-    }
-
-    paired.m_vertices.resize(seqs.size());
-
-    int nRow = -1;
-    bool isGood = true;
-    size_t pastContigIdx = 0, contigIdx = 0;
-    std::vector<DistancePair> contigPairs;
-
-    for (std::string row; safeGetline(is, row) && is.good(); ++nRow) {
-        if (nRow == -1)  // the first row is header
-            continue;
-
-        std::stringstream ss(row);
-        int c = 0;
-        size_t contigIdxMate;
-        double AvgCoverage;
-
-        for (std::string col; getline(ss, col, tab_delim); ++c) {
-            if (col.empty()) break;
-
-            if (c == 0)
-                contigIdx = boost::lexical_cast<size_t>(col);
-            else if (c == 1)
-                contigIdxMate = boost::lexical_cast<size_t>(col);
-            else if (c == 2)
-                AvgCoverage = boost::lexical_cast<double>(col);
-        }
-
-        if (c != 3) {
-            std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3 in the row " << nRow + 1 << std::endl;
-            isGood = false;
-            break;
-        }
-
-        if (contigIdx >= seqs.size() || pastContigIdx >= seqs.size()) {
-            std::cerr << "[Error!] Contig index " << contigIdx << " >= the number of total sequences " << seqs.size()
-                      << " in assembly file " << inFile << std::endl;
-            isGood = false;
-            break;
-        }
-
-        if (contigIdx == pastContigIdx) {
-            DistancePair tmp(contigIdxMate, AvgCoverage);
-            contigPairs.push_back(tmp);
-        } else {  // new index
-            sort(contigPairs.begin(), contigPairs.end(), cmp_abd);
-
-            if (contigPairs.size() == 2) {
-                boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-            } else if (contigPairs.size() == 3) {
-                boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-                boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
-            } else if (contigPairs.size() > 3) {
-                if (contigPairs[1].second > contigPairs[3].second * minTimes)
-                    boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-                if (contigPairs[2].second > contigPairs[3].second * minTimes)
-                    boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
-            }
-
-            assert(boost::out_degree(pastContigIdx, paired) <= 2);
-
-            contigPairs.clear();
-            pastContigIdx = contigIdx;
-        }
-    }
-
-    sort(contigPairs.begin(), contigPairs.end(), cmp_abd);
-
-    if (contigPairs.size() == 2) {
-        boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-    } else if (contigPairs.size() == 3) {
-        boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-        boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
-    } else if (contigPairs.size() > 3) {
-        if (contigPairs[1].second > contigPairs[3].second * minTimes) boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
-        if (contigPairs[2].second > contigPairs[3].second * minTimes) boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
-    }
-
-    assert(boost::out_degree(contigIdx, paired) <= 2);
-
-    if (contigIdx != seqs.size() - 1) {  // the last index doesn't cover
-        std::cerr << "[Error!] The last index does not cover all sequences given " << contigIdx << " != " << seqs.size() - 1
-                  << std::endl;
-        isGood = false;
-    }
-
-    if (!isGood) paired.clear();
-
-    return isGood;
-}
-
 void fish_objects(int m, ContigSet &mems, Similarity p1, Similarity p2, ContigVector &medoid_ids,
                   ContigSet &binned) {  // fish (assign) objects to medoid m.
     if (debug) {
@@ -1564,6 +1462,108 @@ void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassI
             leftovers.erase(newbies[i]);
         }
     }
+}
+
+bool readPairFile() {
+    std::ifstream is(pairFile.c_str());
+    if (!is.is_open()) {
+        std::cerr << "[Error!] can't open the paired read coverage file " << pairFile << std::endl;
+        return false;
+    }
+
+    if (ncols(is, 1) != 3) {
+        std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3." << std::endl;
+        return false;
+    }
+
+    paired.m_vertices.resize(seqs.size());
+
+    int nRow = -1;
+    bool isGood = true;
+    size_t pastContigIdx = 0, contigIdx = 0;
+    std::vector<DistancePair> contigPairs;
+
+    for (std::string row; safeGetline(is, row) && is.good(); ++nRow) {
+        if (nRow == -1)  // the first row is header
+            continue;
+
+        std::stringstream ss(row);
+        int c = 0;
+        size_t contigIdxMate;
+        double AvgCoverage;
+
+        for (std::string col; getline(ss, col, tab_delim); ++c) {
+            if (col.empty()) break;
+
+            if (c == 0)
+                contigIdx = boost::lexical_cast<size_t>(col);
+            else if (c == 1)
+                contigIdxMate = boost::lexical_cast<size_t>(col);
+            else if (c == 2)
+                AvgCoverage = boost::lexical_cast<double>(col);
+        }
+
+        if (c != 3) {
+            std::cerr << "[Error!] Number of columns in paired read coverage data file is not 3 in the row " << nRow + 1 << std::endl;
+            isGood = false;
+            break;
+        }
+
+        if (contigIdx >= seqs.size() || pastContigIdx >= seqs.size()) {
+            std::cerr << "[Error!] Contig index " << contigIdx << " >= the number of total sequences " << seqs.size()
+                      << " in assembly file " << inFile << std::endl;
+            isGood = false;
+            break;
+        }
+
+        if (contigIdx == pastContigIdx) {
+            DistancePair tmp(contigIdxMate, AvgCoverage);
+            contigPairs.push_back(tmp);
+        } else {  // new index
+            sort(contigPairs.begin(), contigPairs.end(), cmp_abd);
+
+            if (contigPairs.size() == 2) {
+                boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+            } else if (contigPairs.size() == 3) {
+                boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+                boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
+            } else if (contigPairs.size() > 3) {
+                if (contigPairs[1].second > contigPairs[3].second * minTimes)
+                    boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+                if (contigPairs[2].second > contigPairs[3].second * minTimes)
+                    boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
+            }
+
+            assert(boost::out_degree(pastContigIdx, paired) <= 2);
+
+            contigPairs.clear();
+            pastContigIdx = contigIdx;
+        }
+    }
+
+    sort(contigPairs.begin(), contigPairs.end(), cmp_abd);
+
+    if (contigPairs.size() == 2) {
+        boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+    } else if (contigPairs.size() == 3) {
+        boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+        boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
+    } else if (contigPairs.size() > 3) {
+        if (contigPairs[1].second > contigPairs[3].second * minTimes) boost::add_edge(pastContigIdx, contigPairs[1].first, paired);
+        if (contigPairs[2].second > contigPairs[3].second * minTimes) boost::add_edge(pastContigIdx, contigPairs[2].first, paired);
+    }
+
+    assert(boost::out_degree(contigIdx, paired) <= 2);
+
+    if (contigIdx != seqs.size() - 1) {  // the last index doesn't cover
+        std::cerr << "[Error!] The last index does not cover all sequences given " << contigIdx << " != " << seqs.size() - 1
+                  << std::endl;
+        isGood = false;
+    }
+
+    if (!isGood) paired.clear();
+
+    return isGood;
 }
 
 int main(int argc, char const *argv[]) {
