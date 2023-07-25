@@ -12,6 +12,8 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp> // Si estás usando vectores como propiedades de los vértices o aristas
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/dynamic_bitset.hpp>
