@@ -28,7 +28,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "ProgressTracker.hpp"
+#include "ProgressTracker.h"
 
 // #include "../extra/metrictime2.hpp"
 
