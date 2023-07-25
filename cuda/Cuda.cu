@@ -1300,8 +1300,8 @@ void gen_commandline_hash() {
     // cout << commandline_hash << endl;
 }
 size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
-    double max_size = LOG10(100000);
-    double min_size = LOG10(minContigByCorr);
+    double max_size = std::log10(100000);
+    double min_size = std::log10(minContigByCorr);
 
     ContigVector leftovers2(leftovers.begin(), leftovers.end());
     std::sort(leftovers2.begin(), leftovers2.end());
