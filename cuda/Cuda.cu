@@ -575,16 +575,6 @@ static void verbose_message(const char *format, ...) {
     }
 }
 
-
-static Similarity get_prob(size_t r1, size_t r2) {
-	if (r1 == r2)
-		return 1;
-	edge_descriptor e;
-	bool found;
-	boost::tie(e, found) = boost::edge(r1, r2, gprob);
-	return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
-}
-
 int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *membership, igraph_weight_vector_t *weights) {
     node_t no_of_nodes = igraph_vcount(graph);
     edge_t no_of_edges = igraph_ecount(graph);
@@ -899,6 +889,16 @@ Distance cal_dist(size_t r1, size_t r2) {
     bool passed = true;
     return cal_dist(r1, r2, maxDist, passed);
 }
+
+static Similarity get_prob(size_t r1, size_t r2) {
+	if (r1 == r2)
+		return 1;
+	edge_descriptor e;
+	bool found;
+	boost::tie(e, found) = boost::edge(r1, r2, gprob);
+	return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
+}
+
 
 static bool cmp_abd(const DistancePair &i, const DistancePair &j) {
     return j.second < i.second;  // decreasing
