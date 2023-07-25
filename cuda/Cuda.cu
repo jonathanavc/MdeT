@@ -493,6 +493,44 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+int getFreeMem() {
+#ifdef __APPLE__
+    kern_return_t kernReturn = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
+    if (kernReturn != KERN_SUCCESS) return 0;
+    return (vm_page_size * vmStats.free_count) / 1024;
+#else
+    FILE *file = fopen("/proc/meminfo", "r");
+    size_t result = 0;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL) {
+        if (strncmp(line, "MemFree:", 6) == 0 || strncmp(line, "Buffers:", 6) == 0 || strncmp(line, "Cached:", 6) == 0 ||
+            strncmp(line, "SwapFree:", 6) == 0) {
+            result += parseLine(line);
+        }
+    }
+    fclose(file);
+    return result;  // Kb
+#endif
+}
+
+double getTotalPhysMem() {
+    if (totalPhysMem < 1) {
+#ifdef __APPLE__
+        kern_return_t kernReturn = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
+        if (kernReturn != KERN_SUCCESS) return 0;
+        return (vm_page_size * (vmStats.wire_count + vmStats.active_count + vmStats.inactive_count + vmStats.free_count)) / 1024;
+#else
+        sysinfo(&memInfo);
+        long long _totalPhysMem = memInfo.totalram;
+        _totalPhysMem *= memInfo.mem_unit;
+        totalPhysMem = (double)_totalPhysMem / 1024;  // kb
+#endif
+    }
+    return totalPhysMem;
+}
+double getUsedPhysMem() { return (getTotalPhysMem() - getFreeMem()) / 1024. / 1024.; }
+
 int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *membership, igraph_weight_vector_t *weights) {
     node_t no_of_nodes = igraph_vcount(graph);
     edge_t no_of_edges = igraph_ecount(graph);
