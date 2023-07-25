@@ -703,8 +703,8 @@ static void verbose_message(const char *format, ...) {
     if (verbose) {
         t2 = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration duration = t2 - t1;
-        int elapsed = (int)std::chrono::duration_cast<std::chrono::seconds>(duration).count();  // seconds
-        printf("[%02d:%02d:%02d] ", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+        size_t elapsed = std::chrono::duration_cast<std::chrono::millisecond>(duration).count();  // seconds
+        printf("[%02d:%02d:%02d:%02d] ", elapsed / 3600000, (elapsed % 3600000) / 60000, elapsed / 1000, elapsed / 100);
         va_list argptr;
         va_start(argptr, format);
         vfprintf(stdout, format, argptr);
