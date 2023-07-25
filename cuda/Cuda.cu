@@ -1026,8 +1026,8 @@ void init_medoids_by_ABD(size_t k, ContigVector &medoid_ids, std::vector<double>
             medoid_ids[k] = it->first;
             medoid_vals[k] = it->second;
             if (debug)
-                cout << "Selected medoid[" << k << "]: " << medoid_ids[k] << ", contig id: " << it->first << " with abundance "
-                     << it->second << endl;
+                std::cout << "Selected medoid[" << k << "]: " << medoid_ids[k] << ", contig id: " << it->first << " with abundance "
+                          << it->second << std::endl;
             break;  // no ++it;
         } else {
             if (useEB) {
