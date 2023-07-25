@@ -725,7 +725,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         d += (TNF[r1 * 136 +i] - TNF[r2*136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 *136 + i]);  // euclidean distance
     }
 
-    d = SQRT(d);
+    d = sqrt(d);
 
     Distance b, c;  // parameters
 
