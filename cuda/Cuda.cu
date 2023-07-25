@@ -17,6 +17,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
 #include <boost/math/distributions.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
 #include <cstdarg>
