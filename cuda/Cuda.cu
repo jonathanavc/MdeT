@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "ProgressTracker.h"
+#include "igraph.h"
 
 // #include "../extra/metrictime2.hpp"
 
