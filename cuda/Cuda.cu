@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/graph/adjacency_list.hpp>
