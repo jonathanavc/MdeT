@@ -16,6 +16,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/undirected_graph.hpp>
@@ -1262,9 +1263,8 @@ void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals,
     cls[i].insert(cls[i].end(), mems.begin(), mems.end());
     binned.insert(mems.begin(), mems.end());
     if (updates > 1)
-        medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), [i = medoid_ids[i]](const DistancePair& dp){
-            return dp.first == i;
-        })->second;
+        medoid_vals[i] =
+            std::find_if(rABD.begin(), rABD.end(), [i = medoid_ids[i]](const DistancePair &dp) { return dp.first == i; })->second;
 
     if (debug)
         std::cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
