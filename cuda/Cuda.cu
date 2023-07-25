@@ -1350,6 +1350,75 @@ size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &lef
     return fished;
 }
 
+void fish_more_by_friends_membership(ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
+    // profile distribution of friends and assign isolates to a bin using majority vote
+
+    std::vector<int> clsMap(nobs, -1);
+
+    ContigVector good_class_ids2(good_class_ids.begin(), good_class_ids.end());
+
+#pragma omp parallel for schedule(dynamic)
+    for (size_t k = 0; k < good_class_ids2.size(); ++k) {
+        for (size_t i = 0; i < cls[good_class_ids2[k]].size(); ++i) {
+            assert(cls[good_class_ids2[k]][i] < (int)clsMap.size());
+            clsMap[cls[good_class_ids2[k]][i]] = good_class_ids2[k];
+        }
+    }
+
+    bool updated = true;
+
+    while (updated) {
+        updated = false;
+
+        ContigVector newbies;
+        ContigVector leftovers2(leftovers.begin(), leftovers.end());
+        std::sort(leftovers2.begin(), leftovers2.end());
+
+        for (size_t i = 0; i < leftovers2.size(); ++i) {
+            int vid = leftovers2[i];
+            out_edge_iterator e, e_end;
+            vertex_descriptor v = boost::vertex(vid, gprob);
+
+            boost::tie(e, e_end) = boost::out_edges(v, gprob);
+            if (e == e_end) continue;
+
+            std::unordered_map<int, int> summary;
+            int _binned = 0;
+            int maxFriends = 0;
+
+            for (size_t j = 0; j < boost::out_degree(v, gprob); ++j) {
+                out_edge_iterator ee = e + j;
+
+                Similarity p = boost::get(gWgt, *ee);
+                int f = boost::get(gIdx, boost::target(*ee, gprob));
+
+                if (p >= minProb) {
+                    ++maxFriends;
+                    if (clsMap[f] >= 0) {  // count only binned contigs
+                        ++_binned;
+                        summary[clsMap[f]]++;
+                    }
+                }
+            }
+
+            for (std::unordered_map<int, int>::const_iterator it2 = summary.cbegin(); it2 != summary.cend(); ++it2) {
+                if (_binned > maxFriends * minBinned && it2->second > _binned / 2) {  //   //majority
+                    // cout << "Total Friends: " << maxFriends << ", Binned: " << total << ", Majority: " << it2->second << endl;
+                    cls[it2->first].push_back(vid);
+                    newbies.push_back(vid);
+                    clsMap[vid] = it2->first;
+                    updated = true;
+                    break;
+                }
+            }
+        }
+
+        for (size_t i = 0; i < newbies.size(); ++i) {
+            leftovers.erase(newbies[i]);
+        }
+    }
+}
+
 /*
 bool readPairFile() {
     std::ifstream is(pairFile.c_str());
