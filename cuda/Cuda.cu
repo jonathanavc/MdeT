@@ -1019,6 +1019,101 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
+void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned, ClassMap &cls) {
+    init_medoids_by_ABD(i, medoid_ids, medoid_vals, binned);
+
+    int updates = 0;
+    bool updated = true;
+    ContigSet medoid_prevs;
+    ContigSet mems;
+
+    while (updated) {
+        updated = false;
+        updates++;
+        ContigSet _mems;
+        fish_objects(i, _mems, p1, p2, medoid_ids, binned);
+
+        std::vector<DistancePair> ssum(_mems.size());
+
+#pragma omp parallel for schedule(dynamic)
+        for (size_t j = 0; j < _mems.size(); ++j) {
+            ContigSet::iterator it = _mems.begin();
+            std::advance(it, j);
+            DistancePair s(*it, 0);
+            for (ContigSet::iterator it2 = _mems.begin(); it2 != _mems.end(); ++it2) {
+                if (*it != *it2) s.second += get_prob(*it, *it2);
+            }
+            ssum[j] = s;
+        }
+
+        sort(ssum.begin(), ssum.end(), cmp_abd);
+
+        mems = _mems;
+
+        if (medoid_prevs.find(ssum[0].first) == medoid_prevs.end()) {  // preventing a loop!
+            if (ssum[0].first != medoid_ids[i])                        // medoid is updated
+                updated = true;
+
+            medoid_ids[i] = ssum[0].first;
+            medoid_prevs.insert(medoid_ids[i]);
+        }
+    }
+
+    cls[i].insert(cls[i].end(), mems.begin(), mems.end());
+    binned.insert(mems.begin(), mems.end());
+    if (updates > 1)
+        medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), std::bind(pair_equal_to<int, double>(), medoid_ids[i]))->second;
+
+    if (debug) cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
+}
+
+int pam(ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned, ClassMap &cls, ContigSet &leftovers,
+        ClassIdType &good_class_ids) {
+    ContigVector empty;
+    int goodClusters = 0;
+
+    ProgressTracker progress(nobs - binned.size());
+
+    while (nobs != binned.size()) {
+        medoid_ids.push_back(0);
+        medoid_vals.push_back(0);
+
+        size_t kk = medoid_ids.size() - 1;
+        cls[kk] = empty;
+
+        pam_loop(kk, medoid_ids, medoid_vals, binned, cls);
+
+        size_t cls_size = 0;
+        bool isGood = false;
+        for (ContigVector::iterator it = cls[kk].begin(); it != cls[kk].end(); ++it) {
+            cls_size += seqs[gCtgIdx[*it]].size();
+            if (cls_size >= seedClsSize) {
+                isGood = true;
+                break;
+            }
+        }
+
+        progress.setProgress(binned.size());
+        if (!useEB && progress.isStepMarker()) {
+            verbose_message("1st round binning %s\r", progress.getProgress());
+        }
+
+        if (isGood && cls[kk].size() > 2) {
+            goodClusters++;
+            good_class_ids.insert(kk);
+        } else {
+            if (cls[kk].size() > 1 || seqs[gCtgIdx[cls[kk][0]]].size() >=
+                                          minContigByCorr)  // keep leftovers only if it is at least valid for corr recruiting
+                leftovers.insert(cls[kk].begin(), cls[kk].end());
+        }
+    }
+
+    progress.setProgress(binned.size());
+    if (!useEB) verbose_message("1st round binning %s\n", progress.getProgress());
+
+    return goodClusters;
+}
+
 static void trim_fasta_label(std::string &label) {
     size_t pos = label.find_first_of(" \t");
     if (pos != std::string::npos) label = label.substr(0, pos);
