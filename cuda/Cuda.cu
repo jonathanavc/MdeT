@@ -551,6 +551,8 @@ double getTotalPhysMem() {
     return totalPhysMem;
 }
 
+double getUsedPhysMem() { return (getTotalPhysMem() - getFreeMem()) / 1024. / 1024.; }
+
 static void print_message(const char *format, ...) {
     va_list argptr;
     va_start(argptr, format);
@@ -573,7 +575,15 @@ static void verbose_message(const char *format, ...) {
     }
 }
 
-double getUsedPhysMem() { return (getTotalPhysMem() - getFreeMem()) / 1024. / 1024.; }
+
+static Similarity get_prob(size_t r1, size_t r2) {
+	if (r1 == r2)
+		return 1;
+	edge_descriptor e;
+	bool found;
+	boost::tie(e, found) = boost::edge(r1, r2, gprob);
+	return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
+}
 
 int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *membership, igraph_weight_vector_t *weights) {
     node_t no_of_nodes = igraph_vcount(graph);
