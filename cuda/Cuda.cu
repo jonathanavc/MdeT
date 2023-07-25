@@ -22,6 +22,7 @@
 #include <chrono>
 #include <cstdarg>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <sstream>
@@ -891,14 +892,12 @@ Distance cal_dist(size_t r1, size_t r2) {
 }
 
 static Similarity get_prob(size_t r1, size_t r2) {
-	if (r1 == r2)
-		return 1;
-	edge_descriptor e;
-	bool found;
-	boost::tie(e, found) = boost::edge(r1, r2, gprob);
-	return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
+    if (r1 == r2) return 1;
+    edge_descriptor e;
+    bool found;
+    boost::tie(e, found) = boost::edge(r1, r2, gprob);
+    return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
 }
-
 
 static bool cmp_abd(const DistancePair &i, const DistancePair &j) {
     return j.second < i.second;  // decreasing
