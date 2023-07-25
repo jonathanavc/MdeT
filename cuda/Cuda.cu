@@ -1019,6 +1019,26 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
     out.close();
 }
 
+void init_medoids_by_ABD(size_t k, ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned) {
+    std::list<DistancePair>::iterator it = rABD.begin();
+    while (it != rABD.end()) {
+        if (binned.find(it->first) == binned.end()) {
+            medoid_ids[k] = it->first;
+            medoid_vals[k] = it->second;
+            if (debug)
+                cout << "Selected medoid[" << k << "]: " << medoid_ids[k] << ", contig id: " << it->first << " with abundance "
+                     << it->second << endl;
+            break;  // no ++it;
+        } else {
+            if (useEB) {
+                it->second = rand();
+                rABD2.push_back(*it);
+            }
+            it = rABD.erase(it);
+        }
+    }
+}
+
 void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned, ClassMap &cls) {
     init_medoids_by_ABD(i, medoid_ids, medoid_vals, binned);
 
