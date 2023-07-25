@@ -503,7 +503,7 @@ static size_t nobs2;  // number of contigs used for binning
 
 static boost::numeric::ublas::matrix<float> ABD;
 static boost::numeric::ublas::matrix<float> ABD_VAR;
-//static boost::numeric::ublas::matrix<float> TNF;
+// static boost::numeric::ublas::matrix<float> TNF;
 static float *TNF;
 
 // typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
@@ -2355,9 +2355,8 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
-
+    cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-        cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
         cudaMalloc((void **)&seqs_d, fsize);
         cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
