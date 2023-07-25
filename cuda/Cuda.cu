@@ -541,7 +541,7 @@ int getFreeMem() {
     return (vm_page_size * vmStats.free_count) / 1024;
 #else
     sysinfo(&memInfo);
-    return memInfo.freeram / 1024;  // Convertir a kilobytes
+    return memInfo.freeram * memInfo.mem_unit / 1024;  // Convertir a kilobytes
 #endif
 }
 
