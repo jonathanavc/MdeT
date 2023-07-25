@@ -507,6 +507,11 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+template <class T, class S>
+struct pair_equal_to : std::binary_function<T, std::pair<T, S>, bool> {
+    bool operator()(const T &y, const std::pair<T, S> &x) const { return x.first == y; }
+};
+
 int parseLine(char *line) {
     int i = strlen(line);
     while (*line < '0' || *line > '9') line++;
