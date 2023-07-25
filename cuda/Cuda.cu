@@ -546,6 +546,29 @@ double getTotalPhysMem() {
     }
     return totalPhysMem;
 }
+
+static void print_message(const char *format, ...) {
+    va_list argptr;
+    va_start(argptr, format);
+    vfprintf(stdout, format, argptr);
+    std::cout.flush();
+    va_end(argptr);
+}
+
+static void verbose_message(const char *format, ...) {
+    if (verbose) {
+        t2 = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::duration duration = t2 - t1;
+        int elapsed = (int)std::chrono::duration_cast<std::chrono::seconds>(duration).count();  // seconds
+        printf("[%02d:%02d:%02d] ", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+        va_list argptr;
+        va_start(argptr, format);
+        vfprintf(stdout, format, argptr);
+        std::cout.flush();
+        va_end(argptr);
+    }
+}
+
 double getUsedPhysMem() { return (getTotalPhysMem() - getFreeMem()) / 1024. / 1024.; }
 
 int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *membership, igraph_weight_vector_t *weights) {
@@ -565,10 +588,10 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
     /* Do some initial checks */
     if (weights) {
         if (igraph_vector_size(weights) != no_of_edges) {
-            cerr << "Invalid weight vector length" << endl;
+            std::cerr << "Invalid weight vector length" << std::endl;
             exit(1);
         } else if (igraph_vector_min(weights) < 0) {
-            cerr << "Weights must be non-negative" << endl;
+            std::cerr << "Weights must be non-negative" << std::endl;
             exit(1);
         }
     }
@@ -872,28 +895,6 @@ void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     while (readSz < _size) {
         size_t _bytesres = _size - readSz;
         readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
-    }
-}
-
-static void print_message(const char *format, ...) {
-    va_list argptr;
-    va_start(argptr, format);
-    vfprintf(stdout, format, argptr);
-    std::cout.flush();
-    va_end(argptr);
-}
-
-static void verbose_message(const char *format, ...) {
-    if (verbose) {
-        t2 = std::chrono::steady_clock::now();
-        std::chrono::steady_clock::duration duration = t2 - t1;
-        int elapsed = (int)std::chrono::duration_cast<std::chrono::seconds>(duration).count();  // seconds
-        printf("[%02d:%02d:%02d] ", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
-        va_list argptr;
-        va_start(argptr, format);
-        vfprintf(stdout, format, argptr);
-        std::cout.flush();
-        va_end(argptr);
     }
 }
 
