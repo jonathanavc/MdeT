@@ -908,6 +908,49 @@ static bool cmp_abd(const DistancePair &i, const DistancePair &j) {
     return j.second < i.second;  // decreasing
 }
 
+Distance cal_abd_corr(size_t r1, size_t r2) {
+    size_t i, ii;
+    double sum_xsq = 0.0;
+    double sum_ysq = 0.0;
+    double sum_cross = 0.0;
+    double ratio;
+    double delta_x, delta_y;
+    double mean_x = 0.0, mean_y = 0.0;
+    double r = 0.0;
+
+    size_t s = 0;  // skipped
+
+    for (i = 0; i < nABD; ++i) {
+        Distance m1 = ABD(r1, i);
+        Distance m2 = ABD(r2, i);
+
+        ii = i - s;
+
+        if (ii == 0) {
+            mean_x = m1;
+            mean_y = m2;
+            continue;
+        }
+
+        ratio = ii / (ii + 1.0);
+        delta_x = m1 - mean_x;
+        delta_y = m2 - mean_y;
+        sum_xsq += delta_x * delta_x * ratio;
+        sum_ysq += delta_y * delta_y * ratio;
+        sum_cross += delta_x * delta_y * ratio;
+        mean_x += delta_x / (ii + 1.0);
+        mean_y += delta_y / (ii + 1.0);
+    }
+
+    r = sum_cross / (sqrt(sum_xsq) * sqrt(sum_ysq));
+
+    if (nABD - s < minSamples) {
+        return 0;
+    }
+
+    return r;
+}
+
 void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
     size_t readSz = 0;
     while (readSz < _size) {
@@ -1299,6 +1342,7 @@ void gen_commandline_hash() {
     commandline_hash = str_hash(commandline);
     // cout << commandline_hash << endl;
 }
+
 size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
     double max_size = std::log10(100000);
     double min_size = std::log10(minContigByCorr);
