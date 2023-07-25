@@ -1935,8 +1935,8 @@ int main(int argc, char const *argv[]) {
             }
             nABD /= 2;
         }
-        cudaMallocHost((void **)&ABD, nobs * nABD * sizeof(float));
-        cudaMallocHost((void **)&ABD_VAR, nobs * nABD * sizeof(float));
+        ABD.resize(nobs, nABD);
+		ABD_VAR.resize(nobs, nABD);
 
         std::ifstream is(abdFile.c_str());
         if (!is.is_open()) {
@@ -2443,17 +2443,17 @@ int main(int argc, char const *argv[]) {
     }
 
     cudaFreeHost(TNF);
-    cudaFreeHost(ABD);
-    cudaFreeHost(ABD_VAR);
+    //cudaFreeHost(ABD);
+    //cudaFreeHost(ABD_VAR);
     gprob.clear();
     gprob.m_edges.resize(0);
     gprob.m_vertices.resize(0);
     gprob.m_vertices.shrink_to_fit();
 
-    // ABD.clear();
-    // ABD_VAR.clear();
-    // ABD.resize(0, 0, false);
-    // ABD_VAR.resize(0, 0, false);
+    ABD.clear();
+    ABD_VAR.clear();
+    ABD.resize(0, 0, false);
+    ABD_VAR.resize(0, 0, false);
 
     if (useEB) {
         igraph_t g;
