@@ -1159,6 +1159,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     }
     ok = pread(fpint, (void *)TNF, fsize * sizeof(float) * 136, 8);
     if (ok != fsize) {
+        std::cerr << fsize << " " << ok << std::endl;
         std::cerr << "[Warning!] A exception occurred."
                      "Recalculating..."
                   << std::endl;
