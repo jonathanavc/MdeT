@@ -1167,7 +1167,8 @@ void pam_loop(int i, ContigVector &medoid_ids, std::vector<double> &medoid_vals,
     if (updates > 1)
         medoid_vals[i] = std::find_if(rABD.begin(), rABD.end(), std::bind(pair_equal_to<int, double>(), medoid_ids[i]))->second;
 
-    if (debug) std::cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
+    if (debug)
+        std::cout << "medoid[" << i << "]: " << medoid_ids[i] << " updates: " << updates << " size: " << cls[i].size() << std::endl;
 }
 
 int pam(ContigVector &medoid_ids, std::vector<double> &medoid_vals, ContigSet &binned, ClassMap &cls, ContigSet &leftovers,
@@ -1297,6 +1298,56 @@ void gen_commandline_hash() {
     std::hash<std::string> str_hash;
     commandline_hash = str_hash(commandline);
     // cout << commandline_hash << endl;
+}
+size_t fish_more_by_corr(ContigVector &medoid_ids, ClassMap &cls, ContigSet &leftovers, ClassIdType &good_class_ids) {
+    double max_size = LOG10(100000);
+    double min_size = LOG10(minContigByCorr);
+
+    ContigVector leftovers2(leftovers.begin(), leftovers.end());
+    std::sort(leftovers2.begin(), leftovers2.end());
+    size_t fished = 0;
+
+    ProgressTracker progress = ProgressTracker(leftovers2.size());
+
+#pragma omp parallel for schedule(dynamic)
+    for (size_t i = 0; i < leftovers2.size(); ++i) {
+        double max_corr = 0.;
+        size_t which_max_corr = 0;
+
+        for (ClassIdType::const_iterator it2 = good_class_ids.begin(); it2 != good_class_ids.end(); ++it2) {
+            //			if (smallCtgs.find(*it) == smallCtgs.end() && cal_tnf_dist(medoid_ids[*it2], *it) > 0.2)
+            //				continue;
+            double corr = cal_abd_corr(medoid_ids[*it2], leftovers2[i]);
+            if (corr > max_corr) {  // recruiting for large bins (>=20) cls[*it2].size() >= 200; corr >= (99. -
+                                    // std::max(LOG10(cls[*it2].size()) - 1., 0.) * 5.)/100.
+                max_corr = corr;
+                which_max_corr = *it2;
+            }
+        }
+
+        // 1000=>90, 100000=>99
+        if (max_corr >= minCorr / 100.) {  // smallCtgs.find(*it) == smallCtgs.end() ? minCorr * 1.05 : minCorr
+            double cutCorr = ((99. - minCorr) / (max_size - min_size) * LOG10(seqs[gCtgIdx[leftovers2[i]]].size()) +
+                              (max_size * minCorr - min_size * 99.) / (max_size - min_size)) /
+                             100.;
+            if (max_corr >= std::min(cutCorr, .99)) {
+#pragma omp critical(FISH_MORE_BY_CORR)
+                {
+                    ++fished;
+                    cls[which_max_corr].push_back(leftovers2[i]);
+                }
+            }
+        }
+
+        if (!useEB) {
+            progress.track();
+            if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
+                verbose_message("fish_more_by_corr: %s\r", progress.getProgress());
+            }
+        }
+    }
+
+    return fished;
 }
 
 /*
