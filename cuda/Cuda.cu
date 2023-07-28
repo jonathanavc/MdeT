@@ -71,30 +71,19 @@ __device__ __constant__ unsigned char BN[256] = {
 
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
-
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-
     d = sqrt(d);
-
-    double b, c;  // parameters
-
+    double b, c;
     size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
     size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
-
-    if (ctg1_s != ctg1_s || ctg2_s != ctg2_s) {
-        return -12;
-    }
-
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
-
     double lw11 = log10((double)min(ctg1, ctg2));
     double lw21 = log10((double)max(ctg1, ctg2));
-    // return lw11;
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
@@ -106,9 +95,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t 
     double lw24 = lw23 * lw21;
     double lw25 = lw24 * lw21;
     double lw26 = lw25 * lw21;
-
     double prob;
-
     b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
         -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
         0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
@@ -117,11 +104,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t 
         194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
         -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
-
-    // logistic model
     prob = 1.0 / (1.0 + exp((double)(-(b + c * d))));
-
-    if (prob >= .1) {  // second logistic model
+    if (prob >= .1) {
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
             -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
             -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
@@ -134,25 +118,24 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t 
         prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
-
     return prob;
 }
 
-__global__ void get_tnf_prob(double *tnf_dist, const float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
-    __shared__ float shared_TNF[136 * 16];
-    const size_t global_block_id = blockIdx.x * blockDim.x;
-    const size_t gloabal_thead_id = threadIdx.x + global_block_id;
-    if (gloabal_thead_id >= nobs) break;
-    for (int i = 0; i < 136; i++) {
-        shared_TNF[threadIdx.x  * 136 + i] = TNF_d[gloabal_thead_id * 136 + i];
+__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
+
+__global__ void get_tnf_prob(double *tnf_dist, double *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+    size_t limit = (nobs * (nobs - 1)) / 2;
+    size_t r1;
+    size_t r2;
+    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    for (size_t i = 0; i < contig_per_thread; i++) {
+        const size_t gprob_index = (thead_id * contig_per_thread) + i;
+        if (gprob_index >= limit) break;
+        long long discriminante = 1 + 8 * gprob_index;
+        r1 = (1 + sqrt((double)discriminante)) / 2;
+        r2 = gprob_index - r1 * (r1 - 1) / 2;
+        tnf_dist[gprob_index] = cal_tnf_dist(r1, r2, TNF, ABD_d, seqs_d_index, nobs);
     }
-    size_t fil = (gloabal_thead_id * (gloabal_thead_id - 1)) / 2;
-    for (size_t i = 0; i < 16; i++) {
-        size_t tnf_dist_index = fil + i;
-        size_t tnf_dist_index = fil + (i * global_block_id);
-        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(threadIdx.x, i, shared_TNF, seqs_d_index, nobs);
-    }
-    __syncthreads();
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
@@ -2258,7 +2241,6 @@ int main(int argc, char const *argv[]) {
                 seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem);
                 seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seqs[gCtgIdx[_des + j]].size());
             }
-
             cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
                             cudaMemcpyHostToDevice, streams[i]);
             cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
@@ -2277,7 +2259,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d);
         // se usarán más adelante
         // cudaFree(TNF_d);
-        // cudaFree(seqs_d_index);
+        cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
@@ -2298,10 +2280,10 @@ int main(int argc, char const *argv[]) {
     if (1) {
         double *tnf_prob_d;
         cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
-        get_tnf_prob<<<(nobs + 15) / 16, 16>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
+        size_t num_prob_per_kernel = ((nobs * (nobs - 1) / 2) + (numBlocks * numThreads - 1)) / numBlocks * numThreads;
+        get_tnf_prob<<<numBlocks, numThreads>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_kernel);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
-        cudaFree(tnf_prob_d);
     }
     verbose_message("Finished TNF prob calculation.                                  \n");
 
