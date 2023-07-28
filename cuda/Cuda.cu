@@ -134,7 +134,7 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = r1;
+        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
     }
 }
 
@@ -572,8 +572,10 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     float dis_array[8];
     __m256 dis;  //, vec1, vec2, ;
-    for (int i = 0; i < 17; i++) {
-        dis = _mm256_sub_ps(_mm256_load_ps(TNF + r1 * 136 + i * 8), _mm256_load_ps(TNF + r2 * 136 + i * 8));
+    size_t _r1 = r1 * 136;
+    size_t _r2 = r2 * 136;
+    for (int i = 0; i < 136; i += 8) {
+        dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
         dis = _mm256_mul_ps(dis, dis);
         _mm256_store_ps(dis_array, dis);
         for (int i = 0; i < 8; i++) {
