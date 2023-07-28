@@ -573,7 +573,6 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     float diff[8];
     __m512 dis;  //, vec1, vec2, ;
     __m256 dis2;
-
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
     for (int i = 0; i < 136; i += 16) {
@@ -581,6 +580,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         dis = _mm512_mul_ps(dis, dis);
         d += _mm512_reduce_add_ps(dis);
     }
+    std::cout << "d: " << d << std::endl;
     dis2 = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + 128), _mm256_load_ps(TNF + _r2 + 128));
     dis2 = _mm256_mul_ps(dis2, dis2);
     _mm256_store_ps(diff, dis2);
