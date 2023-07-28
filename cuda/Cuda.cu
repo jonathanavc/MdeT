@@ -2278,21 +2278,32 @@ int main(int argc, char const *argv[]) {
     double *tnf_prob;
     cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1) / 2) * sizeof(double));
     if (1) {
-        double *tnf_prob_d;
-        cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
-        size_t num_prob_per_thread = ((nobs * (nobs - 1) / 2) + ((numBlocks * numThreads2) - 1)) / (numBlocks * numThreads2);
-        std::cout << "numBlocks: " << numBlocks << std::endl;
-        std::cout << "numThreads: " << numThreads2 << std::endl;
-        std::cout << "nobs: " << nobs << std::endl;
-        std::cout << "num_prob_per_thread: " << num_prob_per_thread << std::endl;
-        get_tnf_prob<<<numBlocks, numThreads2>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_thread);
-        cudaDeviceSynchronize();
-        cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
-        cudaError_t cudaError = cudaGetLastError();
-        if (cudaError != cudaSuccess) {
-            std::cout << "Error en CUDA: " << cudaGetErrorString(cudaError) << std::endl;
-            // Manejar el error de acuerdo a tus necesidades
+        double *gprob_d;
+        cudaStream_t streams[n_STREAMS];
+        cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangularinferior)
+        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        std::cout << "total_prob: " << total_prob << std::endl;
+        size_t prob_per_kernel = total_prob / n_STREAMS;
+        for (int i = 0; i < n_STREAMS; i++) {
+            size_t _des = prob_per_kernel * i;
+            size_t prob_to_process = prob_per_kernel;
+            cudaStreamCreate(&streams[i]);
+            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            // std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            // std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
+        }
+        cudaFree(gprob_d);
+        cudaFree(TNF_d);
+        cudaFree(seqs_d_index);
     }
     verbose_message("Finished TNF prob calculation.                                  \n");
 
