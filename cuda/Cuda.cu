@@ -568,27 +568,30 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
     return 0;
 }
 
+float hsum_avx(__m256 v) {
+    __m128 lo = _mm256_castps256_ps128(v);    // low 128
+    __m128 hi = _mm256_extractf128_ps(v, 1);  // high 128
+    lo = _mm_add_ps(lo, hi);                  // max the low 128
+    return hsum_sse3(lo);                     // and inline the sse3 version
+}
+
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    float diff[8];
-    __m512 dis;  //, vec1, vec2, ;
-    __m256 dis2;
+    float dis_array[8];
+    __m256 dis;  //, vec1, vec2, ;
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
-    for (int i = 0; i < 136; i += 16) {
-        dis = _mm512_sub_ps(_mm512_load_ps(TNF + _r1 + i), _mm512_load_ps(TNF + _r2 + i));
-        dis = _mm512_mul_ps(dis, dis);
-        d += _mm512_reduce_add_ps(dis);
+    for (int i = 0; i < 136; i += 8) {
+        dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
+        dis = _mm256_mul_ps(dis, dis);
+        d += hsum_avx(dis);
+        /*
+        _mm256_store_ps(dis_array, dis);
+        for (int i = 0; i < 8; i++) {
+            d += dis_array[i];
+        }
+        */
     }
-    std::cout << "d: " << d << std::endl;
-    dis2 = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + 128), _mm256_load_ps(TNF + _r2 + 128));
-    dis2 = _mm256_mul_ps(dis2, dis2);
-    _mm256_store_ps(diff, dis2);
-    std::cout << "d2: " << d << std::endl;
-    for (int i = 0; i < 8; i++) {
-        d += diff[i];
-    }
-
     /*
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
