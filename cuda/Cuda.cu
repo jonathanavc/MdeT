@@ -2293,10 +2293,11 @@ int main(int argc, char const *argv[]) {
     cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1) / 2) * sizeof(double));
     if (1) {
         double *tnf_prob_d;
-        cudaMalloc((void **)tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
+        cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
         get_tnf_prob<<<(nobs + 15) / 16, 16>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaFree(tnf_prob_d);
     }
     verbose_message("Finished TNF prob calculation.                                  \n");
 
