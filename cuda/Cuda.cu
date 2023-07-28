@@ -142,7 +142,7 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF_d, size_t *seqs_d_inde
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         size_t contig_id = thead_id * contig_per_thread + i;
-        if (thread_id >= nobs) break;
+        if (contig_id >= nobs) break;
         size_t fil = (contig_id * (contig_id - 1)) / 2;
         for (size_t i = 0; i < contig_id; i++) {
             size_t tnf_dist_index = fil + i;
