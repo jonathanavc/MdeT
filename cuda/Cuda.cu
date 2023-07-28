@@ -2281,7 +2281,7 @@ int main(int argc, char const *argv[]) {
         double *tnf_prob_d;
         cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
         size_t num_prob_per_kernel = ((nobs * (nobs - 1) / 2) + (numBlocks * numThreads - 1)) / numBlocks * numThreads;
-        std::cout "numBlocks: " << numBlocks << std::endl;
+        std::cout << "numBlocks: " << numBlocks << std::endl;
         std::cout << "numThreads: " << numThreads << std::endl;
         std::cout << "nobs: " << nobs << std::endl;
         std::cout << "num_prob_per_kernel: " << num_prob_per_kernel << std::endl;
