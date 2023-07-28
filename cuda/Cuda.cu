@@ -2295,7 +2295,7 @@ int main(int argc, char const *argv[]) {
         double *tnf_prob_d;
         cudaMalloc((void **)tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
         nobs / 16;
-        get_tnf_prob << (nobs + 15) / 16, 16 >> (tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
+        get_tnf_prob<<<(nobs + 15) / 16, 16>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
     }
