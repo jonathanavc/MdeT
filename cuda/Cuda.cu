@@ -2284,6 +2284,11 @@ int main(int argc, char const *argv[]) {
         get_tnf_prob<<<numBlocks, numThreads>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_kernel);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaError_t cudaError = cudaGetLastError();
+        if (cudaError != cudaSuccess) {
+            std::cout << "Error en CUDA: " << cudaGetErrorString(cudaError) << std::endl;
+            // Manejar el error de acuerdo a tus necesidades
+        }
     }
     verbose_message("Finished TNF prob calculation.                                  \n");
 
