@@ -584,6 +584,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     dis2 = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + 128), _mm256_load_ps(TNF + _r2 + 128));
     dis2 = _mm256_mul_ps(dis2, dis2);
     _mm256_store_ps(diff, dis2);
+    std::cout << "d2: " << d << std::endl;
     for (int i = 0; i < 8; i++) {
         d += diff[i];
     }
