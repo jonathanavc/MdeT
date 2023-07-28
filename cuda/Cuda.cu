@@ -568,7 +568,15 @@ int igraph_community_label_propagation(igraph_t *graph, igraph_node_vector_t *me
     return 0;
 }
 
-float hsum_avx(__m256 v) {
+inline float hsum_sse3(__m128 v) {
+    __m128 shuf = _mm_movehdup_ps(v);  // broadcast elements 3,1 to 2,0
+    __m128 maxs = _mm_add_ps(v, shuf);
+    shuf = _mm_movehl_ps(shuf, maxs);  // high half -> low half
+    maxs = _mm_add_ss(maxs, shuf);
+    return _mm_cvtss_f32(maxs);
+}
+
+inline float hsum_avx(__m256 v) {
     __m128 lo = _mm256_castps256_ps128(v);    // low 128
     __m128 hi = _mm256_extractf128_ps(v, 1);  // high 128
     lo = _mm_add_ps(lo, hi);                  // max the low 128
