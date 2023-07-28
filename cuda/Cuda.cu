@@ -138,18 +138,21 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t 
     return prob;
 }
 
-__global__ void get_tnf_prob(double *tnf_dist, const float *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
-    const size_t block_id = blockIdx.x * blockDim.x;
-    const size_t thead_id = threadIdx.x + block_id;
-    for (size_t i = 0; i < contig_per_thread; i++) {
-        size_t contig_id = thead_id * contig_per_thread + i;
-        if (contig_id >= nobs) break;
-        size_t fil = (contig_id * (contig_id - 1)) / 2;
-        for (size_t i = block_id * 16; i < contig_id; i++) {
-            size_t tnf_dist_index = fil + i;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(contig_id, i, TNF_d, seqs_d_index_d, nobs);
-        }
+__global__ void get_tnf_prob(double *tnf_dist, const float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+    __shared__ float shared_TNF[136 * 16];
+    const size_t global_block_id = blockIdx.x * blockDim.x;
+    const size_t gloabal_thead_id = threadIdx.x + global_block_id;
+    if (gloabal_thead_id >= nobs) break;
+    for (int i = 0; i < 136; i++) {
+        shared_TNF[threadIdx.x  * 136 + i] = TNF_d[gloabal_thead_id * 136 + i];
     }
+    size_t fil = (gloabal_thead_id * (gloabal_thead_id - 1)) / 2;
+    for (size_t i = 0; i < 16; i++) {
+        size_t tnf_dist_index = fil + i;
+        size_t tnf_dist_index = fil + (i * global_block_id);
+        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(threadIdx.x, i, shared_TNF, seqs_d_index, nobs);
+    }
+    __syncthreads();
 }
 
 __device__ short get_tn(const char *contig, const size_t index) {
