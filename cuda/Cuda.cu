@@ -138,7 +138,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, double *TNF, size_t *seqs
     return prob;
 }
 
-__global__ void get_prob(double *tnf_dist, double *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob(double *tnf_dist, double *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         size_t contig_id = thead_id * contig_per_thread + i;
@@ -2295,7 +2295,7 @@ int main(int argc, char const *argv[]) {
         double *tnf_prob_d;
         cudaMalloc((void **)tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
         nobs / 16;
-        get_prob<< (nobs + 15) / 16, 16 >> (tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
+        get_tnf_prob << (nobs + 15) / 16, 16 >> (tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
     }
