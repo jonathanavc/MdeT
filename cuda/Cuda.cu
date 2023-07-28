@@ -123,7 +123,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
 
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
-__global__ void get_tnf_prob(double *tnf_dist, double *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
@@ -2258,7 +2258,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        // cudaFree(TNF_d);
+        cudaFree(TNF_d);
         cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
