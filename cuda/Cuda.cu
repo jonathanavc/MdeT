@@ -68,10 +68,10 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-/*
+
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
 
     for (size_t i = 0; i < 136; ++i) {
@@ -79,10 +79,6 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     }
 
     d = sqrt(d);
-
-    if (d != d) {
-        return -11;
-    }
 
     double b, c;  // parameters
 
@@ -96,11 +92,6 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
 
-    if (ctg1 != ctg1 || ctg2 != ctg2) {
-        return -13;
-    }
-    // aquí está el problema
-    // return min ctg1;
     double lw11 = log10((double)min(ctg1, ctg2));
     double lw21 = log10((double)max(ctg1, ctg2));
     // return lw11;
@@ -127,22 +118,8 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
-    if (b != b) {
-        return -51;
-    }
-    if (c != c) {
-        return -52;
-    }
-
-    if (d != d) {
-        return -33;
-    }
-
     // logistic model
     prob = 1.0 / (1.0 + exp((double)(-(b + c * d))));
-    if (prob != prob) {
-        return -14;
-    }
 
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -157,137 +134,22 @@ __device__ double cal_tnf_dist(size_t r1, size_t r2, double *TNF, size_t *seqs_d
         prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
-    if (prob != prob) {
-        return -15;
-    }
 
     return prob;
 }
 
-
-double cal_abd_dist2(Normal &p1, Normal &p2) {
-    double k1, k2, tmp, d = 0;
-
-    double m1 = p1.mean();
-    double m2 = p2.mean();
-    double v1 = p1.standard_deviation();
-    v1 = v1 * v1;
-    double v2 = p2.standard_deviation();
-    v2 = v2 * v2;
-
-    // normal_distribution
-    if (FABS(v2 - v1) < 1e-4) {
-        k1 = k2 = (m1 + m2) / 2;
-    } else {
-        tmp = SQRT(v1 * v2 * ((m1 - m2) * (m1 - m2) - 2 * (v1 - v2) * LOG(SQRT(v2 / v1))));
-        k1 = (tmp - m1 * v2 + m2 * v1) / (v1 - v2);
-        k2 = (tmp + m1 * v2 - m2 * v1) / (v2 - v1);
-    }
-
-    if (k1 > k2) {
-        tmp = k1;
-        k1 = k2;
-        k2 = tmp;
-    }
-    if (v1 > v2) {
-        std::swap(p1, p2);
-    }
-
-    if (k1 == k2)
-        d += LOG(FABS(boost::math::cdf(p1, k1) - boost::math::cdf(p2, k1)));
-    else
-        d += LOG(FABS(boost::math::cdf(p1, k2) - boost::math::cdf(p1, k1) + boost::math::cdf(p2, k1) - boost::math::cdf(p2, k2)));
-
-    return d;
-}
-
-double cal_abd_dist(size_t r1, size_t r2, int &nnz) {
-    double d = 0;
-    int nns = 0;
-    double m1sum = 0, m2sum = 0;
-    for (size_t i = 0; i < nABD; ++i) {
-        Distance m1 = ABD(r1, i);
-        Distance m2 = ABD(r2, i);
-        if (m1 > minCV || m2 > minCV) {  // compare only at least one >2
-            ++nnz;
-            m1 = std::max(m1, (Distance)1e-6);
-            m2 = std::max(m2, (Distance)1e-6);
-            if (m1 == m2) {
-                ++nns;
-                continue;
-            }
-            Distance v1 = ABD_VAR(r1, i) < 1 ? 1 : ABD_VAR(r1, i);
-            Distance v2 = ABD_VAR(r2, i) < 1 ? 1 : ABD_VAR(r2, i);
-
-            Normal p1(m1, SQRT(v1)), p2(m2, SQRT(v2));
-            d += cal_abd_dist2(p1, p2);
-        } else {
-            m1sum += m1;
-            m2sum += m2;
-        }
-    }
-
-    if (sumLowCV && (m1sum > minCV || m2sum > minCV)) {
-        if (FABS(m1sum - m2sum) > 1e-3) {
-            m1sum = std::max(m1sum, (Distance)1e-6);
-            m2sum = std::max(m2sum, (Distance)1e-6);
-            Poisson p1(m1sum), p2(m2sum);
-            d += cal_abd_dist2(p1, p2);
-        }  // else they are the same distribution, so d += 0
-        ++nnz;
-    } else if (nnz == 0) {
-        // both samples are very low abundance, use TNF
-        return 1;
-    }
-
-    if (nns == (int)nABD)  // the same
-        return 0;
-    else
-        return pow(exp(d), (1.0 / (double)nnz));
-}
-
-__device__ double cal_dist(size_t r1, size_t r2, double *TNF, double *ABD, size_t *seqs_d_index, size_t seqs_d_index_size,
-                           double maxDist) {
-    double abd_dist = 0, tnf_dist = 0;
-    int nnz = 0;
-
-    if (r1 == r2) return 0;
-
-    tnf_dist = cal_tnf_dist(r1, r2, TNF, seqs_d_index, seqs_d_index_size);
-
-    if (tnf_dist > maxDist) {
-        return 1;
-    }
-    return tnf_dist;
-    /*
-
-   if (abd != NULL) abd_dist = cal_abd_dist(r1, r2, nnz, ABD);
-
-   if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
-       return max(tnf_dist, abd_dist * 0.9);
-   } else {
-       Distance w = 0;
-       if (nnz > 0) w = min(log((double)(nnz + 1)) / log(101.), 0.9);  // progressive weight depending on sample sizes
-       return abd_dist * w + tnf_dist * (1 - w);
-   }
-}
-
-__global__ void get_prob(double *gprob_d, double *TNF_d, double *ABD_d, size_t offset, size_t *seqs_d_index_d, size_t nobs,
-                         size_t contig_per_thread) {
-    size_t limit = (nobs * (nobs - 1)) / 2;
-    size_t r1;
-    size_t r2;
+__global__ void get_prob(double *tnf_dist, double *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
-        const size_t gprob_index = (thead_id * contig_per_thread) + i;
-        if (gprob_index >= limit) break;
-        long long discriminante = 1 + 8 * gprob_index;
-        r1 = (1 + sqrt((double)discriminante)) / 2;
-        r2 = gprob_index - r1 * (r1 - 1) / 2;
-        gprob_d[gprob_index] = 1. - cal_dist(r1, r2, TNF_d, ABD_d, seqs_d_index_d, nobs);
+        size_t contig_id = thead_id * contig_per_thread + i;
+        if (thread_id >= nobs) break;
+        size_t fil = (contig_id * (contig_id - 1)) / 2;
+        for (size_t i = 0; i < contig_id; i++) {
+            size_t tnf_dist_index = fil + i;
+            tnf_dist[gprob_index] = cal_tnf_dist_d(contig_id, i, TNF_d, ABD_d, seqs_d_index_d, nobs);
+        }
     }
 }
-*/
 
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
@@ -2410,8 +2272,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        cudaFree(TNF_d);
-        cudaFree(seqs_d_index);
+        // cudaFree(TNF_d);
+        // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
@@ -2426,6 +2288,17 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
+
+    double *tnf_prob;
+    cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1) / 2) * sizeof(double));
+    if (1) {
+        double *tnf_prob_d;
+        cudaMalloc((void **)tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
+        nobs / 16;
+        cal_tnf_dist << (nobs + 15) / 16, 16 >> (tnf_prob_d, TNF_d, seqs_d_index, nobs, 1);
+        cudaSyncronize();
+        cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
+    }
 
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
