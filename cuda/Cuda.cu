@@ -71,7 +71,7 @@ __device__ __constant__ unsigned char BN[256] = {
 
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
 
     for (size_t i = 0; i < 136; ++i) {
@@ -138,7 +138,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     return prob;
 }
 
-__global__ void get_tnf_prob(double *tnf_dist, float *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob(double *tnf_dist, const float *TNF_d, size_t *seqs_d_index_d, size_t nobs, size_t contig_per_thread) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < contig_per_thread; i++) {
         size_t contig_id = thead_id * contig_per_thread + i;
