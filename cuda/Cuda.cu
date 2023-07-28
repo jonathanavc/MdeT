@@ -146,7 +146,7 @@ __global__ void get_prob(double *tnf_dist, double *TNF_d, size_t *seqs_d_index_d
         size_t fil = (contig_id * (contig_id - 1)) / 2;
         for (size_t i = 0; i < contig_id; i++) {
             size_t tnf_dist_index = fil + i;
-            tnf_dist[gprob_index] = cal_tnf_dist_d(contig_id, i, TNF_d, ABD_d, seqs_d_index_d, nobs);
+            tnf_dist[gprob_index] = cal_tnf_dist_d(contig_id, i, TNF_d, seqs_d_index_d, nobs);
         }
     }
 }
