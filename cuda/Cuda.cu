@@ -121,7 +121,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     return prob;
 }
 
-__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
+//__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
 __global__ void get_tnf_prob(double *tnf_dist, double *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
@@ -134,7 +134,7 @@ __global__ void get_tnf_prob(double *tnf_dist, double *TNF, size_t *seqs_d_index
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = cal_tnf_dist(r1, r2, TNF, ABD_d, seqs_d_index, nobs);
+        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, ABD_d, seqs_d_index, nobs);
     }
 }
 
