@@ -2280,12 +2280,12 @@ int main(int argc, char const *argv[]) {
     if (1) {
         double *tnf_prob_d;
         cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
-        size_t num_prob_per_kernel = ((nobs * (nobs - 1) / 2) + (numBlocks * numThreads - 1)) / numBlocks * numThreads;
+        size_t num_prob_per_kernel = ((nobs * (nobs - 1) / 2) + (numBlocks * numThreads2 - 1)) / numBlocks * numThreads2;
         std::cout << "numBlocks: " << numBlocks << std::endl;
-        std::cout << "numThreads: " << numThreads << std::endl;
+        std::cout << "numThreads: " << numThreads2 << std::endl;
         std::cout << "nobs: " << nobs << std::endl;
         std::cout << "num_prob_per_kernel: " << num_prob_per_kernel << std::endl;
-        get_tnf_prob<<<numBlocks, numThreads>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_kernel);
+        get_tnf_prob<<<numBlocks, numThreads2>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_kernel);
         cudaDeviceSynchronize();
         cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
         cudaError_t cudaError = cudaGetLastError();
