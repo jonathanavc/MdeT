@@ -2392,9 +2392,9 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
-            if (omp_get_thread_num() == 0) {
+            if (verbose) {
                 progress.track(i);
-                if (verbose && progress.isStepMarker())
+                if (omp_get_thread_num() == 0 && progress.isStepMarker())
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
