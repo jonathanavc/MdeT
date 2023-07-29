@@ -1,6 +1,6 @@
 // nvcc TNF.cu -lz
 // ta bien
-#include <cuda_fp16.h>
+//#include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <immintrin.h>
