@@ -336,7 +336,7 @@ static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
 float *TNF_d;
-char *seqs_d;
+__constant__ char *seqs_d;
 size_t *seqs_d_index;
 static char *_mem;
 static size_t fsize;
@@ -2244,7 +2244,8 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d, fsize);
         cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
-        cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
+        cudaMemcpyToSymbol(seqs_d, _mem, fsize);
+        //cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         size_t contig_per_kernel = nobs / n_STREAMS;
         // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         for (int i = 0; i < n_STREAMS; i++) {
