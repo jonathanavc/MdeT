@@ -2288,9 +2288,9 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
-        size_t tamaño = (nobs * (nobs - 1)) / 2;
+        /*
 #pragma omp parallel for schedule(dynamic)
-        for (size_t i = 0; i < tamaño; i++) {
+        for (size_t i = 0; i < nobs * (nobs - 1) / 2; i++) {
             long long discriminante = 1 + 8 * i;
             size_t col = (1 + sqrt((double)discriminante)) / 2;
             size_t row = i - col * (col - 1) / 2;
@@ -2310,29 +2310,28 @@ int main(int argc, char const *argv[]) {
         }
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                         boost::num_edges(gprob));
+                        */
 
-        /*
-        #pragma omp parallel for schedule(dynamic)
-                for (size_t i = 1; i < nobs; ++i) {
-                    if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
-                        for (size_t j = 0; j < i; ++j) {               // populate lower triangle
-                            if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
-                                continue;
-                            bool passed = false;
-                            Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                            if (passed && s >= requiredMinP) {
-        #pragma omp critical(ADD_EDGE_1)
-                                { boost::add_edge(i, j, Weight(s), gprob); }
-                            }
-                        }
-                    }
-                    if (verbose) {
-                        progress.track(i);
-                        if (omp_get_thread_num() == 0 && progress.isStepMarker())
-                            verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+#pragma omp parallel for schedule(static)
+        for (size_t i = 1; i < nobs; ++i) {
+            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
+                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
+                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
+                        continue;
+                    bool passed = false;
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    if (passed && s >= requiredMinP) {
+#pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
-                */
+            }
+            if (verbose) {
+                progress.track(i);
+                if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                    verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+            }
+        }
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
