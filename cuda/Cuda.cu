@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <sys/types.h>
+#include <texture_fetch_functions.h>
 #include <unistd.h>
 
 #define BOOST_UBLAS_INLINE inline
