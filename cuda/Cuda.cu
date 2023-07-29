@@ -2330,8 +2330,8 @@ int main(int argc, char const *argv[]) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
             if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
-                std::cout << "r1: " << r1 << " "
-                          << "r2: " << r2 << " "
+                std::cout << "r1: " << i << " "
+                          << "r2: " << j << " "
                           << "index: " << ((i * (i - 1)) / 2) + j << " "
                           << "tnf_dis: " << tnf_dist << " "
                           << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
