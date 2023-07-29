@@ -2312,7 +2312,7 @@ int main(int argc, char const *argv[]) {
                         boost::num_edges(gprob));
                         */
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(guided)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
                 for (size_t j = 0; j < i; ++j) {               // populate lower triangle
