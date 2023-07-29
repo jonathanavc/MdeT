@@ -2332,8 +2332,9 @@ int main(int argc, char const *argv[]) {
             if (tnf_dist != tnf_prob[((i * (j - 1)) / 2) + r2]) {
                 std::cout << "r1: " << r1 << " "
                           << "r2: " << r2 << " "
+                          << "index: " << ((i * (i - 1)) / 2) + j << " "
                           << "tnf_dis: " << tnf_dist << " "
-                          << " tnf_prob" << tnf_prob[((i * (j - 1)) / 2) + r2] << std::endl;
+                          << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
             }
         }
     }
