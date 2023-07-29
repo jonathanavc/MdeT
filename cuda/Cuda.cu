@@ -49,7 +49,7 @@
 
 namespace po = boost::program_options;
 
-texture<float, 1, cudaReadModeElementType> texTNF;
+texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
