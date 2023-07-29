@@ -2275,7 +2275,7 @@ int main(int argc, char const *argv[]) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
-        cudaError_t cudaError = someCUDAFunc();
+        cudaError_t cudaError = cudaGetLastError();
         if (cudaError != cudaSuccess) {
             const char *errorMessage = cudaGetErrorString(cudaError);
             printf("Error: %s\n", errorMessage);
