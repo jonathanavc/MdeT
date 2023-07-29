@@ -585,7 +585,7 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    float dis_array[8];
+    //float dis_array[8];
     __m256 dis;  //, vec1, vec2, ;
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
