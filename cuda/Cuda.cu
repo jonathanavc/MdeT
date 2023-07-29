@@ -49,6 +49,8 @@
 
 namespace po = boost::program_options;
 
+texture<float, 1, cudaReadModeElementType> texTNF;
+
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
     136, 114, 5,   54,  107, 120, 72,  41,  44,  26,  27,  23,  136, 53,  12,  81,  136, 127, 30,  110, 136, 80,  132, 123, 71,  102,
@@ -71,10 +73,13 @@ __device__ __constant__ unsigned char BN[256] = {
 
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
+    tex1Dfetch(texTNF, r1 * 136);
     for (size_t i = 0; i < 136; ++i) {
-        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+        d += (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i)) *
+             (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i));  // euclidean distance
+        // d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
@@ -134,7 +139,7 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
+        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, seqs_d_index, nobs);
     }
 }
 
@@ -586,7 +591,6 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    /*
     // float dis_array[8];
     __m256 dis;  //, vec1, vec2, ;
     size_t _r1 = r1 * 136;
@@ -601,11 +605,12 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
             d += dis_array[i];
         }
         */
-    //}
-
+    }
+    /*
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
+    */
 
     d = sqrt(d);
 
@@ -2297,6 +2302,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
+        cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
