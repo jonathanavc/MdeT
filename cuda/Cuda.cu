@@ -2295,10 +2295,12 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
+    double *gprob_d;
+
     if (1) {
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
-        double *gprob_d;
+
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));
         cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
