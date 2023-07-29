@@ -2359,7 +2359,7 @@ int main(int argc, char const *argv[]) {
             long long discriminante = 1 + 8 * i;
             size_t col = (1 + sqrt((double)discriminante)) / 2;
             size_t row = i - col * (col - 1) / 2;
-            if (smallCtgs.find(col) == smallCtgs.end() || smallCtgs.find(row) == smallCtgs.end()) {
+            if (smallCtgs.find(col) == smallCtgs.end() && smallCtgs.find(row) == smallCtgs.end()) {
                 bool passed = false;
                 Similarity s = 1. - cal_dist(col, row, 1. - requiredMinP, passed);
 #pragma omp critical(ADD_EDGE_1)
