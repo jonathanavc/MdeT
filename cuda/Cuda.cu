@@ -51,7 +51,7 @@
 namespace po = boost::program_options;
 
 // texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
-//texture<float, cudaTextureType1DLayered, cudaReadModeElementType> texRef;
+// texture<float, cudaTextureType1DLayered, cudaReadModeElementType> texRef;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
@@ -75,11 +75,12 @@ __device__ __constant__ unsigned char BN[256] = {
 
 __device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, double *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
-    tex1Dfetch(texTNF, r1 * 136);
+    // tex1Dfetch(texTNF, r1 * 136);
     for (size_t i = 0; i < 136; ++i) {
-        //d += (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i)) * (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i));  // euclidean distance
+        // d += (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i)) * (tex1Dfetch(texTNF, r1 * 136 + i) -
+        // tex1Dfetch(texTNF, r2 * 136 + i));  // euclidean distance
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
@@ -140,7 +141,7 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, seqs_d_index, nobs);
+        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
     }
 }
 
@@ -2303,9 +2304,9 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        //cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
-        // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+        // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
+        //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
