@@ -2303,7 +2303,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
+        //cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
