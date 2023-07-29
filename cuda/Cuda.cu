@@ -834,7 +834,10 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     tnf_dist = cal_tnf_dist(r1, r2);
-    if (tnf_dist != tnf_prob[((r1 * (r1 - 1)) / 2) + r2]) std::cerr << "tnf_dist != tnf_prob" << std::endl;
+    if (tnf_dist != tnf_prob[((r1 * (r1 - 1)) / 2) + r2]) {
+        std::cout << r1 << " " << r2 << " " << tnf_dist << " " << tnf_prob[((r1 * (r1 - 1)) / 2) + r2] << std::endl;
+        exit(1);
+    }
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
