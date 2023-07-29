@@ -1,6 +1,6 @@
 // nvcc TNF.cu -lz
 // ta bien
-//#include <cuda_fp16.h>
+#include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <immintrin.h>
@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <sys/types.h>
-#include <texture_fetch_functions.h>
+// #include <texture_fetch_functions.h>
 #include <unistd.h>
 
 #define BOOST_UBLAS_INLINE inline
@@ -50,7 +50,8 @@
 
 namespace po = boost::program_options;
 
-texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
+//texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
+texture<float, cudaTextureType1DLayered, cudaReadModeElementType> texRef;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50,  135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
