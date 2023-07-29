@@ -50,7 +50,7 @@
 
 namespace po = boost::program_options;
 
-//texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
+// texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
 texture<float, cudaTextureType1DLayered, cudaReadModeElementType> texRef;
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
@@ -211,8 +211,8 @@ __global__ void get_TNF(float *TNF_d, const char *seqs_d, const size_t *seqs_d_i
     }
 }
 
-__global__ void get_TNF_local(float *TNF_d, const char *seqs_d, const size_t *seqs_d_index, size_t nobs,
-                              const size_t contigs_per_thread, const size_t seqs_d_index_size) {
+__global__ void get_TNF_local(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
+                              size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     // const size_t minContig = 2500;
     // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
