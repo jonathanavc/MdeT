@@ -127,9 +127,9 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
-    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    const size_t gprob = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     for (size_t i = 0; i < contig_per_thread; i++) {
-        const size_t gprob_index = (thead_id * contig_per_thread) + i;
+        const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
         long long discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
@@ -585,7 +585,7 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    //float dis_array[8];
+    // float dis_array[8];
     __m256 dis;  //, vec1, vec2, ;
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
@@ -2278,8 +2278,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        cudaFree(TNF_d);
-        cudaFree(seqs_d_index);
+        // cudaFree(TNF_d);
+        // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     verbose_message("Finished TNF calculation.                                  \n");
@@ -2295,28 +2295,35 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    /*
-        double *tnf_prob;
-        cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1) / 2) * sizeof(double));
-        if (1) {
-            double *tnf_prob_d;
-            cudaMalloc((void **)&tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double));
-            size_t num_prob_per_thread = ((nobs * (nobs - 1) / 2) + ((numBlocks * numThreads2) - 1)) / (numBlocks * numThreads2);
-            std::cout << "numBlocks: " << numBlocks << std::endl;
-            std::cout << "numThreads: " << numThreads2 << std::endl;
-            std::cout << "nobs: " << nobs << std::endl;
-            std::cout << "num_prob_per_thread: " << num_prob_per_thread << std::endl;
-            get_tnf_prob<<<numBlocks, numThreads2>>>(tnf_prob_d, TNF_d, seqs_d_index, nobs, num_prob_per_thread);
-            cudaDeviceSynchronize();
-            cudaMemcpy(tnf_prob, tnf_prob_d, (nobs * (nobs - 1) / 2) * sizeof(double), cudaMemcpyDeviceToHost);
-            cudaError_t cudaError = cudaGetLastError();
-            if (cudaError != cudaSuccess) {
-                std::cout << "Error en CUDA: " << cudaGetErrorString(cudaError) << std::endl;
-                // Manejar el error de acuerdo a tus necesidades
-            }
+    if (1) {
+        // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+        double *gprob_d;
+        cudaStream_t streams[n_STREAMS];
+        cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        std::cout << "total_prob: " << total_prob << std::endl;
+        size_t prob_per_kernel = total_prob / n_STREAMS;
+        for (int i = 0; i < n_STREAMS; i++) {
+            size_t _des = prob_per_kernel * i;
+            size_t prob_to_process = prob_per_kernel;
+            cudaStreamCreate(&streams[i]);
+            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
-        verbose_message("Finished TNF prob calculation.                                  \n");
-        */
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
+        }
+        cudaFree(gprob_d);
+        cudaFree(TNF_d);
+    }
 
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
@@ -2343,6 +2350,7 @@ int main(int argc, char const *argv[]) {
         }
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
+
     /*
     if (1) {
 
