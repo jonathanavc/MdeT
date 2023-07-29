@@ -2244,8 +2244,8 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d, fsize);
         cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
-        cudaMemcpyToSymbol(seqs_d, _mem, fsize);
-        //cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
+        // cudaMemcpyToSymbol(seqs_d, _mem, fsize);
+        cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         size_t contig_per_kernel = nobs / n_STREAMS;
         // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         for (int i = 0; i < n_STREAMS; i++) {
