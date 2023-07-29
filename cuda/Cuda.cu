@@ -2354,6 +2354,7 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
+        /*
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 0; i < nobs * (nobs - 1) / 2; i++) {
             long long discriminante = 1 + 8 * i;
@@ -2367,9 +2368,15 @@ int main(int argc, char const *argv[]) {
                     boost::add_edge(col, row, Weight(s), gprob);
                 }
             }
+            if (verbose) {
+                progress.track(i);
+                if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                    verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+            }
         }
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                         boost::num_edges(gprob));
+                        */
 
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
@@ -2385,9 +2392,9 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
-            if (verbose) {
+            if (omp_get_thread_num() == 0) {
                 progress.track(i);
-                if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                if (verbose && progress.isStepMarker())
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
