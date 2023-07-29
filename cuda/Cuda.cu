@@ -2300,7 +2300,7 @@ int main(int argc, char const *argv[]) {
     if (1) {
         // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
-        double *tnf_prob;
+        double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
         cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
