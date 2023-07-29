@@ -123,7 +123,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
 
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
-__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
@@ -2314,7 +2314,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
             std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
             cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
         for (int i = 0; i < n_STREAMS; i++) {
