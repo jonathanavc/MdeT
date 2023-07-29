@@ -2334,6 +2334,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
+    verbose_message("Finished building a tnf_dist          \n");
     /*
     for (size_t i = 1; i < nobs; i++) {
         for (size_t j = 0; j < i; j++) {
