@@ -2329,7 +2329,7 @@ int main(int argc, char const *argv[]) {
     for (size_t i = 1; i < nobs; i++) {
         for (size_t j = 0; j < i; j++) {
             tnf_dist = cal_tnf_dist(i, j);
-            if (tnf_dist != tnf_prob[((i * (j - 1)) / 2) + r2]) {
+            if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
                 std::cout << "r1: " << r1 << " "
                           << "r2: " << r2 << " "
                           << "index: " << ((i * (i - 1)) / 2) + j << " "
