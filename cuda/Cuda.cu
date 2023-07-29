@@ -2355,6 +2355,23 @@ int main(int argc, char const *argv[]) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
 #pragma omp parallel for schedule(dynamic)
+        for (size_t i = 0; i < nobs * (nobs - 1) / 2; i++) {
+            long long discriminante = 1 + 8 * i;
+            size_t col = (1 + sqrt((double)discriminante)) / 2;
+            size_t row = i - col * (col - 1) / 2;
+            if (smallCtgs.find(col) == smallCtgs.end() || smallCtgs.find(row) == smallCtgs.end()) {
+                bool passed = false;
+                Similarity s = 1. - cal_dist(col, row, 1. - requiredMinP, passed);
+#pragma omp critical(ADD_EDGE_1)
+                if (passed && s >= requiredMinP) {
+                    boost::add_edge(col, row, Weight(s), gprob);
+                }
+            }
+        }
+        verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
+                        boost::num_edges(gprob));
+
+#pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
                 for (size_t j = 0; j < i; ++j) {               // populate lower triangle
