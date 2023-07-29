@@ -669,72 +669,6 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     return prob;
 }
 
-/*
-Distance cal_tnf_dist(size_t r1, size_t r2) {
-    Distance d = 0;
-    __m512d dis;  //, vec1, vec2, ;
-    for (int i = 0; i < 17; i++) {
-        dis = _mm512_sub_pd(_mm512_load_pd(TNF + r1 * 136 + i * 8), _mm512_load_pd(TNF + r2 * 136 + i * 8));
-        dis = _mm512_mul_pd(dis, dis);
-        d += _mm512_reduce_add_pd(dis);
-    }
-    for (int i = 0; i < 136; ++i) {
-        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
-    }
-
-    d = std::sqrt(d);
-
-    Distance b, c;  // parameters
-
-    size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
-    size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
-
-    Distance lw11 = std::log10(std::min(ctg1, ctg2));
-    Distance lw21 = std::log10(std::max(ctg1, ctg2));
-    Distance lw12 = lw11 * lw11;
-    Distance lw13 = lw12 * lw11;
-    Distance lw14 = lw13 * lw11;
-    Distance lw15 = lw14 * lw11;
-    Distance lw16 = lw15 * lw11;
-    Distance lw17 = lw16 * lw11;
-    Distance lw22 = lw21 * lw21;
-    Distance lw23 = lw22 * lw21;
-    Distance lw24 = lw23 * lw21;
-    Distance lw25 = lw24 * lw21;
-    Distance lw26 = lw25 * lw21;
-
-    Distance prob;
-
-    b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
-        -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
-        0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
-        0.7800219061 * lw13 * lw23 + -0.0138723693 * lw14 * lw24 + 0.0001027543 * lw15 * lw25;
-    c = -443565.465710869 + 718862.10804858 * lw11 + 5114.1630934534 * lw21 + -501588.206183097 * lw12 + 784.4442123743 * lw22 +
-        194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
-        -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
-        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
-
-    // logistic model
-    prob = 1.0 / (1 + std::exp(-(b + c * d)));
-
-    if (prob >= .1) {  // second logistic model
-        b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
-            -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
-            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
-            -0.0546309127 * lw13 * lw23 + 0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
-        c = 39406.5712626297 + -77863.1741143294 * lw11 + 9586.8761567725 * lw21 + 55360.1701572325 * lw12 + -5825.2491611377 * lw22 +
-            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 +
-            -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
-            449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
-            0.0001235384 * lw15 * lw25;
-        prob = 1.0 / (1 + std::exp(-(b + c * d)));
-        prob = prob < .1 ? .1 : prob;
-    }
-
-    return prob;
-}
-*/
-
 Distance cal_abd_dist2(Normal &p1, Normal &p2) {
     Distance k1, k2, tmp, d = 0;
     Distance m1 = p1.mean();
@@ -835,8 +769,8 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
 
 // maxDist: maximum distance for further calculation (to avoid unnecessary calculation)
 Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
-    assert(smallCtgs.find(r1) == smallCtgs.end());
-    assert(smallCtgs.find(r2) == smallCtgs.end());
+    // assert(smallCtgs.find(r1) == smallCtgs.end());
+    // assert(smallCtgs.find(r2) == smallCtgs.end());
     Distance abd_dist = 0, tnf_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
@@ -2354,9 +2288,9 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
-        /*
+        size_t tamaño = (nobs * (nobs - 1)) / 2;
 #pragma omp parallel for schedule(dynamic)
-        for (size_t i = 0; i < nobs * (nobs - 1) / 2; i++) {
+        for (size_t i = 0; i < tamaño; i++) {
             long long discriminante = 1 + 8 * i;
             size_t col = (1 + sqrt((double)discriminante)) / 2;
             size_t row = i - col * (col - 1) / 2;
@@ -2376,28 +2310,29 @@ int main(int argc, char const *argv[]) {
         }
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                         boost::num_edges(gprob));
-                        */
 
-#pragma omp parallel for schedule(dynamic)
-        for (size_t i = 1; i < nobs; ++i) {
-            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
-                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
-                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
-                        continue;
-                    bool passed = false;
-                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                    if (passed && s >= requiredMinP) {
-#pragma omp critical(ADD_EDGE_1)
-                        { boost::add_edge(i, j, Weight(s), gprob); }
+        /*
+        #pragma omp parallel for schedule(dynamic)
+                for (size_t i = 1; i < nobs; ++i) {
+                    if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
+                        for (size_t j = 0; j < i; ++j) {               // populate lower triangle
+                            if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
+                                continue;
+                            bool passed = false;
+                            Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                            if (passed && s >= requiredMinP) {
+        #pragma omp critical(ADD_EDGE_1)
+                                { boost::add_edge(i, j, Weight(s), gprob); }
+                            }
+                        }
+                    }
+                    if (verbose) {
+                        progress.track(i);
+                        if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                            verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
                     }
                 }
-            }
-            if (verbose) {
-                progress.track(i);
-                if (omp_get_thread_num() == 0 && progress.isStepMarker())
-                    verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
-            }
-        }
+                */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
