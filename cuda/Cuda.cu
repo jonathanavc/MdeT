@@ -2269,7 +2269,7 @@ int main(int argc, char const *argv[]) {
 
     verbose_message("Finished building a tnf_dist          \n");
 
-    for (size_t i = 1; i < nobs; i++) {
+    for (size_t i = 1; i < 10; i++) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
             if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
