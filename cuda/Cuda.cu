@@ -2268,7 +2268,7 @@ int main(int argc, char const *argv[]) {
     }
 
     verbose_message("Finished building a tnf_dist          \n");
-    /*
+
     for (size_t i = 1; i < nobs; i++) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
@@ -2281,7 +2281,6 @@ int main(int argc, char const *argv[]) {
             }
         }
     }
-    */
 
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
