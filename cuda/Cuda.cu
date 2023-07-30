@@ -2301,8 +2301,10 @@ int main(int argc, char const *argv[]) {
             }
             if (verbose) {
                 progress.track(i);
-                if (omp_get_thread_num() == 0 && progress.setProgress(i))
+                if (omp_get_thread_num() == 0) {
+                    progress.setProgress(i);
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+                }
             }
         }
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
