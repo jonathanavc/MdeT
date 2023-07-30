@@ -826,7 +826,6 @@ static Similarity get_prob(size_t r1, size_t r2) {
     if (r1 == r2) return 1;
     edge_descriptor e;
     bool found;
-    if (r2 > r1) std::swap(r1, r2);  // make sure r1 > r2 (upper triangle
     boost::tie(e, found) = boost::edge(r1, r2, gprob);
     return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
 }
