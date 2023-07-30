@@ -201,9 +201,9 @@ __global__ void get_TNF(float *TNF_d, const char *seqs_d, const size_t *seqs_d_i
         short tn = get_tn(contig, 0) >> 2;
         for (size_t j = 0; j < contig_size - 3; ++j) {
             tn << 2;
-            char b = Bn[contig[j + 3]];
-            if (b > 4) continue;
-            tn += Bn[contig[j]];
+            char b = BN[contig[j + 3]];
+            if (b > 3) continue;
+            tn += b;
             tn = tn & 255;
             if (TNmap_d[tn] == 136) {
                 tn = get_revComp_tn_d(tn);
