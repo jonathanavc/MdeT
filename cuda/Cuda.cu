@@ -617,7 +617,6 @@ inline float hsum_avx(__m256 v) {
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
     __m256 dis;
-    /*
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
     for (int i = 0; i < 136; i += 8) {
@@ -625,11 +624,12 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         dis = _mm256_mul_ps(dis, dis);
         d += hsum_avx(dis);
     }
-    */
+    /*
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
-    d = sqrt(d);
+    */
+    d = 1 / rsqrtf(d);
     Distance b, c;  // parameters
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
