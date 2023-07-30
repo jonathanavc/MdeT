@@ -177,7 +177,6 @@ __device__ short get_tn(const char *contig, const size_t index) {
     return tn;
 }
 
-/*
 // esto mejoró "bastante" el rendimento
 __device__ short get_revComp_tn_d(short tn) {
     unsigned char rctn = 0;
@@ -187,7 +186,6 @@ __device__ short get_revComp_tn_d(short tn) {
     }
     return rctn;
 }
-*/
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const size_t *seqs_d_index) {
     return seqs_d + seqs_d_index[contig_index];
