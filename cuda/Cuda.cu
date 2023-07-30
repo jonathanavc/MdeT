@@ -198,28 +198,16 @@ __global__ void get_TNF(float *TNF_d, const char *seqs_d, const size_t *seqs_d_i
         // calcular independiente si es small contig o no
         // if (contig_size >= minContig || contig_size < minContigByCorr) {
         const char *contig = seqs_d + seqs_d_index[contig_index];
-        short tn = get_tn(contig, 0) >> 2;
         for (size_t j = 0; j < contig_size - 3; ++j) {
-            tn = tn << 2;
-            char b = BN[contig[j + 3]];
-            if (b > 3) {
+            short tn = get_tn(contig, j);
+            if (tn & 256) {
                 j += 3;
                 continue;
             }
-            tn += b;
-            tn = tn & 255;
             if (TNmap_d[tn] == 136) {
                 tn = get_revComp_tn_d(tn);
             }
             ++TNF_d[tnf_index + TNmap_d[tn]];
-            /*
-            short tn = get_tn(contig, j);
-            if (tn & 256) continue;
-            if (TNmap_d[tn] == 136) {
-                tn = get_revComp_tn_d(tn);
-            }
-            ++TNF_d[tnf_index + TNmap_d[tn]];
-            */
         }
         double rsum = 0;
         for (size_t c = 0; c < 136; ++c) {
