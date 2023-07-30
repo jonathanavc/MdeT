@@ -617,24 +617,24 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     Distance lw[19];
 
-    Distance lw[0] = std::log10(std::min(ctg1, ctg2));
-    Distance lw[1] = std::log10(std::max(ctg1, ctg2));
-    Distance lw[2] = lw[0] * lw[0];
-    Distance lw[4] = lw[2] * lw[0];
-    Distance lw[6] = lw[4] * lw[0];
-    Distance lw[8] = lw[6] * lw[0];
-    Distance lw[10] = lw[8] * lw[0];
-    Distance lw[11] = lw[10] * lw[0];
-    Distance lw[3] = lw[1] * lw[1];
-    Distance lw[5] = lw[3] * lw[1];
-    Distance lw[7] = lw[5] * lw[1];
-    Distance lw[9] = lw[7] * lw[1];
-    Distance lw[12] = lw[0] * lw[1];
-    Distance lw[14] = lw[4] * lw[5];
-    Distance lw[15] = lw[6] * lw[7];
-    Distance lw[16] = lw[8] * lw[9];
-    Distance lw[13] = lw[13];
-    Distance lw[18] = lw[9] * lw[1];
+    lw[0] = std::log10(std::min(ctg1, ctg2));
+    lw[1] = std::log10(std::max(ctg1, ctg2));
+    lw[2] = lw[0] * lw[0];
+    lw[4] = lw[2] * lw[0];
+    lw[6] = lw[4] * lw[0];
+    lw[8] = lw[6] * lw[0];
+    lw[10] = lw[8] * lw[0];
+    lw[11] = lw[10] * lw[0];
+    lw[3] = lw[1] * lw[1];
+    lw[5] = lw[3] * lw[1];
+    lw[7] = lw[5] * lw[1];
+    lw[9] = lw[7] * lw[1];
+    lw[12] = lw[0] * lw[1];
+    lw[14] = lw[4] * lw[5];
+    lw[15] = lw[6] * lw[7];
+    lw[16] = lw[8] * lw[9];
+    lw[13] = lw[13];
+    lw[18] = lw[9] * lw[1];
 
     Distance prob;
 
