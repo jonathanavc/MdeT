@@ -160,7 +160,7 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
         const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
         long long discriminante = 1 + 8 * gprob_index;
-        r1 = (1 + sqrt((double)discriminante)) / 2;
+        r1 = (1 + sqrtf((double)discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
     }
@@ -2265,8 +2265,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        //cudaFree(TNF_d);
-        //cudaFree(seqs_d_index);
+        // cudaFree(TNF_d);
+        // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
