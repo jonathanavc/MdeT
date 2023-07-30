@@ -612,14 +612,10 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     */
-
     d = sqrt(d);
-
     Distance b, c;  // parameters
-
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
-
     Distance lw[19];
     lw[0] = std::log10(std::min(ctg1, ctg2));
     lw[1] = std::log10(std::max(ctg1, ctg2));
@@ -639,9 +635,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
-
     Distance prob;
-
     b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
         -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8] +
         0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
@@ -650,10 +644,8 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         194712.394138513 * lw[4] + -377.9645994741 * lw[5] + -45088.7863182741 * lw[6] + 50.5960513287 * lw[7] +
         6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
-
     // logistic model
     prob = 1.0 / (1 + exp(-(b + c * d)));
-
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw[0] + -2976.2879986855 * lw[1] + 3279.7524685865 * lw[2] + 1602.7544794819 * lw[3] +
             -967.2906583423 * lw[4] + -462.0149190219 * lw[5] + 159.8317289682 * lw[6] + 74.4884405822 * lw[7] +
@@ -667,7 +659,6 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         prob = 1.0 / (1 + exp(-(b + c * d)));
         prob = prob < .1 ? .1 : prob;
     }
-
     return prob;
 }
 
@@ -777,8 +768,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    tnf_dist = cal_tnf_dist(r1, r2);
-    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2) + r2];
+    chrone tnf_dist = cal_tnf_dist(r1, r2);
+    tnf_dist = tnf_prob[r1];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
