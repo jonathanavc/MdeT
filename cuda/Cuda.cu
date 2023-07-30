@@ -777,8 +777,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    // tnf_dist = cal_tnf_dist(r1, r2);
-    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2) + r2];
+    tnf_dist = cal_tnf_dist(r1, r2);
+    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2) + r2];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2241,6 +2241,7 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
+    /*
     if (1) {
         // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
@@ -2275,6 +2276,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
+    */
     verbose_message("Finished building a tnf_dist          \n");
     /*
     for (size_t i = 1; i < nobs; i++) {
