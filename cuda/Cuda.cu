@@ -348,12 +348,12 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
-float *TNF_d;
-char *seqs_d;
-size_t *seqs_d_index;
-char *_mem;
+static float *TNF_d;
+static char *seqs_d;
+static size_t *seqs_d_index;
+static char *_mem;
 static size_t fsize;
-double *tnf_prob;
+static double *tnf_prob;
 
 typedef std::vector<int> ContigVector;
 typedef std::set<int> ClassIdType;  // ordered
