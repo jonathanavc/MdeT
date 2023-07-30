@@ -2232,56 +2232,59 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-        
-    if (1) {
-        // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
-        //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
-        double *gprob_d;
-        cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        size_t total_prob = (nobs * (nobs - 1)) / 2;
-        std::cout << "total_prob: " << total_prob << std::endl;
-        size_t prob_per_kernel = total_prob / n_STREAMS;
-        for (int i = 0; i < n_STREAMS; i++) {
-            size_t _des = prob_per_kernel * i;
-            size_t prob_to_process = prob_per_kernel;
-            cudaStreamCreate(&streams[i]);
-            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
-            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-            std::cout << "prob_to_process: " << prob_to_process << std::endl;
-            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-            get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
-            cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
-        }
-        for (int i = 0; i < n_STREAMS; i++) {
-            cudaStreamSynchronize(streams[i]);
-            cudaStreamDestroy(streams[i]);
-        }
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
-        }
-        cudaFree(gprob_d);
-        cudaFree(TNF_d);
-    }
+    /*
+        if (1) {
+            // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
+            //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+            //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+            double *gprob_d;
+            cudaStream_t streams[n_STREAMS];
+            cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
+            cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+            size_t total_prob = (nobs * (nobs - 1)) / 2;
+            std::cout << "total_prob: " << total_prob << std::endl;
+            size_t prob_per_kernel = total_prob / n_STREAMS;
+            for (int i = 0; i < n_STREAMS; i++) {
+                size_t _des = prob_per_kernel * i;
+                size_t prob_to_process = prob_per_kernel;
+                cudaStreamCreate(&streams[i]);
+                if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+                size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+                std::cout << "prob_to_process: " << prob_to_process << std::endl;
+                std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
 
-    verbose_message("Finished building a tnf_dist          \n");
+                get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
+                cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+            }
+            for (int i = 0; i < n_STREAMS; i++) {
+                cudaStreamSynchronize(streams[i]);
+                cudaStreamDestroy(streams[i]);
+            }
+            cudaError_t err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+            }
+            cudaFree(gprob_d);
+            cudaFree(TNF_d);
+        }
 
-    for (size_t i = 1; i < 10; i++) {
-        for (size_t j = 0; j < i; j++) {
-            double tnf_dist = cal_tnf_dist(i, j);
-            if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
-                std::cout << "r1: " << i << " "
-                          << "r2: " << j << " "
-                          << "index: " << ((i * (i - 1)) / 2) + j << " "
-                          << "tnf_dis: " << tnf_dist << " "
-                          << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
+        verbose_message("Finished building a tnf_dist          \n");
+
+
+        for (size_t i = 1; i < 10; i++) {
+            for (size_t j = 0; j < i; j++) {
+                double tnf_dist = cal_tnf_dist(i, j);
+                if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
+                    std::cout << "r1: " << i << " "
+                              << "r2: " << j << " "
+                              << "index: " << ((i * (i - 1)) / 2) + j << " "
+                              << "tnf_dis: " << tnf_dist << " "
+                              << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
+                }
             }
         }
-    }
+        */
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
@@ -2312,8 +2315,8 @@ int main(int argc, char const *argv[]) {
                     if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
                         continue;
                     bool passed = true;
-                    Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
-                    // Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
