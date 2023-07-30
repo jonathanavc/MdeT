@@ -2264,6 +2264,10 @@ int main(int argc, char const *argv[]) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+        }
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
