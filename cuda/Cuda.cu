@@ -351,9 +351,9 @@ static std::vector<size_t> seqs_h_index_e;
 float *TNF_d;
 char *seqs_d;
 size_t *seqs_d_index;
-static char *_mem;
+char *_mem;
 static size_t fsize;
-static double *tnf_prob;
+double *tnf_prob;
 
 typedef std::vector<int> ContigVector;
 typedef std::set<int> ClassIdType;  // ordered
