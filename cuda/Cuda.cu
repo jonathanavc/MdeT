@@ -89,19 +89,20 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
-    double lw[0] = log10((double)min(ctg1, ctg2));
-    double lw[1] = log10((double)max(ctg1, ctg2));
-    double lw[2] = lw[0] * lw[0];
-    double lw[4] = lw[2] * lw[0];
-    double lw[6] = lw[4] * lw[0];
-    double lw[8] = lw[6] * lw[0];
-    double lw[10] = lw[8] * lw[0];
-    double lw[11] = lw[10] * lw[0];
-    double lw[3] = lw[1] * lw[1];
-    double lw[5] = lw[3] * lw[1];
-    double lw[7] = lw[5] * lw[1];
-    double lw[9] = lw[7] * lw[1];
-    double lw[18] = lw[9] * lw[1];
+    double lw[19];
+    lw[0] = log10((double)min(ctg1, ctg2));
+    lw[1] = log10((double)max(ctg1, ctg2));
+    lw[2] = lw[0] * lw[0];
+    lw[4] = lw[2] * lw[0];
+    lw[6] = lw[4] * lw[0];
+    lw[8] = lw[6] * lw[0];
+    lw[10] = lw[8] * lw[0];
+    lw[11] = lw[10] * lw[0];
+    lw[3] = lw[1] * lw[1];
+    lw[5] = lw[3] * lw[1];
+    lw[7] = lw[5] * lw[1];
+    lw[9] = lw[7] * lw[1];
+    lw[18] = lw[9] * lw[1];
     double prob;
     b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
         -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8] +
