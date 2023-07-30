@@ -1928,7 +1928,7 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
-
+    TIMERSTART(READ);
     FILE *fp = fopen(inFile.c_str(), "r");
     if (fp == NULL) {
         std::cout << "Error opening file: " << inFile << std::endl;
@@ -1999,6 +1999,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();  // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
+    TIMERSTOP(READ);
     // std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
@@ -2223,6 +2224,7 @@ int main(int argc, char const *argv[]) {
 
     // calcular matriz de tetranucleotidos
     // TIMERSTART(tnf);
+    TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
@@ -2267,6 +2269,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
+    TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
     // TIMERSTOP(tnf);
 
