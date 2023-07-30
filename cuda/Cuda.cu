@@ -645,7 +645,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     b = 46349.1624324381;
     b512 = _mm512_load_pd(lw);
-    b512 = _mm512_mul_pd(b512, _mm512_set_pd(_b1));
+    b512 = _mm512_mul_pd(b512, _mm512_load_pd(_b1));
     b += _mm512_reduce_add_pd(b512);
     b512 = _mm512_load_pd(lw + 8);
     b512 = _mm512_mul_pd(b512, _mm512_load_pd(_b1 + 8));
