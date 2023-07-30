@@ -1921,6 +1921,7 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
+#pragma omp parallel for
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] == fasta_delim) {
                 i++;
@@ -1935,17 +1936,26 @@ int main(int argc, char const *argv[]) {
                 if (contig_size >= __min) {
                     if (contig_size < minContig) {
                         if (contig_size >= minContigByCorr)
+#pragma omp critical
                             smallCtgs.insert(nobs);
                         else
+#pragma omp critical
                             nresv++;
                     }
-                    lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
-                    gCtgIdx[nobs++] = seqs.size();
+#pragma omp critical
+                    {
+                        lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
+                        gCtgIdx[nobs++] = seqs.size();
+                    }
                 } else {
+#pragma omp critical
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
-                contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
-                seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
+#pragma omp critical
+                {
+                    contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
+                    seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
+                }
             }
         }
         seqs.shrink_to_fit();          // liberar memoria no usada

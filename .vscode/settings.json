@@ -71,6 +71,7 @@
         "stack": "cpp",
         "unordered_set": "cpp",
         "thread": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "functional": "cpp"
     }
 }
