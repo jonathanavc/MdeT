@@ -593,20 +593,13 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     Distance d = 0;
-    // float dis_array[8];
-    __m256 dis;  //, vec1, vec2, ;
+    __m256 dis;
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
     for (int i = 0; i < 136; i += 8) {
         dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
         dis = _mm256_mul_ps(dis, dis);
         d += hsum_avx(dis);
-        /*
-        _mm256_store_ps(dis_array, dis);
-        for (int i = 0; i < 8; i++) {
-            d += dis_array[i];
-        }
-        */
     }
     /*
     for (size_t i = 0; i < 136; ++i) {
@@ -620,6 +613,8 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
+
+    Distance lw[16];
 
     Distance lw11 = std::log10(std::min(ctg1, ctg2));
     Distance lw21 = std::log10(std::max(ctg1, ctg2));
@@ -775,8 +770,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    // tnf_dist = cal_tnf_dist(r1, r2);
-    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2) + r2];
+    tnf_dist = cal_tnf_dist(r1, r2);
+    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2) + r2];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
