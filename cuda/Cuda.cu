@@ -2310,9 +2310,9 @@ int main(int argc, char const *argv[]) {
                 for (size_t j = 0; j < i; ++j) {               // populate lower triangle
                     if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
                         continue;
-                    bool passed = false;
-                    Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
-                    // Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    bool passed = true;
+                    // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
