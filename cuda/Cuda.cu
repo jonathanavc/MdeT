@@ -2299,6 +2299,7 @@ int main(int argc, char const *argv[]) {
                     boost::add_edge(col, row, Weight(s), gprob);
                 }
             }
+            /*
             if (verbose) {
                 progress.track(i);
                 if (omp_get_thread_num() == 0) {
@@ -2306,6 +2307,7 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
                 }
             }
+            */
         }
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                         boost::num_edges(gprob));
