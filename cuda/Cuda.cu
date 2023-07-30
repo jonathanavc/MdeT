@@ -90,8 +90,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
     Distance lw[19];
-    lw[0] = std::log10(std::min(ctg1, ctg2));
-    lw[1] = std::log10(std::max(ctg1, ctg2));
+    lw[0] = log10(min(ctg1, ctg2));
+    lw[1] = log10(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
