@@ -43,6 +43,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "../extra/metrictime2.hpp"
 #include "ProgressTracker.h"
 #include "igraph.h"
 
@@ -2283,6 +2284,7 @@ int main(int argc, char const *argv[]) {
     }
     */
 
+    TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
@@ -2304,7 +2306,6 @@ int main(int argc, char const *argv[]) {
         verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                         boost::num_edges(gprob));
 */
-
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
@@ -2360,6 +2361,7 @@ int main(int argc, char const *argv[]) {
         // cudaFree(TNF_d);
     }
     */
+    TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
