@@ -105,8 +105,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
     double lw[19];
-    lw[0] = log10_device(min(ctg1, ctg2));
-    lw[1] = log10_device(max(ctg1, ctg2));
+    lw[0] = log10(min(ctg1, ctg2));
+    lw[1] = log10(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
@@ -2265,8 +2265,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        cudaFree(TNF_d);
-        cudaFree(seqs_d_index);
+        //cudaFree(TNF_d);
+        //cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
