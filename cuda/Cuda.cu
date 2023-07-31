@@ -629,7 +629,8 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     */
-    d = 1 / rsqrtf(d);
+    d = sqrt(d);
+    // d = 1 / rsqrtf(d);
     Distance b, c;  // parameters
     size_t ctg1 = std::min(seqs[gCtgIdx[r1]].size(), (size_t)500000);
     size_t ctg2 = std::min(seqs[gCtgIdx[r2]].size(), (size_t)500000);
