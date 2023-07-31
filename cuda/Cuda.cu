@@ -1985,7 +1985,7 @@ int main(int argc, char const *argv[]) {
                 while (i < fsize && _mem[i] != line_delim) i++;
                 contig_e = i;  // guardar el final del contig
                 contig_size = contig_e - contig_i;
-                if (contig_size >= __min) {
+                if (contig_size >= std::min(minContigByCorr, minContigByCorrForGraph)) {
                     if (contig_size < minContig) {
                         if (contig_size >= minContigByCorr)
                             smallCtgs.insert(nobs);
