@@ -170,7 +170,7 @@ __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index
     const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
     size_t tnf_prob_index;
     for (int i = 0; i < contig_per_thread; i++) {
-        contig_index = index + i;
+        int contig_index = index + i;
         if (contig_index >= nobs) break;
         int row = (contig_index * (contig_index - 1)) / 2;
         for (int j = contig_index - j; i >= 0; j--) {
