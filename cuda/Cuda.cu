@@ -2343,6 +2343,8 @@ int main(int argc, char const *argv[]) {
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t contig_per_kernel = (nobs + (numBlocks * numThreads2 - 1)) / (numBlocks * numThreads2);
+        std::cout << "nobs: " << nobs << std::endl;
+        std::cout << "numBlocks * numThreads2: " << numBlocks * numThreads2 << std::endl;
         std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         get_tnf_prob2<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, contig_per_kernel);
         cudaMemcpy(tnf_prob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
