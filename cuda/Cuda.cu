@@ -2339,42 +2339,44 @@ int main(int argc, char const *argv[]) {
         cudaFree(TNF_d);
     }
     */
-    if (1) {
-        double *gprob_d;
-        cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        size_t total_prob = (nobs * (nobs - 1)) / 2;
-        std::cout << "total_prob: " << total_prob << std::endl;
-        size_t contig_per_kernel = (nobs + (numBlocks * numThreads2 - 1)) / (numBlocks * numThreads2);
-        std::cout << "nobs: " << nobs << std::endl;
-        std::cout << "numBlocks * numThreads2: " << numBlocks * numThreads2 << std::endl;
-        std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
-        get_tnf_prob2<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, contig_per_kernel);
-        cudaMemcpy(tnf_prob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
-        }
-        cudaFree(gprob_d);
-        cudaFree(TNF_d);
-        cudaFree(seqs_d_index);
-    }
+    /*
+     if (1) {
+         double *gprob_d;
+         cudaStream_t streams[n_STREAMS];
+         cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
+         cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+         size_t total_prob = (nobs * (nobs - 1)) / 2;
+         std::cout << "total_prob: " << total_prob << std::endl;
+         size_t contig_per_kernel = (nobs + (numBlocks * numThreads2 - 1)) / (numBlocks * numThreads2);
+         std::cout << "nobs: " << nobs << std::endl;
+         std::cout << "numBlocks * numThreads2: " << numBlocks * numThreads2 << std::endl;
+         std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
+         get_tnf_prob2<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, contig_per_kernel);
+         cudaMemcpy(tnf_prob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
+         cudaError_t err = cudaGetLastError();
+         if (err != cudaSuccess) {
+             std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+         }
+         cudaFree(gprob_d);
+         cudaFree(TNF_d);
+         cudaFree(seqs_d_index);
+     }
 
-    verbose_message("Finished building a tnf_dist          \n");
+     verbose_message("Finished building a tnf_dist          \n");
 
-    for (size_t i = 1; i < 10; i++) {
-        for (size_t j = 0; j < i; j++) {
-            double tnf_dist = cal_tnf_dist(i, j);
-            if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
-                std::cout << "r1: " << i << " "
-                          << "r2: " << j << " "
-                          << "index: " << ((i * (i - 1)) / 2) + j << " "
-                          << "tnf_dis: " << tnf_dist << " "
-                          << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
-            }
-        }
-    }
+     for (size_t i = 1; i < 10; i++) {
+         for (size_t j = 0; j < i; j++) {
+             double tnf_dist = cal_tnf_dist(i, j);
+             if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
+                 std::cout << "r1: " << i << " "
+                           << "r2: " << j << " "
+                           << "index: " << ((i * (i - 1)) / 2) + j << " "
+                           << "tnf_dis: " << tnf_dist << " "
+                           << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
+             }
+         }
+     }
+     */
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
