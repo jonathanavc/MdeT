@@ -2401,7 +2401,7 @@ int main(int argc, char const *argv[]) {
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
-                for (size_t j = 0; j < i; ++j) {               // populate lower triangle
+                for (size_t j = i - 1; j >= 0; j--) {          // populate lower triangle
                     if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
                         continue;
                     bool passed = true;
