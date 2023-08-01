@@ -173,7 +173,7 @@ __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index
         int contig_index = index + i;
         if (contig_index >= nobs) break;
         int row = (contig_index * (contig_index - 1)) / 2;
-        for (int j = contig_index - j; i >= 0; j--) {
+        for (int j = contig_index - 1; i >= 0; j--) {
             tnf_prob_index = row + j;
             tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_index, nobs);
             __syncthreads();
