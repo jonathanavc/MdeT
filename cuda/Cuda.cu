@@ -170,7 +170,7 @@ __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index
     const size_t contig_index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
     if (contig_index >= nobs) return;
     size_t tnf_prob_index;
-    for (size_t i = contig_index - 1; i >= 0; i--) {
+    for (int i = contig_index - 1; i >= 0; i--) {
         tnf_prob_index = (contig_index * (contig_index - 1)) / 2 + i;
         tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, i, TNF, seqs_d_index, nobs);
         cudaSyncthreads();
