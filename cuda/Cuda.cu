@@ -166,8 +166,8 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
     }
 }
 
-__global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
-    const size_t contig_index = (threadIdx.x + blockIdx.x * blockDim.x) + 1;
+__global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+    const size_t contig_index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
     if (contig_index >= nobs) return;
     size_t tnf_prob_index;
     for (size_t i = contig_index - 1; i >= 0; i--) {
@@ -2342,7 +2342,9 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         std::cout << "total_prob: " << total_prob << std::endl;
-        get_tnf_prob<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
+        size_t contig_per_kernel = (nobs + (numBlocks * numThreads2 - 1)) / (numBlocks * numThreads2);
+        std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
+        get_tnf_prob<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, contig_per_kernel);
         cudaMemcpy(tnf_prob, gprob_d, total_prob * sizeof(double), cudaMemcpyDeviceToHost);
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {
