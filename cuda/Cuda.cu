@@ -2367,7 +2367,7 @@ int main(int argc, char const *argv[]) {
                             cudaMemcpyHostToDevice, streams[i]);
             cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                             cudaMemcpyHostToDevice, streams[i]);
-            get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
+            get_TNF_local<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                                contigs_per_thread, nobs);
             cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
                             streams[i]);
@@ -2433,6 +2433,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(TNF_d);
     }
     */
+    /*
     if (1) {
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
@@ -2469,6 +2470,7 @@ int main(int argc, char const *argv[]) {
             }
         }
     }
+    */
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
