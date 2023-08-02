@@ -343,7 +343,7 @@ __global__ void get_TNF_local(float *__restrict__ TNF_d, const char *__restrict_
     // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // crea un tnf de forma local
-    double TNF_temp[136];
+    float TNF_temp[136];
 
     for (size_t i = 0; i < contigs_per_thread; i++) {
         for (int j = 0; j < 136; j++) {
