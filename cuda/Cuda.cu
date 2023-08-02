@@ -313,7 +313,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         // calcular independiente si es small contig o no
         // if (contig_size >= minContig || contig_size < minContigByCorr) {
         const char *contig = seqs_d + seqs_d_index[contig_index];
-        for (size_t j = 0; j < contig_size - 3; ++j) {
+        for (size_t j = 0; j < contig_size - 3; j++) {
             short tn = get_tn(contig, j);
             if (tn & 256) continue;
             /*
@@ -323,7 +323,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             */
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
-        double rsum = 0;
+        float rsum = 0;
         for (int c = 0; c < 136; ++c) {
             rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
             /*
@@ -331,7 +331,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             rsum += num * num;
             */
         }
-        rsum = sqrt(rsum);
+        rsum = sqrtf(rsum);
         for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] /= rsum;  // OK
         }
@@ -356,7 +356,7 @@ __global__ void get_TNF_local(float *__restrict__ TNF_d, const char *__restrict_
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         // calcular independiente si es small contig o no
         // if (contig_size >= minContig || contig_size < minContigByCorr) {
-        const char *contig = get_contig_d(contig_index, seqs_d, seqs_d_index);
+        const char *contig = seqs_d + seqs_d_index[contig_index];
         for (size_t j = 0; j < contig_size - 3; ++j) {
             short tn = get_tn(contig, j);
             if (tn & 256) continue;
