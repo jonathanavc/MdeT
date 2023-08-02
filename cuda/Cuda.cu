@@ -149,6 +149,62 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     return prob;
 }
 
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *_tnf, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+    double d = 0;
+    for (size_t i = 0; i < 136; ++i) {
+        d += (_tnf[i] - TNF[r2 * 136 + i]) * (_tnf[i] - TNF[r2 * 136 + i]);  // euclidean distance
+    }
+    d = sqrt(d);
+    double b, c;
+    size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
+    size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
+    size_t ctg1 = min(ctg1_s, (size_t)500000);
+    size_t ctg2 = min(ctg2_s, (size_t)500000);
+    double lw[19];
+    lw[0] = log10(min(ctg1, ctg2));
+    lw[1] = log10(max(ctg1, ctg2));
+    lw[2] = lw[0] * lw[0];
+    lw[4] = lw[2] * lw[0];
+    lw[6] = lw[4] * lw[0];
+    lw[8] = lw[6] * lw[0];
+    lw[10] = lw[8] * lw[0];
+    lw[11] = lw[10] * lw[0];
+    lw[3] = lw[1] * lw[1];
+    lw[5] = lw[3] * lw[1];
+    lw[7] = lw[5] * lw[1];
+    lw[9] = lw[7] * lw[1];
+    lw[12] = lw[0] * lw[1];
+    lw[14] = lw[4] * lw[5];
+    lw[15] = lw[6] * lw[7];
+    lw[16] = lw[8] * lw[9];
+    lw[13] = lw[2] * lw[3];
+    lw[18] = lw[9] * lw[1];
+    double prob;
+    b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
+        -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8] +
+        0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
+        0.7800219061 * lw[14] + -0.0138723693 * lw[15] + 0.0001027543 * lw[16];
+    c = -443565.465710869 + 718862.10804858 * lw[0] + 5114.1630934534 * lw[1] + -501588.206183097 * lw[2] + 784.4442123743 * lw[3] +
+        194712.394138513 * lw[4] + -377.9645994741 * lw[5] + -45088.7863182741 * lw[6] + 50.5960513287 * lw[7] +
+        6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
+        -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
+    prob = 1.0 / (1 + exp(-(b + c * d)));
+    if (prob >= .1) {
+        b = 6770.9351457442 + -5933.7589419767 * lw[0] + -2976.2879986855 * lw[1] + 3279.7524685865 * lw[2] + 1602.7544794819 * lw[3] +
+            -967.2906583423 * lw[4] + -462.0149190219 * lw[5] + 159.8317289682 * lw[6] + 74.4884405822 * lw[7] +
+            -14.0267151808 * lw[8] + -6.3644917671 * lw[9] + 0.5108811613 * lw[10] + 0.2252455343 * lw[18] + 0.965040193 * lw[13] +
+            -0.0546309127 * lw[14] + 0.0012917084 * lw[15] + -1.14383e-05 * lw[16];
+        c = 39406.5712626297 + -77863.1741143294 * lw[0] + 9586.8761567725 * lw[1] + 55360.1701572325 * lw[2] +
+            -5825.2491611377 * lw[3] + -21887.8400068324 * lw[4] + 1751.6803621934 * lw[5] + 5158.3764225203 * lw[6] +
+            -290.1765894829 * lw[7] + -724.0348081819 * lw[8] + 25.364646181 * lw[9] + 56.0522105105 * lw[10] +
+            -0.9172073892 * lw[18] + -1.8470088417 * lw[11] + 449.4660736502 * lw[12] + -24.4141920625 * lw[13] +
+            0.8465834103 * lw[14] + -0.0158943762 * lw[15] + 0.0001235384 * lw[16];
+        prob = 1.0 / (1 + exp(-(b + c * d)));
+        prob = prob < .1 ? .1 : prob;
+    }
+    return prob;
+}
+
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
 __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
@@ -168,18 +224,46 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
 
 __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
     const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
+    float _tnf[136];
     size_t tnf_prob_index;
     for (int i = 0; i < contig_per_thread; i++) {
         int contig_index = index + i;
         if (contig_index >= nobs) break;
+        for (int i = 0; i < 136; i++) {
+            _tnf[i] = TNF[contig_index + i];
+        }
         int row = (contig_index * (contig_index - 1)) / 2;
         for (int j = contig_index - 1; j >= 0; j--) {
             tnf_prob_index = row + j;
-            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_index, nobs);
-            //__syncthreads();
+            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, _tnf, TNF, seqs_d_index, nobs);
+            __syncthreads();
         }
     }
 }
+
+/*
+__global__ void get_tnf_prob3(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+    const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
+    size_t tnf_prob_index;
+    for (size_t i = index + 1; i < index + contig_per_thread; i++) {
+        for (size_t j = index; j < i; j++) {
+            if (i == j) continue;
+            tnf_prob_index = (i * (i - 1)) / 2 + j;
+            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(i, j, TNF, seqs_d_index, nobs);
+        }
+    }
+    __syncthreads();
+
+    size_t _tam = contig_per_thread;
+    size_t contig_i;
+    size_t contig_e;
+    for (size_t i = 0; i < count; i++) {
+        if (index % 2 == 0) {
+            _tam *= 2;
+        }
+    }
+}
+*/
 
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
@@ -701,8 +785,8 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
         0.7800219061 * lw[14] + -0.0138723693 * lw[15] + 0.0001027543 * lw[16];
     /*
-    const Distance _c1[16] = {718862.10804858,   5114.1630934534, -501588.206183097, 784.4442123743, 194712.394138513, -377.9645994741,
-                              -45088.7863182741, 50.5960513287,   6220.3310639927,   -2.3670776453,  -473.269785487,   15.3213264134,
+    const Distance _c1[16] = {718862.10804858,   5114.1630934534, -501588.206183097, 784.4442123743, 194712.394138513,
+    -377.9645994741, -45088.7863182741, 50.5960513287,   6220.3310639927,   -2.3670776453,  -473.269785487,   15.3213264134,
                               -3282.8510348085,  164.0438603974,  -5.2778800755,     0.0929379305};
 
     c = -443565.465710869;
@@ -1715,29 +1799,33 @@ int main(int argc, char const *argv[]) {
         "jgi_summarize_bam_contig_depths")(
         "pairFile,p", po::value<std::string>(&pairFile),
         "A file having paired reads mapping information. Use it to increase sensitivity. (tab delimited; should have 3 columns of "
-        "contig index (ordered by), its mate contig index, and supporting mean read coverage. The first row will be considered as the "
-        "header and be skipped) [Optional]")(
-        "p1", po::value<Similarity>(&p1)->default_value(0),
-        "Probability cutoff for bin seeding. It mainly controls the number of potential bins and their specificity. The higher, the "
-        "more (specific) bins would be. (Percentage; Should be between 0 and 100)")(
+        "contig index (ordered by), its mate contig index, and supporting mean read coverage. The first row will be considered as "
+        "the "
+        "header and be skipped) [Optional]")("p1", po::value<Similarity>(&p1)->default_value(0),
+                                             "Probability cutoff for bin seeding. It mainly controls the number of potential bins "
+                                             "and their specificity. The higher, the "
+                                             "more (specific) bins would be. (Percentage; Should be between 0 and 100)")(
         "p2", po::value<Similarity>(&p2)->default_value(0),
-        "Probability cutoff for secondary neighbors. It supports p1 and better be close to p1. (Percentage; Should be between 0 and "
+        "Probability cutoff for secondary neighbors. It supports p1 and better be close to p1. (Percentage; Should be between 0 "
+        "and "
         "100)")("minProb", po::value<Similarity>(&minProb)->default_value(0),
                 "Minimum probability for binning consideration. It controls sensitivity. Usually it should be >= 75. (Percentage; "
-                "Should be between 0 and 100)")(
-        "minBinned", po::value<Similarity>(&minBinned)->default_value(0),
-        "Minimum proportion of already binned neighbors for one's membership inference. It contorls specificity. Usually it would be "
-        "<= 50 (Percentage; Should be between 0 and 100)")(
+                "Should be between 0 and 100)")("minBinned", po::value<Similarity>(&minBinned)->default_value(0),
+                                                "Minimum proportion of already binned neighbors for one's membership inference. "
+                                                "It contorls specificity. Usually it would be "
+                                                "<= 50 (Percentage; Should be between 0 and 100)")(
         "verysensitive", po::value<bool>(&verysensitive)->zero_tokens(),
         "For greater sensitivity, especially in a simple community. It is the shortcut for --p1 90 --p2 85 --pB 20 --minProb 75 "
-        "--minBinned 20 --minCorr 90")(
-        "sensitive", po::value<bool>(&sensitive)->zero_tokens(),
-        "For better sensitivity [default]. It is the shortcut for --p1 90 --p2 90 --pB 20 --minProb 80 --minBinned 40 --minCorr 92")(
+        "--minBinned 20 --minCorr 90")("sensitive", po::value<bool>(&sensitive)->zero_tokens(),
+                                       "For better sensitivity [default]. It is the shortcut for --p1 90 --p2 90 --pB 20 "
+                                       "--minProb 80 --minBinned 40 --minCorr 92")(
         "specific", po::value<bool>(&specific)->zero_tokens(),
-        "For better specificity. Different from --sensitive when using correlation binning or ensemble binning. It is the shortcut "
+        "For better specificity. Different from --sensitive when using correlation binning or ensemble binning. It is the "
+        "shortcut "
         "for --p1 90 --p2 90 --pB 30 --minProb 80 --minBinned 40 --minCorr 96")(
         "veryspecific", po::value<bool>(&veryspecific)->zero_tokens(),
-        "For greater specificity. No correlation binning for short contig recruiting. It is the shortcut for --p1 90 --p2 90 --pB 40 "
+        "For greater specificity. No correlation binning for short contig recruiting. It is the shortcut for --p1 90 --p2 90 --pB "
+        "40 "
         "--minProb 80 --minBinned 40")(
         "superspecific", po::value<bool>(&superspecific)->zero_tokens(),
         "For the best specificity. It is the shortcut for --p1 95 --p2 90 --pB 50 --minProb 80 --minBinned 20")(
@@ -1755,7 +1843,8 @@ int main(int argc, char const *argv[]) {
         "Minimum size of a contig to be considered for binning (should be >=1500; ideally >=2500). If # of samples >= minSamples, "
         "small contigs (>=1000) will be given a chance to be recruited to existing bins by default.")(
         "minContigByCorr", po::value<size_t>(&minContigByCorr)->default_value(1000),
-        "Minimum size of a contig to be considered for recruiting by pearson correlation coefficients (activated only if # of samples "
+        "Minimum size of a contig to be considered for recruiting by pearson correlation coefficients (activated only if # of "
+        "samples "
         ">= minSamples; disabled when minContigByCorr > minContig)")("numThreads,t", po::value<int>(&numThreads)->default_value(0),
                                                                      "Number of threads to use (0: use all cores)")(
         "ct", po::value<int>(&numThreads2)->default_value(16), "Number of cuda threads")(
@@ -2402,8 +2491,8 @@ int main(int argc, char const *argv[]) {
                 }
             }
         }
-        verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
-                        boost::num_edges(gprob));
+        verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n",
+boost::num_vertices(gprob), boost::num_edges(gprob));
 */
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
