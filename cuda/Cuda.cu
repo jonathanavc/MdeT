@@ -2483,25 +2483,11 @@ int main(int argc, char const *argv[]) {
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        UndirectedGraph gprobt[numThreads];
         gprob.m_vertices.resize(nobs);
-        /*
-#pragma omp parallel for schedule(dynamic)
-        for (size_t i = 0; i < nobs * (nobs - 1) / 2; i++) {
-            long long discriminante = 1 + 8 * i;
-            size_t col = (1 + sqrt((double)discriminante)) / 2;
-            size_t row = i - col * (col - 1) / 2;
-            if (smallCtgs.find(col) == smallCtgs.end() && smallCtgs.find(row) == smallCtgs.end()) {
-                bool passed = false;
-                Similarity s = 1. - tnf_prob[i];
-#pragma omp critical(ADD_EDGE_1)
-                if (passed && s >= requiredMinP) {
-                    boost::add_edge(col, row, Weight(s), gprob);
-                }
-            }
+        for (int i = 0; i < numThreads; i++) {
+            gprobt[i].m_vertices.resize(nobs);
         }
-        verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n",
-boost::num_vertices(gprob), boost::num_edges(gprob));
-*/
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
@@ -2512,8 +2498,11 @@ boost::num_vertices(gprob), boost::num_edges(gprob));
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-#pragma omp critical(ADD_EDGE_1)
-                        { boost::add_edge(i, j, Weight(s), gprob); }
+                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+                        /*
+                        #pragma omp critical(ADD_EDGE_1)
+                                                { boost::add_edge(i, j, Weight(s), gprob); }
+                        */
                     }
                 }
             }
@@ -2523,6 +2512,10 @@ boost::num_vertices(gprob), boost::num_edges(gprob));
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
+        for (int i = 0; i < numThreads; i++) {
+            boost::copy_graph(gprob, gprobt[i])
+        }
+
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
