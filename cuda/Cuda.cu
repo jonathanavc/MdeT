@@ -235,7 +235,8 @@ __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index
         int row = (contig_index * (contig_index - 1)) / 2;
         for (int j = contig_index - 1; j >= 0; j--) {
             tnf_prob_index = row + j;
-            tnf_dist[tnf_prob_index] = cal_tnf_dist_d2(contig_index, j, _tnf, TNF, seqs_d_index, nobs);
+            // tnf_dist[tnf_prob_index] = cal_tnf_dist_d2(contig_index, j, _tnf, TNF, seqs_d_index, nobs);
+            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_index, nobs);
             __syncthreads();
         }
     }
@@ -928,8 +929,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    tnf_dist = cal_tnf_dist(r1, r2);
-    // tnf_dist = tnf_prob[r1];
+    // tnf_dist = cal_tnf_dist(r1, r2);
+    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 20];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2085,7 +2086,6 @@ int main(int argc, char const *argv[]) {
         contig_names.reserve(fsize % __min);
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
-#pragma omp parallel for schedule(dynamic)
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] == fasta_delim) {
                 i++;
@@ -2100,23 +2100,16 @@ int main(int argc, char const *argv[]) {
                 if (contig_size >= __min) {
                     if (contig_size < minContig) {
                         if (contig_size >= minContigByCorr)
-#pragma omp atomic
                             smallCtgs.insert(nobs);
                         else
-#pragma omp atomic
                             nresv++;
                     }
-#pragma omp atomic
                     lCtgIdx[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = nobs;
-#pragma omp atomic
                     gCtgIdx[nobs++] = seqs.size();
                 } else {
-#pragma omp atomic
                     ignored[std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i)] = seqs.size();
                 }
-#pragma omp atomic
                 contig_names.emplace_back(std::string_view(_mem + contig_name_i, contig_name_e - contig_name_i));
-#pragma omp atomic
                 seqs.emplace_back(std::string_view(_mem + contig_i, contig_e - contig_i));
             }
         }
@@ -2391,8 +2384,8 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
         // se usarán más adelante
-        cudaFree(TNF_d);
-        cudaFree(seqs_d_index);
+        // cudaFree(TNF_d);
+        // cudaFree(seqs_d_index);
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
@@ -2408,16 +2401,20 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-    /*
+
     if (1) {
         // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        cudaMallocHost((void **)&tnf_prob, 20 * sizeof(double));
+        cudaMalloc((void **)&gprob_d, 20 * sizeof(double));
+
+        // cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        // cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
+        // size_t total_prob = (nobs * (nobs - 1)) / 2;
+        size_t total_prob = 20;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
@@ -2443,7 +2440,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
-    */
+
     /*
     if (1) {
         double *gprob_d;
