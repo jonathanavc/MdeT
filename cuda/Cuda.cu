@@ -2514,7 +2514,7 @@ int main(int argc, char const *argv[]) {
             }
         }
         for (int i = 0; i < numThreads; i++) {
-            boost::copy_graph(gprob, gprobt[i]);
+            boost::copy_graph(gprobt[i], gprob);
         }
 
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
