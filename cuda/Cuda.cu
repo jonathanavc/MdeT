@@ -930,7 +930,7 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     if (r1 == r2) return 0;
     // tnf_dist = 1;
     // tnf_dist = cal_tnf_dist(r1, r2);
-    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 20];
+    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 1000];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2408,13 +2408,13 @@ int main(int argc, char const *argv[]) {
         //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, 20 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, 20 * sizeof(double));
+        cudaMallocHost((void **)&tnf_prob, 1000 * sizeof(double));
+        cudaMalloc((void **)&gprob_d, 1000 * sizeof(double));
 
         // cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // size_t total_prob = (nobs * (nobs - 1)) / 2;
-        size_t total_prob = 20;
+        size_t total_prob = 1000;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
