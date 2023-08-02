@@ -277,6 +277,7 @@ __device__ short get_tn(const char *contig, const size_t index) {
 }
 
 // esto mejoró "bastante" el rendimento
+/*
 __device__ short get_revComp_tn_d(short tn) {
     unsigned char rctn = 0;
     for (short i = 0; i < 4; i++) {
@@ -285,6 +286,7 @@ __device__ short get_revComp_tn_d(short tn) {
     }
     return rctn;
 }
+*/
 
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const size_t *seqs_d_index) {
     return seqs_d + seqs_d_index[contig_index];
@@ -296,14 +298,14 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
     // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
-    for (size_t i = 0; i < contigs_per_thread; i++) {
+    for (int i = 0; i < contigs_per_thread; i++) {
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         const size_t tnf_index = contig_index * 136;
         if (contig_index >= nobs) break;
         for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
     }
 
-    for (size_t i = 0; i < contigs_per_thread; i++) {
+    for (int i = 0; i < contigs_per_thread; i++) {
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         const size_t tnf_index = contig_index * 136;
         if (contig_index >= nobs) break;
@@ -322,7 +324,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
-        for (size_t c = 0; c < 136; ++c) {
+        for (int c = 0; c < 136; ++c) {
             rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
             /*
             double num = TNF_d[tnf_index + c];
@@ -330,7 +332,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             */
         }
         rsum = sqrt(rsum);
-        for (size_t c = 0; c < 136; ++c) {
+        for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] /= rsum;  // OK
         }
         //}
