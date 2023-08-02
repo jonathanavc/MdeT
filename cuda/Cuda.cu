@@ -149,7 +149,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     return prob;
 }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *_tnf, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
         d += (_tnf[i] - TNF[r2 * 136 + i]) * (_tnf[i] - TNF[r2 * 136 + i]);  // euclidean distance
