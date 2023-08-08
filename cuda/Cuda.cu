@@ -930,8 +930,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    tnf_dist = cal_tnf_dist(r1, r2);
-    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 1000];
+    // tnf_dist = cal_tnf_dist(r1, r2);
+    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 10000];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2403,20 +2403,19 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    /*
     if (1) {
         // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, 1000 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, 1000 * sizeof(double));
+        cudaMallocHost((void **)&tnf_prob, 10000 * sizeof(double));
+        cudaMalloc((void **)&gprob_d, 10000 * sizeof(double));
 
         // cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // size_t total_prob = (nobs * (nobs - 1)) / 2;
-        size_t total_prob = 1000;
+        size_t total_prob = 10000;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
@@ -2442,7 +2441,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
-    */
+
     /*
     if (1) {
         double *gprob_d;
@@ -2465,19 +2464,13 @@ int main(int argc, char const *argv[]) {
         cudaFree(TNF_d);
         cudaFree(seqs_d_index);
     }
-
     verbose_message("Finished building a tnf_dist          \n");
 
-    for (size_t i = 1; i < 10; i++) {
+
+    for (size_t i = 1; i < 10000; i++) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
-            if (tnf_dist != tnf_prob[((i * (i - 1)) / 2) + j]) {
-                std::cout << "r1: " << i << " "
-                          << "r2: " << j << " "
-                          << "index: " << ((i * (i - 1)) / 2) + j << " "
-                          << "tnf_dis: " << tnf_dist << " "
-                          << " tnf_prob" << tnf_prob[((i * (i - 1)) / 2) + j] << std::endl;
-            }
+            gprob[]
         }
     }
     */
@@ -2500,11 +2493,8 @@ int main(int argc, char const *argv[]) {
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
-                        /*
-                        #pragma omp critical(ADD_EDGE_1)
-                                                { boost::add_edge(i, j, Weight(s), gprob); }
-                        */
+#pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
             }
@@ -2514,12 +2504,6 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
-        #pragma omp parallel reduction(merge: gprob)
-        for (int i = 0; i < numThreads; i++) {
-            // std::cout << "I: " << boost::num_edges(gprobt[i]) << std::endl;
-            boost::copy_graph(gprobt[i], gprob);
-        }
-
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
