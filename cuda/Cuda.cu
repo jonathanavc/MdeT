@@ -930,8 +930,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     Distance abd_dist = 0, tnf_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
-    // tnf_dist = cal_tnf_dist(r1, r2);
-    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % size_tnf_prob];
+    tnf_dist = cal_tnf_dist(r1, r2);
+    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % size_tnf_prob];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2494,11 +2494,10 @@ int main(int argc, char const *argv[]) {
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
-                        /*
-                        #pragma omp critical(ADD_EDGE_1)
-                                                { boost::add_edge(i, j, Weight(s), gprob); }
-                                                 */
+                        // boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+
+#pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
             }
