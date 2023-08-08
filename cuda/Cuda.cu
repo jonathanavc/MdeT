@@ -509,6 +509,8 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
+static size_tnf_prob = 500000;
+
 /*
 template <class T, class S>
 struct pair_equal_to : std::binary_function<T, std::pair<T, S>, bool> {
@@ -930,8 +932,8 @@ Distance cal_dist(size_t r1, size_t r2, Distance maxDist, bool &passed) {
     int nnz = 0;
     if (r1 == r2) return 0;
     // tnf_dist = 1;
-    tnf_dist = cal_tnf_dist(r1, r2);
-    // tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % 10000];
+    // tnf_dist = cal_tnf_dist(r1, r2);
+    tnf_dist = tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % size_tnf_prob];
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2409,13 +2411,13 @@ int main(int argc, char const *argv[]) {
         //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&tnf_prob, 10000 * sizeof(double));
-        cudaMalloc((void **)&gprob_d, 10000 * sizeof(double));
+        cudaMallocHost((void **)&tnf_prob, size_tnf_prob * sizeof(double));
+        cudaMalloc((void **)&gprob_d, size_tnf_prob * sizeof(double));
 
         // cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
         // size_t total_prob = (nobs * (nobs - 1)) / 2;
-        size_t total_prob = 10000;
+        size_t total_prob = size_tnf_prob;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
