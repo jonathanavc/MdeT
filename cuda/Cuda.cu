@@ -2508,12 +2508,11 @@ int main(int argc, char const *argv[]) {
             }
         }
         for (size_t i = 0; i < numThreads; i++) {
-            boost::graph_traits<Graph>::edge_iterator ei, ei_end;
+            boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
                 boost::add_edge(boost::source(*ei, gprobt[i]), boost::target(*ei, gprobt[i]), gprob);
             }
-        }ƒ
-
+        }
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
