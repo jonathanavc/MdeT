@@ -2515,7 +2515,7 @@ int main(int argc, char const *argv[]) {
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
                 auto source = boost::source(*ei, gprobt[i]);
                 auto target = boost::target(*ei, gprobt[i]);
-                double weight = gprobt[i][*ei];
+                double weight = boost::get(boost::edge_weight, gprobt[i], *ei);
                 boost::add_edge(source, target, Weight(weight), gprob);
             }
         }
