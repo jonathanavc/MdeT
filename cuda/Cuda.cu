@@ -2516,7 +2516,7 @@ int main(int argc, char const *argv[]) {
         }
         for (int i = 0; i < numThreads; i++) {
             std::cout << "I: " << boost::num_edges(gprobt[i]) << std::endl;
-            // boost::copy_graph(gprobt[i], gprob);
+            boost::copy_graph(gprobt[i], gprob);
         }
 
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
