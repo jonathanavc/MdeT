@@ -2514,8 +2514,9 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
+        #pragma omp parallel reduction(merge: gprob)
         for (int i = 0; i < numThreads; i++) {
-            std::cout << "I: " << boost::num_edges(gprobt[i]) << std::endl;
+            // std::cout << "I: " << boost::num_edges(gprobt[i]) << std::endl;
             boost::copy_graph(gprobt[i], gprob);
         }
 
