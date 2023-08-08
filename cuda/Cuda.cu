@@ -2509,8 +2509,7 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
-        gprob = gprobt[0];
-        for (size_t i = 1; i < numThreads; i++) {
+        for (size_t i = 0; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
                 auto source = boost::source(*ei, gprobt[i]);
