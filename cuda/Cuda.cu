@@ -509,7 +509,7 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
-static size_tnf_prob = 500000;
+static int size_tnf_prob = 500000;
 
 /*
 template <class T, class S>
