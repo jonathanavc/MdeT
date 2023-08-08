@@ -17,6 +17,8 @@
 #define BOOST_UBLAS_USE_FAST_SAME
 #define BOOST_UBLAS_TYPE_CHECK 0
 
+#include <math.h>
+
 #include <algorithm>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
