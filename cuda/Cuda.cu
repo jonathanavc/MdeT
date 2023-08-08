@@ -2509,14 +2509,12 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
-        /*
         for (size_t i = 0; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
-                boost::add_edge(boost::source(*ei, gprobt[i]), boost::target(*ei, gprobt[i]), gprob);
+                boost::add_edge(boost::source(*ei, gprobt[i]), boost::target(*ei, gprobt[i]), boost::weight(*ei, gprobt[i]), gprob);
             }
         }
-        */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
