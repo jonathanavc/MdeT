@@ -2405,6 +2405,7 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
+    size_tnf_prob = (nobs * (nobs - 1)) / 2;
     if (1) {
         // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
