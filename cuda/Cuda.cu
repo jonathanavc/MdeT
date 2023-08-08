@@ -89,14 +89,11 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-__device__ double log10_device(double x) { return log(x) / log(10.0); }
+//__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
     double d = 0;
-    // tex1Dfetch(texTNF, r1 * 136);
     for (size_t i = 0; i < 136; ++i) {
-        // d += (tex1Dfetch(texTNF, r1 * 136 + i) - tex1Dfetch(texTNF, r2 * 136 + i)) * (tex1Dfetch(texTNF, r1 * 136 + i) -
-        // tex1Dfetch(texTNF, r2 * 136 + i));  // euclidean distance
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
