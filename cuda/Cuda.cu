@@ -2496,11 +2496,11 @@ int main(int argc, char const *argv[]) {
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
-                        /*
+                        //boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+                    
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
-                        */
+                    
                     }
                 }
             }
