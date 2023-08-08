@@ -2513,9 +2513,9 @@ int main(int argc, char const *argv[]) {
         for (size_t i = 1; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
-                auto source = boost::source(*ei, secondGraph);
-                auto target = boost::target(*ei, secondGraph);
-                double weight = secondGraph[*ei];
+                auto source = boost::source(*ei, gprobt[i]);
+                auto target = boost::target(*ei, gprobt[i]);
+                double weight = gprobt[i][*ei];
                 boost::add_edge(source, target, Weight(weight), gprob);
             }
         }
