@@ -2403,8 +2403,9 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
-    TIMERSTART(_tnf_prob);
+
     if (0) {
+        TIMERSTART(_tnf_prob);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         TIMERSTART(memorymalloc);
@@ -2448,9 +2449,10 @@ int main(int argc, char const *argv[]) {
         }
         */
         cudaFree(gprob_d);
-        cudaFree(TNF_d);
+        TIMERSTOP(_tnf_prob);
     }
-    TIMERSTOP(_tnf_prob);
+    cudaFree(TNF_d);
+    cudaFree(seqs_d_index);
 
     /*
     if (1) {
