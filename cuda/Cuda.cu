@@ -2404,7 +2404,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
     TIMERSTART(_tnf_prob);
-    if (1) {
+    if (0) {
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
         TIMERSTART(memorymalloc);
