@@ -2406,17 +2406,25 @@ int main(int argc, char const *argv[]) {
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
     TIMERSTART(_tnf_prob);
     if (1) {
-        // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
-        //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
+        TIMERSTART(memorymalloc);
         cudaMallocHost((void **)&tnf_prob, size_tnf_prob * sizeof(double));
         cudaMalloc((void **)&gprob_d, size_tnf_prob * sizeof(double));
+        TIMERSTOP(memorymalloc);
 
-        // cudaMallocHost((void **)&tnf_prob, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        // cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double));
-        // size_t total_prob = (nobs * (nobs - 1)) / 2;
+        {
+            size_t prob_per_thread = (size_tnf_prob + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            TIMERSTART(kernel);
+            get_tnf_prob<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, 0, nobs, prob_per_thread);
+            cudaDeviceSynchronize();
+            TIMERSTOP(kernel);
+            TIMERSTART(cudaMemcpy);
+            cudaMemcpy(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost);
+            TIMERSTOP(cudaMemcpy);
+        }
+
+        /*
         size_t total_prob = size_tnf_prob;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
@@ -2440,6 +2448,7 @@ int main(int argc, char const *argv[]) {
         if (err != cudaSuccess) {
             std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         }
+        */
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
