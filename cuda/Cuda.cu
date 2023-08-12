@@ -208,7 +208,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF,
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
 __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
-    const size_t gprob_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t gprob_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min((nobs * (nobs - 1)) / 2, gprob_index + contig_per_thread);
     double discriminante = 1 + 8 * gprob_index;
     double r1 = (1 + sqrt(discriminante)) / 2;
