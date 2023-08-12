@@ -156,10 +156,10 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF,
     }
     d = sqrt(d);
     double b, c;
-    size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
-    size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
-    size_t ctg1 = min(ctg1_s, (size_t)500000);
-    size_t ctg2 = min(ctg2_s, (size_t)500000);
+    double ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
+    double ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
+    double ctg1 = min(ctg1_s, (size_t)500000);
+    double ctg2 = min(ctg2_s, (size_t)500000);
     double lw[19];
     lw[0] = log10(min(ctg1, ctg2));
     lw[1] = log10(max(ctg1, ctg2));
@@ -2414,9 +2414,9 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(memorymalloc);
 
         {
-            size_t prob_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            size_t prob_per_thread = (size_tnf_prob + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             TIMERSTART(kernel);
-            get_tnf_prob2<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, prob_per_thread);
+            get_tnf_prob<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, 0, nobs, prob_per_thread);
             cudaDeviceSynchronize();
             TIMERSTOP(kernel);
             TIMERSTART(cudaMemcpy);
