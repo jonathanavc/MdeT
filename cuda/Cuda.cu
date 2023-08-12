@@ -2490,11 +2490,13 @@ int main(int argc, char const *argv[]) {
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
-        UndirectedGraph gprobt[numThreads];
         gprob.m_vertices.resize(nobs);
+        /*
+        UndirectedGraph gprobt[numThreads];
         for (int i = 0; i < numThreads; i++) {
             gprobt[i].m_vertices.resize(nobs);
         }
+        */
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
@@ -2518,6 +2520,7 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
+        /*
         for (size_t i = 0; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
@@ -2527,6 +2530,7 @@ int main(int argc, char const *argv[]) {
                 boost::add_edge(source, target, Weight(weight), gprob);
             }
         }
+        */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
