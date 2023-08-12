@@ -158,8 +158,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF,
     double b, c;
     double ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
     double ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
-    double ctg1 = min(ctg1_s, (size_t)500000);
-    double ctg2 = min(ctg2_s, (size_t)500000);
+    double ctg1 = min(ctg1_s, (double)500000);
+    double ctg2 = min(ctg2_s, (double)500000);
     double lw[19];
     lw[0] = log10(min(ctg1, ctg2));
     lw[1] = log10(max(ctg1, ctg2));
