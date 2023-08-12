@@ -93,7 +93,8 @@ __device__ __constant__ unsigned char BN[256] = {
 
 //__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__seqs_d_index,
+                                 const size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
@@ -149,7 +150,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF, size_t *seqs_
     return prob;
 }
 
-__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF, size_t *seqs_d_index, size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *_tnf, const float *TNF, const size_t *seqs_d_index,
+                                  const size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
         d += (_tnf[i] - TNF[r2 * 136 + i]) * (_tnf[i] - TNF[r2 * 136 + i]);  // euclidean distance
@@ -207,7 +209,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF,
 
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
-__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__TNF, const size_t *__restrict__seqs_d_index,
+                             size_t _des, const size_t nobs, const size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
@@ -294,7 +297,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 }
 
 __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
-                        size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
+                        const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     // const size_t minContig = 2500;
     // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -2402,7 +2405,6 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-    /*
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
     TIMERSTART(_tnf_prob);
     if (1) {
@@ -2423,7 +2425,7 @@ int main(int argc, char const *argv[]) {
             cudaMemcpy(tnf_prob, gprob_d, size_tnf_prob * sizeof(double), cudaMemcpyDeviceToHost);
             TIMERSTOP(cudaMemcpy);
         }
-
+        /*
         size_t total_prob = size_tnf_prob;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
@@ -2447,11 +2449,11 @@ int main(int argc, char const *argv[]) {
         if (err != cudaSuccess) {
             std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         }
+        */
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
     TIMERSTOP(_tnf_prob);
-    */
 
     /*
     if (1) {
