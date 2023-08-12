@@ -2404,7 +2404,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
 
-    if (0) {
+    if (1) {
         TIMERSTART(_tnf_prob);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
