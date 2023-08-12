@@ -93,7 +93,7 @@ __device__ __constant__ unsigned char BN[256] = {
 
 //__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__seqs_d_index,
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_index,
                                  const size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
@@ -150,8 +150,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__
     return prob;
 }
 
-__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *_tnf, const float *TNF, const size_t *seqs_d_index,
-                                  const size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict__ _tnf, const float *__restrict__ TNF,
+                                  const size_t *__restrict__ seqs_d_index, const size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
         d += (_tnf[i] - TNF[r2 * 136 + i]) * (_tnf[i] - TNF[r2 * 136 + i]);  // euclidean distance
@@ -209,7 +209,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *_tnf, const
 
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__TNF, const size_t *__restrict__seqs_d_index,
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict_ _TNF, const size_t *__restrict_ _seqs_d_index,
                              size_t _des, const size_t nobs, const size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
