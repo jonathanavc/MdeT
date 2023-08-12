@@ -54,9 +54,6 @@
 
 namespace po = boost::program_options;
 
-// texture<float, cudaTextureType1D, cudaReadModeElementType> texTNF;
-// texture<float, cudaTextureType1DLayered, cudaReadModeElementType> texRef;
-
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50, 135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
     8,   114, 5,   54,  107, 120, 72,  41, 44,  26,  27,  23,  71,  53,  12,  81,  31,  127, 30,  110, 3,   80,  132, 123, 71,  102,
@@ -280,7 +277,7 @@ __device__ short get_tn(const char *contig, const size_t index) {
     return tn;
 }
 
-// esto mejoró "bastante" el rendimento
+// esto mejoró "bastante" el rendimento, ya no es necesario xd
 /*
 __device__ short get_revComp_tn_d(short tn) {
     unsigned char rctn = 0;
@@ -327,7 +324,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             */
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
-        double rsum = 0;
+        float rsum = 0;
         for (int c = 0; c < 136; ++c) {
             rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
             /*
@@ -335,7 +332,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             rsum += num * num;
             */
         }
-        rsum = sqrt(rsum);
+        rsum = sqrtf(rsum);
         for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] /= rsum;  // OK
         }
