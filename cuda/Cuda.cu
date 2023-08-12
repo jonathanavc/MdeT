@@ -2404,11 +2404,13 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
+    TIMERSTART(_tnf_prob);
     if (1) {
         // cudaBindTexture(NULL, texTNF, TNF_d, sizeof(float) * nobs * 136);
         //  cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
         //  cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
         double *gprob_d;
+        n_STREAMS = 1;
         cudaStream_t streams[n_STREAMS];
         cudaMallocHost((void **)&tnf_prob, size_tnf_prob * sizeof(double));
         cudaMalloc((void **)&gprob_d, size_tnf_prob * sizeof(double));
@@ -2427,9 +2429,13 @@ int main(int argc, char const *argv[]) {
             size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             std::cout << "prob_to_process: " << prob_to_process << std::endl;
             std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
-
-            get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
-            cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+            TIMERSTOP(_tnf_prob_kernel);
+            get_tnf_prob<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
+            cudaDeviceSynchronize();
+            TIMERSTOP(_tnf_prob_kernel);
+            TIMERSTART(_tnf_prob_cpy);
+            cudaMemcpy(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost);
+            TIMERSTOP(_tnf_prob_cpy);
         }
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
@@ -2442,6 +2448,7 @@ int main(int argc, char const *argv[]) {
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
+    TIMERSTOP(_tnf_prob);
 
     /*
     if (1) {
