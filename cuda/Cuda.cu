@@ -2495,7 +2495,8 @@ int main(int argc, char const *argv[]) {
     for (size_t i = 1; i < nobs; i++) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
-            if (abs(tnf_dist - gprob[i * (i - 1) / 2 + j]) > 0.01) std::cout << i << " " << j << std::endl;
+            double _dif = tnf_dist - gprob[i * (i - 1) / 2 + j];
+            if (abs(_dif) > 0.01) std::cout << _dif << std::endl;
         }
     }
 
