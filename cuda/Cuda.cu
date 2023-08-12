@@ -208,22 +208,10 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float *_tnf, float *TNF,
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
 __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t _des, size_t nobs, size_t contig_per_thread) {
-    size_t gprob_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t limit = min((nobs * (nobs - 1)) / 2, gprob_index + contig_per_thread);
-    double discriminante = 1 + 8 * gprob_index;
-    double r1 = (1 + sqrt(discriminante)) / 2;
-    double r2 = gprob_index - r1 * (r1 - 1) / 2;
-    for (size_t i = r1; i < nobs; i++) {
-        for (size_t j = r2; j < i; j++) {
-            if (gprob_index == limit) break;
-            tnf_dist[gprob_index] = cal_tnf_dist_d(i, j, TNF, seqs_d_index, nobs);
-            gprob_index++;
-        }
-        if (gprob_index == limit) break;
-        r2 = 0;
-    }
-
-    /*
+    size_t limit = (nobs * (nobs - 1)) / 2;
+    size_t r1;
+    size_t r2;
+    const size_t gprob = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
@@ -232,7 +220,6 @@ __global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index,
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
     }
-    */
 }
 
 __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
@@ -2490,15 +2477,15 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d_index);
     }
     verbose_message("Finished building a tnf_dist          \n");
-    */
 
-    for (size_t i = 1; i < nobs; i++) {
+
+    for (size_t i = 1; i < 10000; i++) {
         for (size_t j = 0; j < i; j++) {
-            double _tnf_dist = cal_tnf_dist(i, j);
-            double _dif = _tnf_dist - tnf_prob[i * (i - 1) / 2 + j];
-            if (abs(_dif) > 0.01) std::cout << _dif << std::endl;
+            double tnf_dist = cal_tnf_dist(i, j);
+            gprob[]
         }
     }
+    */
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
