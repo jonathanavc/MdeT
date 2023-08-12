@@ -765,6 +765,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     lw[18] = lw[9] * lw[1];
     Distance prob;
 
+    /*
     __m512d _512;
     double _res[8];
     const double _b1[16] = {-76092.3748553155, -639.918334183, 53873.3933743949, -156.6547554844, -21263.6010657275, 64.7719132839,
@@ -782,16 +783,15 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     _mm512_store_pd(_res, _512);
     for (int i = 0; i < 8; i++) b += _res[i];
     b += +0.0001027543 * lw[16];
+    */
 
+    b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
+        -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8] +
+        0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
+        0.7800219061 * lw[14] + -0.0138723693 * lw[15] + 0.0001027543 * lw[16];
     /*
-     b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
-         -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8]
-     + 0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
-         0.7800219061 * lw[14] + -0.0138723693 * lw[15] + 0.0001027543 * lw[16];
-     */
-
-    const Distance _c1[16] = {718862.10804858,   5114.1630934534, -501588.206183097, 784.4442123743, 194712.394138513, -377.9645994741,
-                              -45088.7863182741, 50.5960513287,   6220.3310639927,   -2.3670776453,  -473.269785487,   15.3213264134,
+    const Distance _c1[16] = {718862.10804858,   5114.1630934534, -501588.206183097, 784.4442123743, 194712.394138513,
+    -377.9645994741, -45088.7863182741, 50.5960513287,   6220.3310639927,   -2.3670776453,  -473.269785487,   15.3213264134,
                               -3282.8510348085,  164.0438603974,  -5.2778800755,     0.0929379305};
 
     c = -443565.465710869;
@@ -802,13 +802,11 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     _512 = _mm512_mul_pd(_512, _mm512_load_pd(_c1 + 8));
     c += _mm512_reduce_add_pd(_512);
     c += -0.0006826817 * lw[16];
-
-    /*
-     c = -443565.465710869 + 718862.10804858 * lw[0] + 5114.1630934534 * lw[1] + -501588.206183097 * lw[2] + 784.4442123743 * lw[3] +
-         194712.394138513 * lw[4] + -377.9645994741 * lw[5] + -45088.7863182741 * lw[6] + 50.5960513287 * lw[7] +
-         6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
-         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
-     */
+    */
+    c = -443565.465710869 + 718862.10804858 * lw[0] + 5114.1630934534 * lw[1] + -501588.206183097 * lw[2] + 784.4442123743 * lw[3] +
+        194712.394138513 * lw[4] + -377.9645994741 * lw[5] + -45088.7863182741 * lw[6] + 50.5960513287 * lw[7] +
+        6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
+        -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
     // logistic model
     prob = 1.0 / (1 + exp(-(b + c * d)));
     if (prob >= .1) {  // second logistic model
@@ -2492,10 +2490,12 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
+        /*
         UndirectedGraph gprobt[numThreads];
         for (int i = 0; i < numThreads; i++) {
             gprobt[i].m_vertices.resize(nobs);
         }
+        */
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
@@ -2506,11 +2506,10 @@ int main(int argc, char const *argv[]) {
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
-                        /*
+                        // boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
-                        */
                     }
                 }
             }
@@ -2520,6 +2519,7 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
+        /*
         for (size_t i = 0; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
@@ -2529,6 +2529,7 @@ int main(int argc, char const *argv[]) {
                 boost::add_edge(source, target, Weight(weight), gprob);
             }
         }
+        */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
