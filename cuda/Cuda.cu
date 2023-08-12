@@ -2420,7 +2420,7 @@ int main(int argc, char const *argv[]) {
             cudaDeviceSynchronize();
             TIMERSTOP(kernel);
             TIMERSTART(cudaMemcpy);
-            cudaMemcpy(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost);
+            cudaMemcpy(tnf_prob, gprob_d, size_tnf_prob * sizeof(double), cudaMemcpyDeviceToHost);
             TIMERSTOP(cudaMemcpy);
         }
 
