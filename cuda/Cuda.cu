@@ -207,11 +207,11 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
 __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_index,
-                             size_t _des, const size_t nobs, const size_t contig_per_thread) {
-    size_t limit = (nobs * (nobs - 1)) / 2;
+                             size_t _des, const size_t nobs, const size_t contig_per_thread, size_t limit) {
+    // size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
-    const size_t gprob = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    const size_t gprob = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
@@ -2413,6 +2413,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&gprob_d, size_tnf_prob * sizeof(double));
         TIMERSTOP(memorymalloc);
 
+        /*
         {
             size_t prob_per_thread = (size_tnf_prob + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             TIMERSTART(kernel);
@@ -2423,31 +2424,33 @@ int main(int argc, char const *argv[]) {
             cudaMemcpy(tnf_prob, gprob_d, size_tnf_prob * sizeof(double), cudaMemcpyDeviceToHost);
             TIMERSTOP(cudaMemcpy);
         }
-        /*
-        size_t total_prob = size_tnf_prob;
-        std::cout << "total_prob: " << total_prob << std::endl;
-        size_t prob_per_kernel = total_prob / n_STREAMS;
-        for (int i = 0; i < n_STREAMS; i++) {
-            size_t _des = prob_per_kernel * i;
-            size_t prob_to_process = prob_per_kernel;
-            cudaStreamCreate(&streams[i]);
-            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
-            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-            std::cout << "prob_to_process: " << prob_to_process << std::endl;
-            std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
-
-            get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread);
-            cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
-        }
-        for (int i = 0; i < n_STREAMS; i++) {
-            cudaStreamSynchronize(streams[i]);
-            cudaStreamDestroy(streams[i]);
-        }
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
-        }
         */
+        {
+            size_t total_prob = size_tnf_prob;
+            std::cout << "total_prob: " << total_prob << std::endl;
+            size_t prob_per_kernel = total_prob / n_STREAMS;
+            for (int i = 0; i < n_STREAMS; i++) {
+                size_t _des = prob_per_kernel * i;
+                size_t prob_to_process = prob_per_kernel;
+                cudaStreamCreate(&streams[i]);
+                if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+                size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+                std::cout << "prob_to_process: " << prob_to_process << std::endl;
+                std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+
+                get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread,
+                                                                        _des + prob_to_process);
+                cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+            }
+            for (int i = 0; i < n_STREAMS; i++) {
+                cudaStreamSynchronize(streams[i]);
+                cudaStreamDestroy(streams[i]);
+            }
+            cudaError_t err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+            }
+        }
         cudaFree(gprob_d);
         TIMERSTOP(_tnf_prob);
     }
