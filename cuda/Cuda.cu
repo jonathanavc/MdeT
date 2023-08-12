@@ -209,7 +209,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
 
 //__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
 
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict_ _TNF, const size_t *__restrict_ _seqs_d_index,
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_index,
                              size_t _des, const size_t nobs, const size_t contig_per_thread) {
     size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
