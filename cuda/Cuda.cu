@@ -2414,7 +2414,7 @@ int main(int argc, char const *argv[]) {
         TIMERSTOP(memorymalloc);
 
         {
-            size_t prob_per_thread = (size_tnf_prob + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            size_t prob_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             TIMERSTART(kernel);
             get_tnf_prob2<<<numBlocks, numThreads2>>>(gprob_d, TNF_d, seqs_d_index, nobs, prob_per_thread);
             cudaDeviceSynchronize();
