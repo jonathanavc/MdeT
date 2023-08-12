@@ -2402,7 +2402,7 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-
+    /*
     size_tnf_prob = (nobs * (nobs - 1)) / 2;
     TIMERSTART(_tnf_prob);
     if (1) {
@@ -2424,7 +2424,6 @@ int main(int argc, char const *argv[]) {
             TIMERSTOP(cudaMemcpy);
         }
 
-        /*
         size_t total_prob = size_tnf_prob;
         std::cout << "total_prob: " << total_prob << std::endl;
         size_t prob_per_kernel = total_prob / n_STREAMS;
@@ -2448,11 +2447,11 @@ int main(int argc, char const *argv[]) {
         if (err != cudaSuccess) {
             std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         }
-        */
         cudaFree(gprob_d);
         cudaFree(TNF_d);
     }
     TIMERSTOP(_tnf_prob);
+    */
 
     /*
     if (1) {
@@ -2491,12 +2490,10 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
-        /*
         UndirectedGraph gprobt[numThreads];
         for (int i = 0; i < numThreads; i++) {
             gprobt[i].m_vertices.resize(nobs);
         }
-        */
 #pragma omp parallel for schedule(dynamic)
         for (size_t i = 1; i < nobs; ++i) {
             if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
@@ -2507,10 +2504,11 @@ int main(int argc, char const *argv[]) {
                     // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
                     Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
-                        // boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
-
+                        boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+                        /*
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
+                        */
                     }
                 }
             }
@@ -2520,7 +2518,6 @@ int main(int argc, char const *argv[]) {
                     verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
         }
-        /*
         for (size_t i = 0; i < numThreads; i++) {
             boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
             for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
@@ -2530,7 +2527,6 @@ int main(int argc, char const *argv[]) {
                 boost::add_edge(source, target, Weight(weight), gprob);
             }
         }
-        */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
 
