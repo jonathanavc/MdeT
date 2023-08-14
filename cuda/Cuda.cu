@@ -324,7 +324,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             */
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
-        float rsum = 0;
+        double rsum = 0;
         for (int c = 0; c < 136; ++c) {
             rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
             /*
@@ -332,7 +332,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             rsum += num * num;
             */
         }
-        rsum = sqrtf(rsum);
+        rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] /= rsum;  // OK
         }
@@ -2445,6 +2445,7 @@ int main(int argc, char const *argv[]) {
             for (int i = 0; i < n_STREAMS; i++) {
                 cudaStreamSynchronize(streams[i]);
                 cudaStreamDestroy(streams[i]);
+                exit(1);
             }
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {
