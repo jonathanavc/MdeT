@@ -2445,11 +2445,11 @@ int main(int argc, char const *argv[]) {
             for (int i = 0; i < n_STREAMS; i++) {
                 cudaStreamSynchronize(streams[i]);
                 cudaStreamDestroy(streams[i]);
-                exit(1);
             }
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {
                 std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+                exit(1);
             }
         }
         cudaFree(gprob_d);
