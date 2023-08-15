@@ -1797,7 +1797,7 @@ bool readPairFile() {
     return isGood;
 }
 
-void host_get_tnf() {
+void host_get_tnf(size_t total_contigs) {
     cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
     cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
@@ -2405,7 +2405,7 @@ int main(int argc, char const *argv[]) {
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
-                    host_get_tnf();
+                    host_get_tnf(total_contigs);
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
                     first_element = &_seq[0];
