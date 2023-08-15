@@ -2499,15 +2499,17 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d_index);
     }
     verbose_message("Finished building a tnf_dist          \n");
-
+    */
 
     for (size_t i = 1; i < 10000; i++) {
         for (size_t j = 0; j < i; j++) {
             double tnf_dist = cal_tnf_dist(i, j);
-            gprob[]
+            if (abs(gprob[(i * (i - 1) / 2) + j] - tnf_dist) < 0.01) {
+                std::cout << "i: " << i << " j: " << j << " gprob: " << gprob[(i * (i - 1) / 2) + j] << " tnf_dist: " << tnf_dist
+                          << std::endl;
+            }
         }
     }
-    */
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
