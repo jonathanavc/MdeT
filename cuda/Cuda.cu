@@ -2441,7 +2441,7 @@ int main(int argc, char const *argv[]) {
                                     cudaMemcpyHostToDevice, streams[i]);
                     get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                                        contigs_per_thread, nobs);
-                    cudaMemcpyAsync(TNF + 136 * (i - cobs) + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
+                    cudaMemcpyAsync(TNF + 136 * (nobs - cobs) + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
                                     cudaMemcpyDeviceToHost, streams[i]);
                 }
                 for (int i = 0; i < n_STREAMS; i++) {
