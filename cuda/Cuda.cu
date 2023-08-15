@@ -212,6 +212,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
     size_t r1;
     size_t r2;
     const size_t gprob = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    /*
     for (size_t i = 0; i < contig_per_thread; i++) {
         const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
@@ -219,6 +220,23 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
         tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
+    }
+    */
+    {
+        double discriminante = 1 + 8 * gprob;
+        r1 = (1 + sqrt(discriminante)) / 2;
+        r2 = gprob - r1 * (r1 - 1) / 2;
+        size_t gprob_index = gprob;
+        for (int i = 0; i < contig_per_thread; i++) {
+            if (gprob_index >= limit) break;
+            if (r2 == r1) {
+                r2 = 0;
+                r1++;
+            }
+            tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
+            gprob_index++;
+            r2++;
+        }
     }
 }
 
