@@ -1800,6 +1800,7 @@ bool readPairFile() {
 void host_get_tnf(size_t total_contigs, std::string_view first_element) {
     cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
+    std::cout << "size: " << seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0] << std::endl;
     cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
     cudaStream_t streams[n_STREAMS];
     size_t contig_per_kernel = total_contigs / n_STREAMS;
