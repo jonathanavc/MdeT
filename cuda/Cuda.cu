@@ -2404,7 +2404,7 @@ int main(int argc, char const *argv[]) {
             size_t total_contigs = 0;
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
-                if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
+                if (&_seq[0] - &first_element[0] + _seq.size() > max_gpu_mem) {
                     host_get_tnf(total_contigs, first_element);
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
