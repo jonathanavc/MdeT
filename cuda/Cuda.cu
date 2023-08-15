@@ -1821,7 +1821,7 @@ void host_get_tnf(size_t total_contigs, std::string_view first_element) {
         cudaMemcpyAsync(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                           contigs_per_thread, nobs);
+                                                           contigs_per_thread, total_contigs);
         cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
