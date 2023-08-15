@@ -1803,6 +1803,8 @@ void host_get_tnf(size_t total_contigs, std::string_view first_element) {
     cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
     cudaStream_t streams[n_STREAMS];
     size_t contig_per_kernel = total_contigs / n_STREAMS;
+    std::cout << "total_contigs: " << total_contigs << std::endl;
+    std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamCreate(&streams[i]);
         size_t contig_to_process = contig_per_kernel;
