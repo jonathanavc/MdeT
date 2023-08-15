@@ -2400,6 +2400,7 @@ int main(int argc, char const *argv[]) {
     TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+        /*
         {
             size_t cobs = 0;  // current obs
             size_t _first = 0;
@@ -2420,7 +2421,7 @@ int main(int argc, char const *argv[]) {
                 launch_kernel(cobs, _first, nobs - cobs);
             }
         }
-        /*
+        */
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
@@ -2457,7 +2458,6 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_i.clear();
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
-        */
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
