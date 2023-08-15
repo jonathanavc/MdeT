@@ -2505,7 +2505,7 @@ int main(int argc, char const *argv[]) {
         for (size_t j = 0; j < i; j++) {
             double _tnf_dist = cal_tnf_dist(i, j);
             if (abs(gprob[(i * (i - 1) / 2) + j] - _tnf_dist) < 0.01) {
-                std::cout << "i: " << i << " j: " << j << " gprob: " << gprob[(i * (i - 1) / 2) + j] << " tnf_dist: " << tnf_dist
+                std::cout << "i: " << i << " j: " << j << " gprob: " << gprob[(i * (i - 1) / 2) + j] << " tnf_dist: " << _tnf_dist
                           << std::endl;
             }
         }
