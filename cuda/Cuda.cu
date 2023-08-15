@@ -2405,6 +2405,7 @@ int main(int argc, char const *argv[]) {
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - &first_element[0] + _seq.size() > max_gpu_mem) {
+                    std::cout << "hola" << std::endl;
                     host_get_tnf(total_contigs, first_element);
                     total_contigs = 0;
                     seqs_h_index_i.clear();
@@ -2415,7 +2416,10 @@ int main(int argc, char const *argv[]) {
                 seqs_h_index_e.emplace_back(&_seq[0] - &first_element[0] + _seq.size());
                 total_contigs++;
             }
-            if (seqs_h_index_i.size() > 0) host_get_tnf(total_contigs, first_element);
+            if (seqs_h_index_i.size() > 0) {
+                std::cout << "hola2" << std::endl;
+                host_get_tnf(total_contigs, first_element);
+            }
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
