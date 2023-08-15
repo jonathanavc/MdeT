@@ -2501,7 +2501,7 @@ int main(int argc, char const *argv[]) {
     verbose_message("Finished building a tnf_dist          \n");
     */
 
-    for (size_t i = 1; i < 10000; i++) {
+    for (size_t i = 1; i < nobs; i++) {
         for (size_t j = 0; j < i; j++) {
             double _tnf_dist = cal_tnf_dist(i, j);
             if (abs(tnf_prob[(i * (i - 1) / 2) + j] - _tnf_dist) > 0.01) {
