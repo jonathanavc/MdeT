@@ -2358,21 +2358,72 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-
+    size_t max_gpu_mem = 4000000000;  // 4gb
     // calcular matriz de tetranucleotidos
-    // TIMERSTART(tnf);
     TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+        {
+            cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
+            seqs_h_index_i.reserve(nobs);
+            seqs_h_index_e.reserve(nobs);
+            std::string_view _seq;
+            char *first_element = seqs[gCtgIdx[0]];
+            size_t total_contigs = 0;
+            for (size_t j = 0; j < nobs; j++) {
+                _seq = seqs[gCtgIdx[_des + j]];
+                if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
+                    void func() {
+                        cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
+                        cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
+                        cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
+                        cudaStream_t streams[n_STREAMS];
+                        size_t contig_per_kernel = total_contigs / n_STREAMS;
+                        for (int i = 0; i < n_STREAMS; i++) {
+                            cudaStreamCreate(&streams[i]);
+                            size_t contig_to_process = contig_per_kernel;
+                            if (i == n_STREAMS - 1) contig_to_process += (total_contigs % n_STREAMS);
+                            size_t contigs_per_thread =
+                                (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+                            size_t _des = contig_per_kernel * i;
+                            size_t TNF_des = _des * 136;
+                            cudaMemcpyAsync(seqs_d, first_element + seqs_h_index_i[_des],
+                                            seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des],
+                                            cudaMemcpyHostToDevice, streams[i]);
+                            cudaMemcpyAsync(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
+                                            cudaMemcpyHostToDevice, streams[i]);
+                            cudaMemcpyAsync(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des,
+                                            contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice, streams[i]);
+                            get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des,
+                                                                               contig_to_process, contigs_per_thread, nobs);
+                            cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
+                                            cudaMemcpyDeviceToHost, streams[i]);
+                        }
+                        for (int i = 0; i < n_STREAMS; i++) {
+                            cudaStreamSynchronize(streams[i]);
+                            cudaStreamDestroy(streams[i]);
+                        }
+                        cudaFree(seqs_d);
+                        cudaFree(seqs_d_index);
+                        cudaFree(TNF_d);
+                    }
+                    seqs_h_index_i.clear();
+                    seqs_h_index_e.clear();
+                    first_element = &_seq[0];
+                }
+                seqs_h_index_i.emplace_back(&_seq[0] - first_element);
+                seqs_h_index_e.emplace_back(&_seq[0] - first_element + _seq.size());
+                total_contigs++;
+            }
+        }
+        /*
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
         cudaMalloc((void **)&seqs_d, fsize);
         cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
         cudaStream_t streams[n_STREAMS];
-        // cudaMemcpyAsync(seqs_d, _mem, fsize, cudaMemcpyHostToDevice);
         size_t contig_per_kernel = nobs / n_STREAMS;
-        // std::cout << "contig_per_kernel: " << contig_per_kernel << std::endl;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
             size_t contig_to_process = contig_per_kernel;
@@ -2402,14 +2453,11 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_i.clear();
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
-        // se usarán más adelante
-        // cudaFree(TNF_d);
-        // cudaFree(seqs_d_index);
+        */
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
-    // TIMERSTOP(tnf);
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
