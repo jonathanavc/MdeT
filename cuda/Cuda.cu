@@ -1797,7 +1797,7 @@ bool readPairFile() {
     return isGood;
 }
 
-void host_get_tnf(size_t total_contigs) {
+void host_get_tnf(size_t total_contigs, std::string_view first_element) {
     cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
     cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
@@ -1810,7 +1810,7 @@ void host_get_tnf(size_t total_contigs) {
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
-        cudaMemcpyAsync(seqs_d, first_element + seqs_h_index_i[_des],
+        cudaMemcpyAsync(seqs_d, &first_element[0] + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaMemcpyAsync(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
@@ -2400,18 +2400,18 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_i.reserve(nobs);
             seqs_h_index_e.reserve(nobs);
             std::string_view _seq;
-            char *first_element = seqs[gCtgIdx[0]].data();
+            std::string_view first_element = seqs[gCtgIdx[0]];
             size_t total_contigs = 0;
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
-                    host_get_tnf(total_contigs);
+                    host_get_tnf(total_contigs, first_element);
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
-                    first_element = &_seq[0];
+                    first_element = seqs[gCtgIdx[j + 1]];
                 }
-                seqs_h_index_i.emplace_back(&_seq[0] - first_element);
-                seqs_h_index_e.emplace_back(&_seq[0] - first_element + _seq.size());
+                seqs_h_index_i.emplace_back(&_seq[0] - &first_element[0]);
+                seqs_h_index_e.emplace_back(&_seq[0] - &first_element[0] + _seq.size());
                 total_contigs++;
             }
         }
