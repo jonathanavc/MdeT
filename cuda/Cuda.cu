@@ -2452,6 +2452,7 @@ int main(int argc, char const *argv[]) {
                 cudaFree(seqs_d_index);
             }
         }
+        /*
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
@@ -2488,6 +2489,7 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_i.clear();
         seqs_h_index_e.clear();
         cudaFree(seqs_d);
+        */
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
