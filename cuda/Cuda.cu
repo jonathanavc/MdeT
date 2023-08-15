@@ -2504,9 +2504,9 @@ int main(int argc, char const *argv[]) {
     for (size_t i = 1; i < 10000; i++) {
         for (size_t j = 0; j < i; j++) {
             double _tnf_dist = cal_tnf_dist(i, j);
-            if (abs(_tnf_prob[(i * (i - 1) / 2) + j] - _tnf_dist) < 0.01) {
-                std::cout << "i: " << i << " j: " << j << " gprob: " << _tnf_prob[(i * (i - 1) / 2) + j] << " tnf_dist: " << _tnf_dist
-                          << std::endl;
+            if (abs(tnf_prob[(i * (i - 1) / 2) + j] - _tnf_dist) < 0.01) {
+                std::cout << "i: " << i << " j: " << j << " tnf_prob: " << tnf_prob[(i * (i - 1) / 2) + j]
+                          << " tnf_dist: " << _tnf_dist << std::endl;
             }
         }
     }
