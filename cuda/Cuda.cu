@@ -1797,6 +1797,38 @@ bool readPairFile() {
     return isGood;
 }
 
+void host_get_tnf() {
+    cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
+    cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
+    cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
+    cudaStream_t streams[n_STREAMS];
+    size_t contig_per_kernel = total_contigs / n_STREAMS;
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamCreate(&streams[i]);
+        size_t contig_to_process = contig_per_kernel;
+        if (i == n_STREAMS - 1) contig_to_process += (total_contigs % n_STREAMS);
+        size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        size_t _des = contig_per_kernel * i;
+        size_t TNF_des = _des * 136;
+        cudaMemcpyAsync(seqs_d, first_element + seqs_h_index_i[_des],
+                        seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
+        cudaMemcpyAsync(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
+                        streams[i]);
+        cudaMemcpyAsync(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
+                        cudaMemcpyHostToDevice, streams[i]);
+        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
+                                                           contigs_per_thread, nobs);
+        cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+    }
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
+    }
+    cudaFree(seqs_d);
+    cudaFree(seqs_d_index);
+    cudaFree(TNF_d);
+}
+
 int main(int argc, char const *argv[]) {
     /*
     if (argc > 2) {
@@ -2373,40 +2405,7 @@ int main(int argc, char const *argv[]) {
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
-                    void func() {
-                        cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
-                        cudaMalloc((void **)&seqs_d, seqs_h_index_e[total_contigs - 1] - seqs_h_index_i[0]);
-                        cudaMalloc((void **)&seqs_d_index, 2 * total_contigs * sizeof(size_t));
-                        cudaStream_t streams[n_STREAMS];
-                        size_t contig_per_kernel = total_contigs / n_STREAMS;
-                        for (int i = 0; i < n_STREAMS; i++) {
-                            cudaStreamCreate(&streams[i]);
-                            size_t contig_to_process = contig_per_kernel;
-                            if (i == n_STREAMS - 1) contig_to_process += (total_contigs % n_STREAMS);
-                            size_t contigs_per_thread =
-                                (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-                            size_t _des = contig_per_kernel * i;
-                            size_t TNF_des = _des * 136;
-                            cudaMemcpyAsync(seqs_d, first_element + seqs_h_index_i[_des],
-                                            seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des],
-                                            cudaMemcpyHostToDevice, streams[i]);
-                            cudaMemcpyAsync(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
-                                            cudaMemcpyHostToDevice, streams[i]);
-                            cudaMemcpyAsync(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des,
-                                            contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice, streams[i]);
-                            get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des,
-                                                                               contig_to_process, contigs_per_thread, nobs);
-                            cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
-                                            cudaMemcpyDeviceToHost, streams[i]);
-                        }
-                        for (int i = 0; i < n_STREAMS; i++) {
-                            cudaStreamSynchronize(streams[i]);
-                            cudaStreamDestroy(streams[i]);
-                        }
-                        cudaFree(seqs_d);
-                        cudaFree(seqs_d_index);
-                        cudaFree(TNF_d);
-                    }
+                    host_get_tnf();
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
                     first_element = &_seq[0];
