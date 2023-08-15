@@ -1810,6 +1810,7 @@ void host_get_tnf(size_t total_contigs, std::string_view first_element) {
         cudaStreamCreate(&streams[i]);
         size_t contig_to_process = contig_per_kernel;
         if (i == n_STREAMS - 1) contig_to_process += (total_contigs % n_STREAMS);
+        std::cout << "contig_to_process: " << contig_to_process << std::endl;
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
