@@ -2371,7 +2371,7 @@ int main(int argc, char const *argv[]) {
             char *first_element = seqs[gCtgIdx[0]];
             size_t total_contigs = 0;
             for (size_t j = 0; j < nobs; j++) {
-                _seq = seqs[gCtgIdx[_des + j]];
+                _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - first_element + _seq.size() > max_gpu_mem) {
                     void func() {
                         cudaMalloc((void **)&TNF_d, total_contigs * 136 * sizeof(float));
