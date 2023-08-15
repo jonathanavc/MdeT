@@ -2406,6 +2406,7 @@ int main(int argc, char const *argv[]) {
                 _seq = seqs[gCtgIdx[j]];
                 if (&_seq[0] - &first_element[0] + _seq.size() > max_gpu_mem) {
                     host_get_tnf(total_contigs, first_element);
+                    total_contigs = 0;
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
                     first_element = seqs[gCtgIdx[j + 1]];
@@ -2414,6 +2415,9 @@ int main(int argc, char const *argv[]) {
                 seqs_h_index_e.emplace_back(&_seq[0] - &first_element[0] + _seq.size());
                 total_contigs++;
             }
+            if (seqs_h_index_i.size() > 0) host_get_tnf(total_contigs, first_element);
+            seqs_h_index_i.clear();
+            seqs_h_index_e.clear();
         }
         /*
         seqs_h_index_i.reserve(nobs);
