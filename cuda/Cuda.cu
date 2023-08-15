@@ -2370,7 +2370,8 @@ int main(int argc, char const *argv[]) {
                 if (&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
                     {
                         cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
-                        cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size());
+                        cudaMalloc((void **)&seqs_d,
+                                   &seqs[gCtgIdx[cobs - 1]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[cobs - 1]].size());
                         cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
                         cudaStream_t streams[n_STREAMS];
                         size_t contig_per_kernel = cobs / n_STREAMS;
@@ -2416,7 +2417,7 @@ int main(int argc, char const *argv[]) {
             }
             if (cobs != 0) {
                 cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
-                cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size());
+                cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[cobs - 1]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[cobs - 1]].size());
                 cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
                 cudaStream_t streams[n_STREAMS];
                 size_t contig_per_kernel = cobs / n_STREAMS;
