@@ -2400,7 +2400,7 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_i.reserve(nobs);
             seqs_h_index_e.reserve(nobs);
             std::string_view _seq;
-            char *first_element = &seqs[gCtgIdx[0]][0];
+            char *first_element = seqs[gCtgIdx[0]].data();
             size_t total_contigs = 0;
             for (size_t j = 0; j < nobs; j++) {
                 _seq = seqs[gCtgIdx[j]];
