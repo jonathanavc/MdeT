@@ -1810,10 +1810,6 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        for (size_t j = 0; j < contig_to_process; j++) {
-            seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem);
-            seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seqs[gCtgIdx[_des + j]].size());
-        }
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], _mem + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
@@ -2422,6 +2418,7 @@ int main(int argc, char const *argv[]) {
             }
         }
         */
+
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
         cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
