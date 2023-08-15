@@ -1814,15 +1814,17 @@ void host_get_tnf(size_t total_contigs, std::string_view first_element) {
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
-        cudaMemcpyAsync(seqs_d, &first_element[0] + seqs_h_index_i[_des],
-                        seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
-        cudaMemcpyAsync(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
-                        streams[i]);
-        cudaMemcpyAsync(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
-                        cudaMemcpyHostToDevice, streams[i]);
-        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                           contigs_per_thread, total_contigs);
-        cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+        cudaMemcpy(seqs_d, &first_element[0] + seqs_h_index_i[_des],
+                   seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_index + total_contigs, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
+                   cudaMemcpyHostToDevice);
+        std::cout << "si" << std::endl;
+        get_TNF<<<numBlocks, numThreads2>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process, contigs_per_thread,
+                                            total_contigs);
+        cudaDeviceSynchronize();
+        std::cout << "no" << std::endl;
+        cudaMemcpy(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost);
     }
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
@@ -2401,8 +2403,6 @@ int main(int argc, char const *argv[]) {
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         {
             cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
-            seqs_h_index_i.reserve(nobs);
-            seqs_h_index_e.reserve(nobs);
             std::string_view _seq;
             std::string_view first_element = seqs[gCtgIdx[0]];
             size_t total_contigs = 0;
@@ -2423,9 +2423,9 @@ int main(int argc, char const *argv[]) {
             if (seqs_h_index_i.size() > 0) {
                 std::cout << "hola2" << std::endl;
                 host_get_tnf(total_contigs, first_element);
+                seqs_h_index_i.clear();
+                seqs_h_index_e.clear();
             }
-            seqs_h_index_i.clear();
-            seqs_h_index_e.clear();
         }
         /*
         seqs_h_index_i.reserve(nobs);
