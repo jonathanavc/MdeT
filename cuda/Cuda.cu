@@ -1829,7 +1829,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         getError("cpy->device");
         get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                           contigs_per_thread, nobs);
+                                                           contigs_per_thread, cobs);
         cudaStreamSynchronize(streams[i]);
         getError("kernel");
         cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
