@@ -1800,7 +1800,8 @@ bool readPairFile() {
 void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
-        std::cerr << s << "|Error: " << cudaGetErrorString(err) << std::endl;
+        if (s != "") std::cerr << s << "|";
+        std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         exit(1);
     }
 }
