@@ -1812,7 +1812,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
     size_t *seqs_d_index;
 
     cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
-    cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[cobs - 1]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[cobs - 1]].size());
+    cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
     getError("malloc");
     cudaStream_t streams[n_STREAMS];
@@ -1824,7 +1824,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], (void *)(&seqs[gCtgIdx[_first]][0] + seqs_h_index_i[_des]),
+        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[gCtgIdx[_first]][0] + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaStreamSynchronize(streams[i]);
         std::cout << "cpy->device(seqs_d) " << seqs_h_index_i[_des] << " " << seqs_h_index_e[_des + contig_to_process - 1] << " "
