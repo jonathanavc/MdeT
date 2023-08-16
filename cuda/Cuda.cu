@@ -2443,6 +2443,7 @@ int main(int argc, char const *argv[]) {
                 launch_kernel(cobs, _first, nobs - cobs);
             }
         }
+        std::cout << "\n";
         // cargar todo el archivo en gpu
         if (0) {
             float *TNF_d;
