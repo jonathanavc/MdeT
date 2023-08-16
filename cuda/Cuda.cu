@@ -1823,6 +1823,8 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], _mem + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaStreamSynchronize(streams[i]);
+        std::cout << "cpy->device(seqs_d) " << seqs_h_index_i[_des] << " " << seqs_h_index_e[_des + contig_to_process - 1] << " "
+                  << seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des] << std::endl;
         getError("cpy->device(seqs_d)");
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
