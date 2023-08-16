@@ -1797,7 +1797,7 @@ bool readPairFile() {
     return isGood;
 }
 
-void getError(string s = "") {
+void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         std::cerr << s << "|Error: " << cudaGetErrorString(err) << std::endl;
