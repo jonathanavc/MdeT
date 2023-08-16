@@ -491,9 +491,9 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
-//static float *TNF_d;
-//static char *seqs_d;
-//static size_t *seqs_d_index;
+float *TNF_d;
+char *seqs_d;
+size_t *seqs_d_index;
 static char *_mem;
 static size_t fsize;
 static double *tnf_prob;
@@ -1807,9 +1807,9 @@ void getError(std::string s = "") {
 }
 
 void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
-    float *TNF_d;
-    char *seqs_d;
-    size_t *seqs_d_index;
+    // float *TNF_d;
+    // char *seqs_d;
+    // size_t *seqs_d_index;
 
     cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[cobs - 1]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[cobs - 1]].size());
