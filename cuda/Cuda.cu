@@ -2427,7 +2427,7 @@ int main(int argc, char const *argv[]) {
             for (size_t i = 0; i < nobs; i++) {
                 if (&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
                     {
-                        std::cout << "launch_kernel " << cobs << " " << _first << " " << i - cobs << std::endl;
+                        // std::cout << "launch_kernel " << cobs << " " << _first << " " << i - cobs << std::endl;
                         launch_kernel(cobs, _first, i - cobs);
                     }
                     seqs_h_index_i.clear();
