@@ -2391,7 +2391,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 4000000000;  // 4gb
+    size_t max_gpu_mem = 2000000000;  // 4gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
