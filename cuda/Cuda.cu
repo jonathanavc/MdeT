@@ -1813,7 +1813,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
-    getError("malloc");
+    // getError("malloc");
     cudaStream_t streams[n_STREAMS];
     size_t contig_per_kernel = cobs / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
@@ -1848,7 +1848,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    getError("kernel|cpy");
+    // getError("kernel|cpy");
     cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
