@@ -1797,10 +1797,19 @@ bool readPairFile() {
     return isGood;
 }
 
+void getError() {
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+        exit(1);
+    }
+}
+
 void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, &seqs[gCtgIdx[cobs - 1]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[cobs - 1]].size());
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
+    getError();
     cudaStream_t streams[n_STREAMS];
     size_t contig_per_kernel = cobs / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
@@ -1825,12 +1834,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
-        exit(1);
-    }
-    
+    getError();
     cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
