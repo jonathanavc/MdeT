@@ -1825,6 +1825,12 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+        exit(1);
+    }
+    
     cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
@@ -2391,7 +2397,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 2000000000;  // 4gb
+    size_t max_gpu_mem = 2000000000;  // 2gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
