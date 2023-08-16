@@ -2122,7 +2122,7 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
-    TIMERSTART(READ);
+    // TIMERSTART(READ);
     FILE *fp = fopen(inFile.c_str(), "r");
     if (fp == NULL) {
         std::cout << "Error opening file: " << inFile << std::endl;
@@ -2193,7 +2193,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();  // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
-    TIMERSTOP(READ);
+    // TIMERSTOP(READ);
     // std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
@@ -2417,7 +2417,7 @@ int main(int argc, char const *argv[]) {
     }
     size_t max_gpu_mem = 2000000000;  // 2gb
     // calcular matriz de tetranucleotidos
-    TIMERSTART(TNF_CAL);
+    // TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         // cargar solo parte del archivo en gpu
@@ -2443,8 +2443,8 @@ int main(int argc, char const *argv[]) {
                 launch_kernel(cobs, _first, nobs - cobs);
             }
         }
-        std::cout << "\n";
-        // cargar todo el archivo en gpu
+        // std::cout << "\n";
+        //  cargar todo el archivo en gpu
         if (0) {
             float *TNF_d;
             char *seqs_d;
@@ -2489,7 +2489,7 @@ int main(int argc, char const *argv[]) {
         }
         saveTNFToFile(saveTNFFile, minContig);
     }
-    TIMERSTOP(TNF_CAL);
+    // TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
 
     if (rABD.size() == 0) {
@@ -2558,7 +2558,7 @@ int main(int argc, char const *argv[]) {
     }
     */
 
-    TIMERSTART(probabilisticgraph);
+    // TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
@@ -2637,7 +2637,7 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << "\n";
     */
-    TIMERSTOP(probabilisticgraph);
+    // TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
