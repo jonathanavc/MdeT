@@ -2492,14 +2492,19 @@ int main(int argc, char const *argv[]) {
     }
     // TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
-
+    bool _TNF = false;
     for (size_t i = 0; i < nobs; i++) {
         for (size_t j = 0; j < 136; j++) {
             if (TNF[i * 136 + j] != TNF2[i * 136 + j]) {
                 std::cout << "i: " << i << " j: " << j << " TNF: " << TNF[i * 136 + j] << " TNF2: " << TNF2[i * 136 + j] << std::endl;
+                _TNF = true;
             }
         }
     }
+    if (_TNF)
+        std::cout << "TNF is not equal" << std::endl;
+    else
+        std::cout << "TNF is equal" << std::endl;
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
