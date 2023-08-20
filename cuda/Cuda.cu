@@ -2415,7 +2415,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 2000000000;  // 2gb
+    size_t max_gpu_mem = 4000000000;  // 2gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
     float *TNF2;
@@ -2444,8 +2444,8 @@ int main(int argc, char const *argv[]) {
                 seqs_h_index_e.clear();
             }
         }
-        // std::cout << "\n";
-        //  cargar todo el archivo en gpu
+        // cargar todo el archivo en gpu
+        /*
         if (0) {
             float *TNF_d;
             char *seqs_d;
@@ -2488,6 +2488,7 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_e.clear();
             cudaFree(seqs_d);
         }
+        */
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
