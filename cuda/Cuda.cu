@@ -2418,7 +2418,9 @@ int main(int argc, char const *argv[]) {
     size_t max_gpu_mem = 2000000000;  // 2gb
     // calcular matriz de tetranucleotidos
     // TIMERSTART(TNF_CAL);
+    float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
+    cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         // cargar solo parte del archivo en gpu
         if (1) {
@@ -2426,10 +2428,7 @@ int main(int argc, char const *argv[]) {
             size_t _first = 0;
             for (size_t i = 0; i < nobs; i++) {
                 if (&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
-                    {
-                        // std::cout << "launch_kernel " << cobs << " " << _first << " " << i - cobs << std::endl;
-                        launch_kernel(cobs, _first, i - cobs);
-                    }
+                    launch_kernel(cobs, _first, i - cobs);
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
                     _first = i;
@@ -2441,11 +2440,13 @@ int main(int argc, char const *argv[]) {
             }
             if (cobs != 0) {
                 launch_kernel(cobs, _first, nobs - cobs);
+                seqs_h_index_i.clear();
+                seqs_h_index_e.clear();
             }
         }
         // std::cout << "\n";
         //  cargar todo el archivo en gpu
-        if (0) {
+        if (1) {
             float *TNF_d;
             char *seqs_d;
             size_t *seqs_d_index;
@@ -2476,7 +2477,7 @@ int main(int argc, char const *argv[]) {
                                 cudaMemcpyHostToDevice, streams[i]);
                 get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                                    contigs_per_thread, nobs);
-                cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
+                cudaMemcpyAsync(TNF2 + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
                                 streams[i]);
             }
             for (int i = 0; i < n_STREAMS; i++) {
@@ -2491,6 +2492,14 @@ int main(int argc, char const *argv[]) {
     }
     // TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
+
+    for (size_t i = 0; i < nobs; i++) {
+        for (size_t j = 0; j < 136; j++) {
+            if (TNF[i * 136 + j] != TNF2[i * 136 + j]) {
+                std::cout << "i: " << i << " j: " << j << " TNF: " << TNF[i * 136 + j] << " TNF2: " << TNF2[i * 136 + j] << std::endl;
+            }
+        }
+    }
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
