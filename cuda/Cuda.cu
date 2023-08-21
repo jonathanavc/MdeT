@@ -2427,7 +2427,7 @@ int main(int argc, char const *argv[]) {
             size_t cobs = 0;  // current obs
             size_t _first = 0;
             for (size_t i = 0; i < nobs; i++) {
-                if (&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
+                if (seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
                     launch_kernel(cobs, _first, i - cobs);
                     seqs_h_index_i.clear();
                     seqs_h_index_e.clear();
