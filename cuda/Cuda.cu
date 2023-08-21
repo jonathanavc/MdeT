@@ -2420,7 +2420,7 @@ int main(int argc, char const *argv[]) {
     TIMERSTART(TNF_CAL);
     float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
-    cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
+    // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         // cargar solo parte del archivo en gpu
         if (1) {
@@ -2445,6 +2445,7 @@ int main(int argc, char const *argv[]) {
             }
         }
         // cargar todo el archivo en gpu
+        /*
         if (1) {
             float *TNF_d;
             char *seqs_d;
@@ -2487,12 +2488,12 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_e.clear();
             cudaFree(seqs_d);
         }
-
+        */
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
-
+    /*
     bool _TNF = false;
     for (size_t i = 0; i < nobs; i++) {
         for (size_t j = 0; j < 136; j++) {
@@ -2512,6 +2513,7 @@ int main(int argc, char const *argv[]) {
             rABD.push_back(std::make_pair(i, rand()));
         }
     }
+    */
 
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
