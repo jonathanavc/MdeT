@@ -2434,8 +2434,8 @@ int main(int argc, char const *argv[]) {
                     _first = i;
                     cobs = 0;
                 }
-                seqs_h_index_i.emplace_back(&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0]);
-                seqs_h_index_e.emplace_back(&seqs[gCtgIdx[i]][0] - &seqs[gCtgIdx[_first]][0] + seqs[gCtgIdx[i]].size());
+                seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data());
+                seqs_h_index_e.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size());
                 cobs++;
             }
             if (cobs != 0) {
