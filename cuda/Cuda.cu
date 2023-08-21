@@ -2476,7 +2476,7 @@ int main(int argc, char const *argv[]) {
                                 cudaMemcpyHostToDevice, streams[i]);
                 get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
                                                                    contigs_per_thread, nobs);
-                cudaMemcpyAsync(TNF + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
+                cudaMemcpyAsync(TNF2 + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
                                 streams[i]);
             }
             for (int i = 0; i < n_STREAMS; i++) {
@@ -2506,7 +2506,6 @@ int main(int argc, char const *argv[]) {
         std::cout << "TNF is not equal" << std::endl;
     else
         std::cout << "TNF is equal" << std::endl;
-
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
