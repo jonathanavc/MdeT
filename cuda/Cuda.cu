@@ -2421,6 +2421,8 @@ int main(int argc, char const *argv[]) {
     float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
+    seqs_h_index_i.reserve(nobs);
+    seqs_h_index_e.reserve(nobs);
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         // cargar solo parte del archivo en gpu
