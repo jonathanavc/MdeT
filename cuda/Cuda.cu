@@ -90,7 +90,7 @@ __device__ __constant__ unsigned char BN[256] = {
 
 //__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_index,
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
                                  const size_t seqs_d_index_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
@@ -98,8 +98,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__
     }
     d = sqrt(d);
     double b, c;
-    size_t ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
-    size_t ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
+    size_t ctg1_s = seqs_d_size[r1];
+    size_t ctg2_s = seqs_d_size[r2];
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
     double lw[19];
@@ -204,10 +204,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
     return prob;
 }
 
-//__global__ void get_tnf_prob(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {}
-
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_index,
-                             size_t _des, const size_t nobs, const size_t contig_per_thread, size_t limit) {
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
+                             size_t _des, const size_t contig_per_thread, size_t limit) {
     // size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
@@ -218,7 +216,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
         size_t discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
+        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
     }
     /*
     {
@@ -492,8 +490,8 @@ static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
 float *TNF_d;
+size_t *seqs_d_size;
 // char *seqs_d;
-// size_t *seqs_d_index;
 static char *_mem;
 static size_t fsize;
 static double *tnf_prob;
@@ -1835,9 +1833,32 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    getError("kernel|cpy");
+    getError("kernel");
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
+}
+
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob) {
+    cudaStream_t streams[n_STREAMS];
+    size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
+    size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamCreate(&streams[i]);
+        size_t prob_des = prob_per_kernel * i;
+        size_t prob_to_process = prob_per_kernel;
+        if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
+        size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        get_TNF_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size,
+                                                                prob_des + prob_per_kernel * i, prob_per_thread,
+                                                                min(prob_des + max_prob_per_kernel, total_prob));
+        cudaMemcpyAsync(TNF_prob + prob_per_kernel * i, TNF_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
+                        cudaMemcpyDeviceToHost, streams[i]);
+    }
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
+    }
+    getError("kernel");
 }
 
 int main(int argc, char const *argv[]) {
@@ -2401,7 +2422,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 4000000000;  // 2gb
+    size_t max_gpu_mem = 4000000000;  // 4gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
     // float *TNF2;
@@ -2505,10 +2526,31 @@ int main(int argc, char const *argv[]) {
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
-    size_tnf_prob = (nobs * (nobs - 1)) / 2;
+
+    if (1) {
+        size_t prob_des = 0;
+        TIMERSTART(_tnf_prob);
+        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        size_t max_prob_per_kernel = max_gpu_mem / sizeof(double);
+        size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
+        for (size_t i = 0; i < nobs; i++) {
+            seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
+        }
+        cudaMallocHost((void **)&tnf_prob, max_prob_per_kernel * sizeof(double));
+        cudaMallocHost((void **)&seqs_d_size, nobs * sizeof(size_t));
+        cudaMemCpy(seqs_d_size, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        for (size_t i = 0; i < cant_kernels; i++) {
+            launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
+            prob_des += max_prob_per_kernel;
+        }
+        free(TNF_d);
+        seqs_h_index_i.clear();
+        TIMERSTOP(_tnf_prob);
+    }
 
     /*
     if (1) {
+        size_tnf_prob = (nobs * (nobs - 1)) / 2;
         TIMERSTART(_tnf_prob);
         double *gprob_d;
         cudaStream_t streams[n_STREAMS];
