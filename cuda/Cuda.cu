@@ -491,7 +491,7 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
-// float *TNF_d;
+float *TNF_d;
 // char *seqs_d;
 // size_t *seqs_d_index;
 static char *_mem;
@@ -1810,7 +1810,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
     float *TNF_d;
     char *seqs_d;
     size_t *seqs_d_index;
-    cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
+    // cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
     // getError("malloc");
@@ -1836,11 +1836,11 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         // cudaStreamSynchronize(streams[i]);
         // getError("cpy->device(seqs_h_index_e)");
-        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                           contigs_per_thread, cobs);
+        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
+                                                           contig_to_process, contigs_per_thread, cobs);
         // cudaStreamSynchronize(streams[i]);
         // getError("kernel");
-        cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float),
+        cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des, contig_to_process * 136 * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
         // getError("cpy->host");
     }
@@ -1849,7 +1849,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamDestroy(streams[i]);
     }
     // getError("kernel|cpy");
-    cudaFree(TNF_d);
+    // cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
 }
@@ -2420,6 +2420,7 @@ int main(int argc, char const *argv[]) {
     TIMERSTART(TNF_CAL);
     float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
+    cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         // cargar solo parte del archivo en gpu
