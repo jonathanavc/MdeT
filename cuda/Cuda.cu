@@ -2536,6 +2536,9 @@ int main(int argc, char const *argv[]) {
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         size_t max_prob_per_kernel = max_gpu_mem / sizeof(double);
         size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
+        std::cout << "total_prob: " << total_prob << std::endl;
+        std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
+        std::cout << "cant_kernels: " << cant_kernels << std::endl;
         for (size_t i = 0; i < nobs; i++) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
         }
@@ -2548,7 +2551,10 @@ int main(int argc, char const *argv[]) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             prob_des += max_prob_per_kernel;
         }
-        free(TNF_d);
+        cudaFree(TNF_d);
+        cudaFree(tnf_prob_d);
+        cudafree(seqs_d_size_d);
+        cudaFreeHost(tnf_prob);
         seqs_h_index_i.clear();
         TIMERSTOP(_tnf_prob);
     }
