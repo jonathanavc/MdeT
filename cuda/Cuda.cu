@@ -1806,14 +1806,11 @@ void getError(std::string s = "") {
     }
 }
 
-void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
-    // float *TNF_d;
+void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     char *seqs_d;
     size_t *seqs_d_index;
-    // cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
-    // getError("malloc");
     cudaStream_t streams[n_STREAMS];
     size_t contig_per_kernel = cobs / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
@@ -1825,31 +1822,20 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[gCtgIdx[_first]][0] + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
-        // cudaStreamSynchronize(streams[i]);
-        //  std::cout << "cpy->device(seqs_d) " << seqs_h_index_i[_des] << " " << seqs_h_index_e[_des + contig_to_process - 1] << " "
-        //  << seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des] << std::endl; getError("cpy->device(seqs_d)");
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
-        // cudaStreamSynchronize(streams[i]);
-        // getError("cpy->device(seqs_h_index_i)");
         cudaMemcpyAsync(seqs_d_index + cobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                         cudaMemcpyHostToDevice, streams[i]);
-        // cudaStreamSynchronize(streams[i]);
-        // getError("cpy->device(seqs_h_index_e)");
         get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                            contig_to_process, contigs_per_thread, cobs);
-        // cudaStreamSynchronize(streams[i]);
-        // getError("kernel");
         cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des, contig_to_process * 136 * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
-        // getError("cpy->host");
     }
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
     getError("kernel|cpy");
-    // cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
 }
@@ -2425,27 +2411,25 @@ int main(int argc, char const *argv[]) {
     seqs_h_index_e.reserve(nobs);
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-        // cargar solo parte del archivo en gpu
-        if (1) {
-            size_t cobs = 0;  // current obs
-            size_t _first = 0;
-            for (size_t i = 0; i < nobs; i++) {
-                if (seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
-                    launch_kernel(cobs, _first, i - cobs);
-                    seqs_h_index_i.clear();
-                    seqs_h_index_e.clear();
-                    _first = i;
-                    cobs = 0;
-                }
-                seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data());
-                seqs_h_index_e.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size());
-                cobs++;
-            }
-            if (cobs != 0) {
-                launch_kernel(cobs, _first, nobs - cobs);
+                                                     // cargar solo parte del archivo en gpu
+        size_t cobs = 0;                             // current obs
+        size_t _first = 0;
+        for (size_t i = 0; i < nobs; i++) {
+            if (seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
+                launch_tnf_kernel(cobs, _first, i - cobs);
                 seqs_h_index_i.clear();
                 seqs_h_index_e.clear();
+                _first = i;
+                cobs = 0;
             }
+            seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data());
+            seqs_h_index_e.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size());
+            cobs++;
+        }
+        if (cobs != 0) {
+            launch_tnf_kernel(cobs, _first, nobs - cobs);
+            seqs_h_index_i.clear();
+            seqs_h_index_e.clear();
         }
         // cargar todo el archivo en gpu
         /*
@@ -2511,12 +2495,12 @@ int main(int argc, char const *argv[]) {
     else
         std::cout << "TNF is equal" << std::endl;
 
+    */
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
             rABD.push_back(std::make_pair(i, rand()));
         }
     }
-    */
 
     Distance requiredMinP = std::min(std::min(std::min(p1, p2), p3), minProb);
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
