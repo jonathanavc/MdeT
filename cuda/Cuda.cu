@@ -2418,7 +2418,7 @@ int main(int argc, char const *argv[]) {
     size_t max_gpu_mem = 4000000000;  // 2gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
-    float *TNF2;
+    //float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
     seqs_h_index_i.reserve(nobs);
