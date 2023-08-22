@@ -90,8 +90,7 @@ __device__ __constant__ unsigned char BN[256] = {
 
 //__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
-                                 const size_t seqs_d_index_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
@@ -1848,10 +1847,10 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         size_t prob_to_process = prob_per_kernel;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_TNF_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size,
+        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
                                                                 min(prob_des + max_prob_per_kernel, total_prob));
-        cudaMemcpyAsync(TNF_prob + prob_per_kernel * i, TNF_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
+        cudaMemcpyAsync(TNF_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
@@ -2538,7 +2537,7 @@ int main(int argc, char const *argv[]) {
         }
         cudaMallocHost((void **)&tnf_prob, max_prob_per_kernel * sizeof(double));
         cudaMallocHost((void **)&seqs_d_size, nobs * sizeof(size_t));
-        cudaMemCpy(seqs_d_size, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_size, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             prob_des += max_prob_per_kernel;
