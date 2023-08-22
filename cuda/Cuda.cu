@@ -207,7 +207,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
                              size_t _des, const size_t contig_per_thread, size_t limit) {
     size_t r1;
     size_t r2;
-    const size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + thead_id;
     for (size_t i = 0; i < contig_per_thread; i++) {
         if (prob_index >= limit) break;
