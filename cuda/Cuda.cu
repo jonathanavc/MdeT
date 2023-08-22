@@ -1850,7 +1850,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
                                                                 min(prob_des + max_prob_per_kernel, total_prob));
-        cudaMemcpyAsync(TNF_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
+        cudaMemcpyAsync(tnf_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
