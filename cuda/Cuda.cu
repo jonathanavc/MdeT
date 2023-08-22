@@ -1824,6 +1824,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob) {
+    std::cout << "launch_tnf_prob_kernel:" << prob_des << std::endl;
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
