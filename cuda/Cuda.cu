@@ -205,37 +205,20 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
 
 __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
                              size_t _des, const size_t contig_per_thread, size_t limit) {
-    // size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
-    const size_t thead_id = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t gprob_index = _des + thead_id;
+    const size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t prob_index = _des + thead_id;
     for (size_t i = 0; i < contig_per_thread; i++) {
-        if (gprob_index >= limit) break;
-        size_t discriminante = 1 + 8 * gprob_index;
+        if (prob_index >= limit) break;
+        size_t discriminante = 1 + 8 * prob_index;
         r1 = (1 + sqrt(discriminante)) / 2;
-        r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[thead_id + i] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
-        gprob_index++;
+        r2 = prob_index - r1 * (r1 - 1) / 2;
+        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+        tnf_dist[tnf_dist_index] = -1;
+        tnf_dist_index++;
+        prob_index++;
     }
-    /*
-    {
-        double discriminante = 1 + 8 * gprob;
-        r1 = (1 + sqrt(discriminante)) / 2;
-        r2 = gprob - r1 * (r1 - 1) / 2;
-        size_t gprob_index = gprob;
-        for (int i = 0; i < contig_per_thread; i++) {
-            if (gprob_index >= limit) break;
-            if (r2 == r1) {
-                r2 = 0;
-                r1++;
-            }
-            tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_index, nobs);
-            gprob_index++;
-            r2++;
-        }
-    }
-    */
 }
 
 __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_size, size_t nobs, size_t contig_per_thread) {
