@@ -1830,7 +1830,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamCreate(&streams[i]);
-        size_t prob_des = prob_per_kernel * i;
+        // size_t prob_des = prob_per_kernel * i;
         size_t prob_to_process = prob_per_kernel;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
 
