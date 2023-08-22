@@ -2539,6 +2539,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "total_prob: " << total_prob << std::endl;
         std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
         std::cout << "cant_kernels: " << cant_kernels << std::endl;
+        ProgressTracker progress = ProgressTracker(cant_kernels);
         for (size_t i = 0; i < nobs; i++) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
         }
@@ -2547,9 +2548,13 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
-            std::cout << "tnfdis" << i << std::endl;
+            // std::cout << "tnfdis" << i << std::endl;
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             prob_des += max_prob_per_kernel;
+            if (verbose) {
+                progress.track(i);
+                verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
+            }
         }
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
