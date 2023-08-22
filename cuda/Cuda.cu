@@ -2553,7 +2553,7 @@ int main(int argc, char const *argv[]) {
         }
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
-        cudafree(seqs_d_size_d);
+        cudaFree(seqs_d_size_d);
         cudaFreeHost(tnf_prob);
         seqs_h_index_i.clear();
         TIMERSTOP(_tnf_prob);
