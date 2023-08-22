@@ -1807,7 +1807,7 @@ void getError(std::string s = "") {
 }
 
 void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
-    float *TNF_d;
+    // float *TNF_d;
     char *seqs_d;
     size_t *seqs_d_index;
     // cudaMalloc((void **)&TNF_d, cobs * 136 * sizeof(float));
@@ -1848,7 +1848,7 @@ void launch_kernel(size_t cobs, size_t _first, size_t global_des) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    // getError("kernel|cpy");
+    getError("kernel|cpy");
     // cudaFree(TNF_d);
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
@@ -2418,7 +2418,7 @@ int main(int argc, char const *argv[]) {
     size_t max_gpu_mem = 4000000000;  // 2gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
-    //float *TNF2;
+    // float *TNF2;
     cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
     seqs_h_index_i.reserve(nobs);
