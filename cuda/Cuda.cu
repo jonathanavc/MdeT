@@ -2539,6 +2539,7 @@ int main(int argc, char const *argv[]) {
         cudaMallocHost((void **)&seqs_d_size, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
+            std::cout << "tnfdis" << i << std::endl;
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             prob_des += max_prob_per_kernel;
         }
