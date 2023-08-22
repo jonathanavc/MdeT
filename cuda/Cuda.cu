@@ -208,14 +208,15 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
     // size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
-    const size_t gprob = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    // const size_t gprob = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t gprob_index = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     for (size_t i = 0; i < contig_per_thread; i++) {
-        const size_t gprob_index = gprob + i;
         if (gprob_index >= limit) break;
         size_t discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[gprob_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+        tnf_dist[i] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+        gprob_index++;
     }
     /*
     {
@@ -1848,6 +1849,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         size_t prob_des = prob_per_kernel * i;
         size_t prob_to_process = prob_per_kernel;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
+
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
