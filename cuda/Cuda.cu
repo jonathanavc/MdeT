@@ -2531,9 +2531,9 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
-            
             if (1) {
-                for (size_t i = 0; i < 100; i++) {
+                size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
+                for (size_t i = 0; i < _total; i++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
