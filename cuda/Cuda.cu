@@ -509,8 +509,6 @@ static size_t nABD = 0;
 static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
-static int size_tnf_prob = 500000;
-
 /*
 template <class T, class S>
 struct pair_equal_to : std::binary_function<T, std::pair<T, S>, bool> {
@@ -1844,6 +1842,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
+        ƒ
     }
     getError("kernel");
 }
