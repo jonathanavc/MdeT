@@ -237,7 +237,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
     */
 }
 
-__global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
+__global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_size, size_t nobs, size_t contig_per_thread) {
     const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
     float _tnf[136];
     size_t tnf_prob_index;
@@ -251,7 +251,7 @@ __global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_index
         for (int j = contig_index - 1; j >= 0; j--) {
             tnf_prob_index = row + j;
             // tnf_dist[tnf_prob_index] = cal_tnf_dist_d2(contig_index, j, _tnf, TNF, seqs_d_index, nobs);
-            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_index, nobs);
+            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_size);
             __syncthreads();
         }
     }
