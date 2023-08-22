@@ -215,7 +215,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = prob_index - r1 * (r1 - 1) / 2;
         tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
-        // tnf_dist[tnf_dist_index] = seqs_d_size[r1];
+        tnf_dist[tnf_dist_index] = seqs_d_size[r1];
         tnf_dist_index++;
         prob_index++;
     }
@@ -2535,11 +2535,12 @@ int main(int argc, char const *argv[]) {
             if (1) {
                 std::cout << "min:" << min(max_prob_per_kernel, total_prob - prob_des) << std::endl;
                 for (size_t i = 0; i < min(max_prob_per_kernel, total_prob - prob_des); i++) {
-                                        size_t _index = prob_des + i;
+                    size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.01) {
+                    // if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.01) {
+                    if (tnf_prob[i] != r1) {
                         std::cout << "i: " << i << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                     }
