@@ -211,7 +211,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
     size_t prob_index = _des + tnf_dist_index;
     for (size_t i = 0; i < contig_per_thread; i++) {
         if (prob_index >= limit) break;
-        size_t discriminante = 1 + 8 * prob_index;
+        double discriminante = 1 + 8 * prob_index;
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = prob_index - r1 * (r1 - 1) / 2;
         tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
