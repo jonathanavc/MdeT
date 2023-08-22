@@ -488,12 +488,14 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
-float *TNF_d;
-size_t *seqs_d_size;
+static float *TNF_d;
+
 // char *seqs_d;
 static char *_mem;
 static size_t fsize;
 static double *tnf_prob;
+static double *tnf_prob_d;
+static size_t *seqs_d_size_d;
 
 typedef std::vector<int> ContigVector;
 typedef std::set<int> ClassIdType;  // ordered
@@ -1847,7 +1849,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         size_t prob_to_process = prob_per_kernel;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size,
+        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
                                                                 min(prob_des + max_prob_per_kernel, total_prob));
         cudaMemcpyAsync(tnf_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
@@ -2536,8 +2538,9 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
         }
         cudaMallocHost((void **)&tnf_prob, max_prob_per_kernel * sizeof(double));
-        cudaMallocHost((void **)&seqs_d_size, nobs * sizeof(size_t));
-        cudaMemcpy(seqs_d_size, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMalloc((void **)&tnf_prob_d, max_prob_per_kernel * sizeof(double));
+        cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
+        cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             std::cout << "tnfdis" << i << std::endl;
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
