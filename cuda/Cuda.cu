@@ -2615,7 +2615,7 @@ int main(int argc, char const *argv[]) {
     }
     */
 
-    // TIMERSTART(probabilisticgraph);
+    TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
@@ -2694,7 +2694,7 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << "\n";
     */
-    // TIMERSTOP(probabilisticgraph);
+    TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
