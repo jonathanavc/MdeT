@@ -208,14 +208,14 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restr
     // size_t limit = (nobs * (nobs - 1)) / 2;
     size_t r1;
     size_t r2;
-    // const size_t gprob = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t gprob_index = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x * contig_per_thread;
+    size_t gprob_index = _des + thead_id;
     for (size_t i = 0; i < contig_per_thread; i++) {
         if (gprob_index >= limit) break;
         size_t discriminante = 1 + 8 * gprob_index;
         r1 = (1 + sqrt(discriminante)) / 2;
         r2 = gprob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[i] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+        tnf_dist[thead_id + i] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
         gprob_index++;
     }
     /*
@@ -2549,6 +2549,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
+
             if (1) {
                 for (size_t i = 0; i < min(max_prob_per_kernel, total_prob - prob_des); i++) {
                     size_t _index = prob_des + i;
@@ -2561,6 +2562,7 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
+
             prob_des += max_prob_per_kernel;
         }
         cudaFree(TNF_d);
