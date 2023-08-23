@@ -334,13 +334,17 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
     size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
     for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
         float TNF_temp[136] = {0};
+        char ctn[4];
         const size_t tnf_index = contig_index * 136;
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         const char *contig = seqs_d + seqs_d_index[contig_index];
-        for (size_t j = 0; j < contig_size - 3; ++j) {
-            short tn = get_tn(contig, j);
+        for(int i = 0; i < 4; i++) ctn[i] = contig[i];
+        for (size_t j = 0; j < contig_size - 4; ++j) {
+            short tn = get_tn(ctn, 0);
             if (tn & 256) continue;
             TNF_temp[TNmap_d[tn]]++;
+            for(int i = 0; i < 3; i++) ctn[i] = ctn[i + 1];
+            ctn[3] = contig[j + 4];
             //++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
