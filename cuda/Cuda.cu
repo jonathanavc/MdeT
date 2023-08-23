@@ -122,7 +122,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
-    return lw[11] + lw[18]+ d;
+    //return lw[11] + lw[18]+ d;
     double prob;
     
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
@@ -144,7 +144,9 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
     */
+   return -(b + c * d);
     prob = 1.0 / (1 + exp(-(b + c * d)));
+    
     if (prob >= .1) {
         b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] + _b2[7] * lw[6] +
             _b2[8] * lw[7] + _b2[9] * lw[8] + _b2[10] * lw[9] + _b2[11] * lw[10] + _b2[12] * lw[18] + _b2[13] * lw[13] + _b2[14] * lw[14] + 
