@@ -94,9 +94,9 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__
     double d = 0.0;
     float _aux = 0.0;
     for (size_t i = 0; i < 136; ++i) {
-        _aux = TNF[r1 * 136 + i] - TNF[r2 * 136 + i];
-        d += _aux * _aux;
-        // d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+        // _aux = TNF[r1 * 136 + i] - TNF[r2 * 136 + i];
+        // d += _aux * _aux;
+        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
