@@ -256,6 +256,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
             tnf_dist_index++;
             prob_index++;
+            r2++;
         }
         r2 = 0;
         r1++;
