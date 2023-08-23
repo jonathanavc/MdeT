@@ -241,7 +241,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         float discriminante = 1 + 8 * prob_index;
         r1 = (1 + sqrtf(discriminante)) / 2;
         r2 = prob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF + 136 * r1, TNF + 136 * r2, seqs_d_size);
+        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF + r1 * 136, TNF + r2 * 136, seqs_d_size);
         // tnf_dist[tnf_dist_index] = seqs_d_size[r1];
         tnf_dist_index++;
         prob_index++;
