@@ -91,9 +91,11 @@ __device__ __constant__ unsigned char BN[256] = {
 //__device__ double log10_device(double x) { return log(x) / log(10.0); }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size) {
-    double d = 0;
+    double d = 0.0;
+    double _aux = 0.0;
     for (size_t i = 0; i < 136; ++i) {
-        d += pow(TNF[r1 * 136 + i] - TNF[r2 * 136 + i], 2);
+        _aux = TNF[r1 * 136 + i] - TNF[r2 * 136 + i];
+        d += _aux * _aux;
         // d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
