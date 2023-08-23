@@ -2526,7 +2526,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "total_prob: " << total_prob << std::endl;
         std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
         std::cout << "cant_kernels: " << cant_kernels << std::endl;
-        ProgressTracker progress = ProgressTracker(cant_kernels);
+        ProgressTracker progress = ProgressTracker(total_prob);
         for (size_t i = 0; i < nobs; i++) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
         }
