@@ -91,10 +91,10 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2,size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
-        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+        d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
@@ -234,19 +234,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t r2;
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
-    /*
-    size_t _limit = min(limit - _des, contig_per_thread);
-    for (size_t i = 0; i < _limit; i++) {
-        //if (prob_index == limit) break;
-        float discriminante = 1 + 8 * prob_index;
-        r1 = (1 + sqrtf(discriminante)) / 2;
-        r2 = prob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
-        // tnf_dist[tnf_dist_index] = seqs_d_size[r1];
-        tnf_dist_index++;
-        prob_index++;
-    }
-    */
 
     double discriminante = 1 + 8 * prob_index;
     r1 = (1 + sqrt(discriminante)) / 2;
@@ -256,7 +243,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         //if (prob_index == limit) break;
         while(r2 < r1){
             if (prob_index == _limit) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF + r1*136, TNF + r2*136, seqs_d_size);
             tnf_dist_index++;
             prob_index++;
             r2++;
