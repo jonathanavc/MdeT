@@ -2517,7 +2517,7 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    if (0) {
+    if (1) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2);
         size_t prob_des = 0;
         TIMERSTART(_tnf_prob);
