@@ -81,14 +81,14 @@ __device__ double log10_device(double x) { return log(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
-    float _aux = 0.0;
-    float * _r1 = TNF + r1 * 136;
-    float * _r2 = TNF + r2 * 136;
+    //float _aux = 0.0;
+    //float * _r1 = TNF + r1 * 136;
+    //float * _r2 = TNF + r2 * 136;
     for (size_t i = 0; i < 136; ++i) {
         // _aux = TNF[r1 * 136 + i] - TNF[r2 * 136 + i];
         // d += _aux * _aux;
-        d += (_r1[i] - _r2[i]) * (_r1[i] - _r2[i]);
-        //d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+        //d += (_r1[i] - _r2[i]) * (_r1[i] - _r2[i]);
+        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
