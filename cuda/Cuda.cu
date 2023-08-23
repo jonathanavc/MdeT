@@ -97,7 +97,6 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, 
         d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
-    return 1;
     double b, c;
     size_t ctg1_s = seqs_d_size[r1];
     size_t ctg2_s = seqs_d_size[r2];
@@ -122,6 +121,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, 
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
+    return 1;
     double prob;
     
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
