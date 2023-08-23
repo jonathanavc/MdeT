@@ -330,7 +330,7 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs)
+    size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
     for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
         //if (contig_index >= nobs) break;
         const size_t tnf_index = contig_index * 136;
