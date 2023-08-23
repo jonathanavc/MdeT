@@ -709,16 +709,16 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     __m256 dis;
     size_t _r1 = r1 * 136;
     size_t _r2 = r2 * 136;
+    /*
     for (int i = 0; i < 136; i += 8) {
         dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
         dis = _mm256_mul_ps(dis, dis);
         d += hsum_avx(dis);
     }
-    /*
-    for (size_t i = 0; i < 136; ++i) {
-        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
-    }
     */
+    for (size_t i = 0; i < 136; ++i) {
+        d += (TNF[_r1 + i] - TNF[_r2 + i]) * (TNF[_r1 + i] - TNF[_r2 + i]);  // euclidean distance
+    }
     d = sqrt(d);
     // d = 1 / rsqrtf(d);
     Distance b, c;  // parameters
