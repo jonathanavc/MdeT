@@ -89,7 +89,7 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-//__device__ double log10_device(double x) { return log(x) / log(10.0); }
+__device__ double log10_device(double x) = > log(x) / 0.43429448190325182765;
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
@@ -106,8 +106,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__
     size_t ctg1 = min(ctg1_s, (size_t)500000);
     size_t ctg2 = min(ctg2_s, (size_t)500000);
     double lw[19];
-    lw[0] = __log10(min(ctg1, ctg2));
-    lw[1] = __log10(max(ctg1, ctg2));
+    lw[0] = log10_device(min(ctg1, ctg2));
+    lw[1] = log10_device(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
