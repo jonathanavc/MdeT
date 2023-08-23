@@ -91,18 +91,17 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF_1, float *__restrict__ TNF_2) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
-        //d += (TNF_r1[i] - TNF_r2[i]) * (TNF_r1[i] - TNF_r2[i]);  // euclidean distance
-        d += (TNF_1[i] - TNF_2[i]) * (TNF_1[i] - TNF_2[i]);  // euclidean distance
+        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
-    //size_t ctg1_s = seqs_d_size[r1];
-    //size_t ctg2_s = seqs_d_size[r2];
-    size_t ctg1 = min(r1, (size_t)500000);
-    size_t ctg2 = min(r2, (size_t)500000);
+    size_t ctg1_s = seqs_d_size[r1];
+    size_t ctg2_s = seqs_d_size[r2];
+    size_t ctg1 = min(ctg1_s, (size_t)500000);
+    size_t ctg2 = min(ctg2_s, (size_t)500000);
     double lw[19];
     lw[0] = log10_device(min(ctg1, ctg2));
     lw[1] = log10_device(max(ctg1, ctg2));
@@ -122,6 +121,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF_1
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
+
     double prob;
     
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
@@ -235,21 +235,18 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t r2;
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
-    
-    /*
     size_t _limit = min(limit - _des, contig_per_thread);
     for (size_t i = 0; i < _limit; i++) {
         //if (prob_index == limit) break;
         float discriminante = 1 + 8 * prob_index;
         r1 = (1 + sqrtf(discriminante)) / 2;
         r2 = prob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], TNF + r1 * 136 , TNF + r2 * 136);
+        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
         // tnf_dist[tnf_dist_index] = seqs_d_size[r1];
         tnf_dist_index++;
         prob_index++;
     }
-    */
-
+    /*
     double discriminante = 1 + 8 * prob_index;
     r1 = (1 + sqrt(discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
@@ -258,8 +255,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         //if (prob_index == limit) break;
         while(r2 < r1){
             if (prob_index == _limit) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], TNF + r1 * 136 , TNF + r2 * 136);
-            //tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
             tnf_dist_index++;
             prob_index++;
             r2++;
@@ -267,6 +263,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         r2 = 0;
         r1++;
     }
+    */
 }
 
 /*
