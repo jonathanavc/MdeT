@@ -247,7 +247,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         prob_index++;
     }
 
-   /*
     double discriminante = 1 + 8 * prob_index;
     r1 = (1 + sqrt(discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
@@ -256,7 +255,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         //if (prob_index == limit) break;
         while(r2 < r1){
             if (prob_index == _limit) break;
-            //tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
             tnf_dist_index++;
             prob_index++;
             r2++;
@@ -264,7 +263,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         r2 = 0;
         r1++;
     }
-    */
 }
 
 /*
