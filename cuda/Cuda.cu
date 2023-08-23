@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <immintrin.h>
 #include <math.h>
+#include <math_functions.h>
 #include <omp.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
