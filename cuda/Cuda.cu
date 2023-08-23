@@ -97,6 +97,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
     d = sqrt(d);
+    return 1;
     double b, c;
     //size_t ctg1_s = seqs_d_size[r1];
     //size_t ctg2_s = seqs_d_size[r2];
@@ -121,6 +122,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
+    return d;
     double prob;
     
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
@@ -240,7 +242,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t _limit = min(prob_index + contig_per_thread, limit);
     while(prob_index < _limit){
         float _TNF[136];
-        //if (prob_index == limit) break;
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
         }
