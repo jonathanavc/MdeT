@@ -145,9 +145,12 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
     */
     //return -(b + c * d);
-    double _exp = exp(b + c * d);
-    prob = _exp / (1 + _exp);
+    //double _exp = exp(b + c * d);
+    float ee = (float)(b+c*d);
+    //prob = _exp / (1 + _exp);
     //prob = 1.0 / (1 + exp(-(b + c * d)));
+    prob = 1.0 / (1 + exp(-ee));
+    
     //return prob;
     
     if (prob >= .1) {
