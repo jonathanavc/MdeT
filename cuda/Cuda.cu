@@ -350,7 +350,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         }
         rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
-            TNF_d[tnf_index + c] TNF_temp[c] /rsum;
+            TNF_d[tnf_index + c] = TNF_temp[c] /rsum;
             //TNF_d[tnf_index + c] /= rsum;  // OK
         }
     }
