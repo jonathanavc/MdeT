@@ -332,7 +332,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     size_t contig_index = (thead_id * contigs_per_thread);
     for (int i = 0; i < contigs_per_thread; i++) {
-        if (contig_index >= nobs) break;
+        if (contig_index == nobs) break;
         const size_t tnf_index = contig_index * 136;
         for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
         contig_index++;
@@ -349,10 +349,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
-        float _aux = 0;
         for (int c = 0; c < 136; ++c) {
-            // _aux = TNF_d[tnf_index + c];
-            // rsum += _aux * _aux;
             rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
         }
         rsum = sqrt(rsum);
