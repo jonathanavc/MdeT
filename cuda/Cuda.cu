@@ -209,7 +209,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
 */
 
 __global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
-                             size_t _des, const size_t contig_per_thread, size_t limit) {
+                             size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
@@ -283,26 +283,12 @@ __device__ short get_tn(const char *contig, const size_t index) {
     return tn;
 }
 
-// esto mejoró "bastante" el rendimento, ya no es necesario xd
-/*
-__device__ short get_revComp_tn_d(short tn) {
-    unsigned char rctn = 0;
-    for (short i = 0; i < 4; i++) {
-        rctn = (rctn << 2) | (((tn & 3) + 2) % 4);
-        tn = tn >> 2;
-    }
-    return rctn;
-}
-*/
-
 __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const size_t *seqs_d_index) {
     return seqs_d + seqs_d_index[contig_index];
 }
 
 __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    // const size_t minContig = 2500;
-    // const size_t minContigByCorr = 1000;
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
 
     for (int i = 0; i < contigs_per_thread; i++) {
