@@ -79,7 +79,7 @@ __device__ __constant__ unsigned char BN[256] = {
 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
     float _aux = 0.0;
     float * _r1 = TNF + r1 * 136;
@@ -200,7 +200,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict_
 }
 */
 
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, const float *__restrict__ TNF, const size_t *__restrict__ seqs_d_size,
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size,
                              size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
