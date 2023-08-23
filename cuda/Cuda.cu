@@ -330,30 +330,28 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
 __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    
     size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
     for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
-        //if (contig_index >= nobs) break;
-        const size_t tnf_index = contig_index * 136;
-        for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
-        contig_index++;
-    }
-    for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
-        //if (contig_index >= nobs) break;
+        float TNF_temp[136] = {0};
         const size_t tnf_index = contig_index * 136;
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         const char *contig = seqs_d + seqs_d_index[contig_index];
         for (size_t j = 0; j < contig_size - 3; ++j) {
             short tn = get_tn(contig, j);
             if (tn & 256) continue;
-            ++TNF_d[tnf_index + TNmap_d[tn]];
+            TNF_temp[TNmap_d[tn]]++;
+            //++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
         for (int c = 0; c < 136; ++c) {
-            rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
+            rsum += TNF_temp[c] * TNF_temp[c];
+            //rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
         }
         rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
-            TNF_d[tnf_index + c] /= rsum;  // OK
+            TNF_d[tnf_index + c] TNF_temp[c] /rsum;
+            //TNF_d[tnf_index + c] /= rsum;  // OK
         }
     }
     /*
