@@ -246,7 +246,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         tnf_dist_index++;
         prob_index++;
     }
-    
+
     /*
     double discriminante = 1 + 8 * prob_index;
     r1 = (1 + sqrt(discriminante)) / 2;
@@ -334,14 +334,14 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
     for (int i = 0; i < contigs_per_thread; i++) {
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         const size_t tnf_index = contig_index * 136;
-        if (contig_index >= nobs) break;
+        if (contig_index == nobs) break;
         for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
     }
 
     for (int i = 0; i < contigs_per_thread; i++) {
         const size_t contig_index = (thead_id * contigs_per_thread) + i;
         const size_t tnf_index = contig_index * 136;
-        if (contig_index >= nobs) break;
+        if (contig_index == nobs) break;
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         const char *contig = seqs_d + seqs_d_index[contig_index];
         for (size_t j = 0; j < contig_size - 3; ++j) {
