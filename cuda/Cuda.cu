@@ -91,10 +91,11 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF_r1, float *__restrict__ TNF_r2, size_t *__restrict__ seqs_d_size) {
     double d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
-        d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
+        d += (TNF_r1[i] - TNF_r2[i]) * (TNF_r1[i] - TNF_r2[i]);  // euclidean distance
+        //d += (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]) * (TNF[r1 * 136 + i] - TNF[r2 * 136 + i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
@@ -240,7 +241,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         float discriminante = 1 + 8 * prob_index;
         r1 = (1 + sqrtf(discriminante)) / 2;
         r2 = prob_index - r1 * (r1 - 1) / 2;
-        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF, seqs_d_size);
+        tnf_dist[tnf_dist_index] = cal_tnf_dist_d(r1, r2, TNF + 136 * r1, TNF + 136 * r2, seqs_d_size);
         // tnf_dist[tnf_dist_index] = seqs_d_size[r1];
         tnf_dist_index++;
         prob_index++;
