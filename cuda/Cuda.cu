@@ -1831,15 +1831,16 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         cudaStreamCreate(&streams[i]);
         // size_t prob_des = prob_per_kernel * i;
         size_t prob_to_process = prob_per_kernel;
-        //std::cout << "prob_des:" << prob_des << "|prob_per_kernel:" << prob_per_kernel << "|prob_to_process:" << prob_to_process << std::endl;
+        // std::cout << "prob_des:" << prob_des << "|prob_per_kernel:" << prob_per_kernel << "|prob_to_process:" << prob_to_process <<
+        // std::endl;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
-        std::cout << "stream:" << i << "|ini:" << prob_des + prob_per_kernel * i
-                  << "|fin:" << prob_des + prob_per_kernel * i + prob_to_process << std::endl;
+        // std::cout << "stream:" << i << "|ini:" << prob_des + prob_per_kernel * i << "|fin:" << prob_des + prob_per_kernel * i +
+        // prob_to_process << std::endl;
 
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
-                                                                min(prob_des + max_prob_per_kernel, total_prob));
+                                                                prob_des + prob_per_kernel * i + prob_to_process);
         cudaMemcpyAsync(tnf_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
