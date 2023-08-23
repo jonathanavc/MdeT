@@ -312,9 +312,9 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         double rsum = 0;
         float _aux = 0;
         for (int c = 0; c < 136; ++c) {
-            _aux = TNF_d[tnf_index + c];
-            rsum += _aux * _aux;
-            // rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
+            // _aux = TNF_d[tnf_index + c];
+            // rsum += _aux * _aux;
+            rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
         }
         rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
