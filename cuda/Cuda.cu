@@ -2518,6 +2518,7 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (0) {
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2);
         size_t prob_des = 0;
         TIMERSTART(_tnf_prob);
         size_t total_prob = (nobs * (nobs - 1)) / 2;
@@ -2548,6 +2549,8 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
+            progress.track(min(max_prob_per_kernel, total_prob - prob_des));
+            verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             prob_des += max_prob_per_kernel;
         }
         cudaFree(TNF_d);
