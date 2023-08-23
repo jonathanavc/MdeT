@@ -2518,7 +2518,6 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2);
         size_t prob_des = 0;
         TIMERSTART(_tnf_prob);
         size_t total_prob = (nobs * (nobs - 1)) / 2;
