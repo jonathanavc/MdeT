@@ -2514,9 +2514,9 @@ int main(int argc, char const *argv[]) {
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         size_t max_prob_per_kernel = max_gpu_mem / sizeof(double);
         size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
-        std::cout << "total_prob: " << total_prob << std::endl;
-        std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
-        std::cout << "cant_kernels: " << cant_kernels << std::endl;
+        // std::cout << "total_prob: " << total_prob << std::endl;
+        // std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
+        // std::cout << "cant_kernels: " << cant_kernels << std::endl;
         ProgressTracker progress = ProgressTracker(total_prob);
         for (size_t i = 0; i < nobs; i++) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
