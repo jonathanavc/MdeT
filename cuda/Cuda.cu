@@ -324,8 +324,11 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             ++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
+        float _aux = 0;
         for (int c = 0; c < 136; ++c) {
-            rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
+            _aux = TNF_d[tnf_index + c];
+            rsum += _aux * _aux;
+            // rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
         }
         rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
@@ -2527,6 +2530,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
+            /*
             if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 for (size_t i = 0; i < _total; i++) {
@@ -2539,6 +2543,7 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
+            */
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             prob_des += max_prob_per_kernel;
