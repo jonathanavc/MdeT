@@ -89,7 +89,7 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
                     5158.3764225203, -290.1765894829, -724.0348081819, 25.364646181, 56.0522105105, -0.9172073892, -1.8470088417,
                     449.4660736502, -24.4141920625, 0.8465834103, -0.0158943762, 0.0001235384};
 
-__device__ double log10_device(float x) { return logf(x) / _log10; }
+__device__ double log10_device(double x) { return logf(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
     float d = 0.0;
@@ -103,7 +103,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     //size_t ctg2_s = seqs_d_size[r2];
     size_t ctg1 = min(r1, (size_t)500000);
     size_t ctg2 = min(r2, (size_t)500000);
-    float lw[19];
+    double lw[19];
     lw[0] = log10_device(min(ctg1, ctg2));
     lw[1] = log10_device(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
