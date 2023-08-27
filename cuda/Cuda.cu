@@ -55,7 +55,7 @@
 
 namespace po = boost::program_options;
 
-__device__ __constant__ long double _log10 = 2.3025850929940456840179914546844;
+__device__ __constant__ double _log10 = 2.3025850929940456840179914546844;
 
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
@@ -97,7 +97,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
-    d = sqrtf(d);
+    d = sqrt(d);
     double b, c;
     size_t ctg1 = min(r1, (size_t)500000);
     size_t ctg2 = min(r2, (size_t)500000);
