@@ -55,7 +55,8 @@
 
 namespace po = boost::program_options;
 
-__device__ __constant__ double _log10 = 2.3025850929940456840179914546844;
+__device__ __constant__ double _log10 = 2.302585092994046;
+
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50, 135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
@@ -92,7 +93,7 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
-    double d = 0.0;
+    float d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
@@ -119,7 +120,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
-    //return lw[11] + lw[18]+ d;
+
     double prob;
     
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
@@ -141,12 +142,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
     */
-    //return -(b + c * d);
-    //double _exp = exp(b + c * d);
-    //float ee = (float)(b+c*d);
-    //prob = _exp / (1 + _exp);
     prob = 1.0 / (1 + expf(-(b + c * d)));
-    //prob = 1.0 / (1 + exp(-ee));
     
     //return prob;
     
