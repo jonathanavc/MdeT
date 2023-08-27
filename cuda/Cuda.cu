@@ -93,11 +93,11 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
-    double d = 0.0;
+    float d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
-    d = sqrt(d);
+    d = sqrtf(d);
     double b, c;
     double ctg1 = min(r1, (size_t)500000);
     double ctg2 = min(r2, (size_t)500000);
@@ -2524,7 +2524,7 @@ int main(int argc, char const *argv[]) {
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.01)
+                    if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.0001)
                         std::cout << "i: " << i << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
