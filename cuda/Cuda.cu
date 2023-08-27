@@ -101,6 +101,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
         //d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
+    return d;
     d = sqrtf(d);
     double b, c;
     double ctg1 = min(r1, (size_t)500000);
