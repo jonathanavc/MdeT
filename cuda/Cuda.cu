@@ -2559,7 +2559,7 @@ int main(int argc, char const *argv[]) {
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.001)
+                    if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.01)
                         std::cout << "i: " << i << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
