@@ -214,13 +214,15 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
                              size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
+    float _TNF[136];
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
     size_t discriminante = 1 + 8 * prob_index;
     r1 = (1 + sqrt((double)discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
+
+    /*
     size_t _limit = min(prob_index + contig_per_thread, limit);
-    float _TNF[136];
     while(prob_index < _limit){
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
@@ -230,6 +232,21 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
             tnf_dist_index++;
             prob_index++;
+            r2++;
+        }
+        r2 = 0;
+        r1++;
+    }
+    */
+    size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
+    while(tnf_dist_index < _limit){
+        for (int i = 0; i < 136; i++) {
+            _TNF[i] = TNF[r1 * 136 + i];
+        }
+        while(r2 < r1){
+            if (tnf_dist_index == _limit) break;
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
+            tnf_dist_index++;
             r2++;
         }
         r2 = 0;
