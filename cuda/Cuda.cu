@@ -55,7 +55,7 @@
 
 namespace po = boost::program_options;
 
-__device__ __constant__ double _log10 = 2.302585092994046;
+__device__ __constant__ long double _log10 = 2.3025850929940456840179914546844;
 
 
 __device__ __constant__ unsigned char TNmap_d[256] = {
