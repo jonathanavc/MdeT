@@ -89,7 +89,7 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
                     5158.3764225203, -290.1765894829, -724.0348081819, 25.364646181, 56.0522105105, -0.9172073892, -1.8470088417,
                     449.4660736502, -24.4141920625, 0.8465834103, -0.0158943762, 0.0001235384};
 
-__device__ double log10_device(double x) { return logf(x) / _log10; }
+__device__ double log10_device(double x) { return log(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
     float d = 0.0;
@@ -259,7 +259,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         }
         while(r2 < r1){
             if (prob_index == _limit) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
+            tnf_dist[tnf_dist_index] = r1;
             tnf_dist_index++;
             prob_index++;
             r2++;
