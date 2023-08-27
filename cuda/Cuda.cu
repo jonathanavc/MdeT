@@ -92,17 +92,17 @@ __device__ __constant__ double _c2[19] = { 39406.5712626297, -77863.1741143294, 
 __device__ double log10_device(double x) { return log(x) / _log10; }
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
-    float d = 0.0;
+    double d = 0.0;
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
-    d = sqrtf(d);
+    d = sqrt(d);
     double b, c;
     size_t ctg1 = min(r1, (size_t)500000);
     size_t ctg2 = min(r2, (size_t)500000);
     double lw[19];
-    lw[0] = log10f(min(ctg1, ctg2));
-    lw[1] = log10f(max(ctg1, ctg2));
+    lw[0] = log10_device(min(ctg1, ctg2));
+    lw[1] = log10_device(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
