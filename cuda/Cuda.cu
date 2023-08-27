@@ -220,8 +220,8 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     r1 = (1 + sqrtf((float)discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
     size_t _limit = min(prob_index + contig_per_thread, limit);
+    float _TNF[136];
     while(prob_index < _limit){
-        float _TNF[136];
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
         }
