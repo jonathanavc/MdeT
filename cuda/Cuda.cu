@@ -99,11 +99,11 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     }
     d = sqrt(d);
     double b, c;
-    size_t ctg1 = min(r1, (size_t)500000);
-    size_t ctg2 = min(r2, (size_t)500000);
+    double ctg1 = min(r1, (size_t)500000);
+    double ctg2 = min(r2, (size_t)500000);
     double lw[19];
-    lw[0] = log10_device(min(ctg1, ctg2));
-    lw[1] = log10_device(max(ctg1, ctg2));
+    lw[0] = log10(min(ctg1, ctg2));
+    lw[1] = log10(max(ctg1, ctg2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
@@ -213,7 +213,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
     size_t discriminante = 1 + 8 * prob_index;
-    r1 = (1 + sqrtl(discriminante)) / 2;
+    r1 = (1 + sqrt((double)discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
     size_t _limit = min(prob_index + contig_per_thread, limit);
     while(prob_index < _limit){
