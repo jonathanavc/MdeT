@@ -213,7 +213,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
     size_t discriminante = 1 + 8 * prob_index;
-    r1 = (1 + sqrt(discriminante)) / 2;
+    r1 = (1 + sqrtl(discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
     size_t _limit = min(prob_index + contig_per_thread, limit);
     while(prob_index < _limit){
