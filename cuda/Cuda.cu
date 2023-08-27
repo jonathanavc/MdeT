@@ -103,8 +103,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     }
     d = sqrtf(d);
     double b, c;
-    double ctg1 = min(r1, (double)500000);
-    double ctg2 = min(r2, (double)500000);
+    double ctg1 = min(r1, (size_t)500000);
+    double ctg2 = min(r2, (size_t)500000);
     double lw[19];
     lw[0] = log10(min(ctg1, ctg2));
     lw[1] = log10(max(ctg1, ctg2));
