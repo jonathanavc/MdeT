@@ -228,12 +228,12 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
         while(r2 < r1){
             if (prob_index == _limit) break;
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
-            tnf_dist_index++;
-            prob_index++;
-            r2++;
+            ++tnf_dist_index;
+            ++prob_index;
+            ++r2;
         }
         r2 = 0;
-        r1++;
+        ++r1;
     }
 }
 
