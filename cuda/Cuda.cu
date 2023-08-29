@@ -2520,6 +2520,12 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        gprob.m_vertices.resize(nobs);
+        UndirectedGraph gprobt[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            gprobt[i].m_vertices.resize(nobs);
+        }
         size_t prob_des = 0;
         TIMERSTART(_tnf_prob);
         size_t total_prob = (nobs * (nobs - 1)) / 2;
@@ -2540,7 +2546,7 @@ int main(int argc, char const *argv[]) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                for (size_t i = 0; i < _total; i++) {
+                for (size_t j = 0; j < _total; i++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
@@ -2548,6 +2554,16 @@ int main(int argc, char const *argv[]) {
                     if (abs(tnf_prob[i] - cal_tnf_dist(r1, r2)) > 0.001)
                         std::cout << "i: " << i << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
+                }
+            }
+            if(1){
+                size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
+                for (size_t j = 0; j < _total; j++) {
+                    size_t _index = prob_des + i;
+                    size_t discriminante = 1 + 8 * _index;
+                    size_t r1 = (1 + sqrt(discriminante)) / 2;
+                    size_t r2 = _index - r1 * (r1 - 1) / 2;
+                    gprob.addEdge(r1, r2, tnf_prob[i]);
                 }
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
