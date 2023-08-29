@@ -2563,7 +2563,7 @@ int main(int argc, char const *argv[]) {
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    gprob.addEdge(r1, r2, tnf_prob[i]);
+                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprob);
                 }
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
