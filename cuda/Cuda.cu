@@ -2520,7 +2520,6 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
         UndirectedGraph gprobt[numThreads];
         for (int i = 0; i < numThreads; i++) {
