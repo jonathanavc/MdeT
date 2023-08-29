@@ -2635,7 +2635,7 @@ int main(int argc, char const *argv[]) {
     */
 
     TIMERSTART(probabilisticgraph);
-    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig) && 0) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
         /*
