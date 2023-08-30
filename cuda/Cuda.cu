@@ -2557,14 +2557,14 @@ int main(int argc, char const *argv[]) {
             }
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                #pragma omp parallel for schedule(dynamic)
+                //#pragma omp parallel for schedule(dynamic)
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    #pragma omp critical(ADD_EDGE_1)
-                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprobt[omp_get_thread_num()]);
+                    //#pragma omp critical(ADD_EDGE_1)
+                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprob);
                 }
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
