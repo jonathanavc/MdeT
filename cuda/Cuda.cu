@@ -2564,7 +2564,7 @@ int main(int argc, char const *argv[]) {
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     #pragma omp critical(ADD_EDGE_1)
-                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprob);
+                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprobt[omp_get_thread_num()]);
                 }
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
