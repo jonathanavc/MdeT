@@ -2555,7 +2555,7 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            if(1){
+            if(0){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 //#pragma omp parallel for schedule(dynamic)
                 for (size_t j = 0; j < _total; j++) {
@@ -2636,7 +2636,7 @@ int main(int argc, char const *argv[]) {
     */
 
     TIMERSTART(probabilisticgraph);
-    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig) && 0) {
+    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
         /*
