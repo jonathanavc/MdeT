@@ -2590,7 +2590,7 @@ int main(int argc, char const *argv[]) {
             }
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                #pragma omp parallel for
+                #pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
@@ -2674,7 +2674,7 @@ int main(int argc, char const *argv[]) {
     */
 
     TIMERSTART(probabilisticgraph);
-    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+    if (0 & !loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
         /*
