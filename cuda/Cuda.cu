@@ -956,9 +956,11 @@ Distance cal_dist(size_t r1, size_t r2) {
 
 Distance cal_tnf_dist2(size_t r1, size_t r2) {
     Distance d = tnf_prob[(r1 * (r1 - 1) + r2) % max_prob_per_kernel];
+    /*
     if(d != cal_tnf_dist(r1, r2)) {
         std::cout << "error" << std::endl;
     }
+    */
     return d;
 }
 
@@ -2602,7 +2604,7 @@ int main(int argc, char const *argv[]) {
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
                     bool passed = true;
-                    Similarity s = 1. - cal_dist(r1, r2, 1. - requiredMinP, passed);
+                    Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
                     //std::cout <<"index: "<< _index << " r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
                     if (passed && s >= requiredMinP) {
                         //std::cout << "r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
