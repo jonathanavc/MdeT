@@ -514,6 +514,7 @@ static size_t fsize;
 static double *tnf_prob;
 static double *tnf_prob_d;
 static size_t *seqs_d_size_d;
+static size_t max_prob_per_kernel;
 
 typedef std::vector<int> ContigVector;
 typedef std::set<int> ClassIdType;  // ordered
@@ -951,6 +952,38 @@ Distance cal_dist(size_t r1, size_t r2) {
     Distance maxDist = 1;
     bool passed = true;
     return cal_dist(r1, r2, maxDist, passed);
+}
+
+Distance cal_tnf_dist2(size_t r1, size_t r2) {
+    return tnf_prob[(r1 * r1 + r2)% max_prob_per_kernel];
+}
+
+Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed) {
+    assert(smallCtgs.find(r1) == smallCtgs.end());
+    assert(smallCtgs.find(r2) == smallCtgs.end());
+    Distance abd_dist = 0, tnf_dist = 0;
+    int nnz = 0;
+    if (r1 == r2) return 0;
+    tnf_dist = cal_tnf_dist2(r1, r2);
+    if (!passed && tnf_dist > maxDist) {
+        return 1;
+    }
+    if (abdFile.length() > 0) abd_dist = cal_abd_dist(r1, r2, nnz);
+    passed = true;
+    if (tnf_dist > 0.05) {  // minimum cutoff for considering abd
+        return std::max(tnf_dist, abd_dist * 0.9);
+    } else {
+        Distance w = 0;
+        if (nnz > 0) w = std::min(std::log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
+        return abd_dist * w + tnf_dist * (1 - w);
+    }
+}
+
+Distance cal_dist2(size_t r1, size_t r2){
+    Distance maxDist = 1;
+    bool passed = true;
+    return cal_dist(r1, r2, maxDist, passed);
+
 }
 
 static Similarity get_prob(size_t r1, size_t r2) {
@@ -2528,7 +2561,7 @@ int main(int argc, char const *argv[]) {
         size_t prob_des = 0;
         TIMERSTART(_tnf_prob);
         size_t total_prob = (nobs * (nobs - 1)) / 2;
-        size_t max_prob_per_kernel = max_gpu_mem / sizeof(double);
+        max_prob_per_kernel = max_gpu_mem / sizeof(double);
         size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
         // std::cout << "total_prob: " << total_prob << std::endl;
         // std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
@@ -2555,16 +2588,19 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            if(0){
+            if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                //#pragma omp parallel for schedule(dynamic)
+                #pragma omp parallel for schedule(dynamic)
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    //#pragma omp critical(ADD_EDGE_1)
-                    boost::add_edge(r1, r2, Weight(tnf_prob[i]), gprob);
+                    Similarity s = 1. - cal_dist2(i, j, 1. - requiredMinP, passed);
+                    if (passed && s >= requiredMinP) {
+                        #pragma omp critical(ADD_EDGE_1)
+                        { boost::add_edge(i, j, Weight(s), gprob); }
+                    }
                 }
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
