@@ -2590,7 +2590,7 @@ int main(int argc, char const *argv[]) {
             }
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                #pragma omp parallel for schedule(dynamic)
+                #pragma omp parallel for
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + i;
                     size_t discriminante = 1 + 8 * _index;
