@@ -955,7 +955,11 @@ Distance cal_dist(size_t r1, size_t r2) {
 }
 
 Distance cal_tnf_dist2(size_t r1, size_t r2) {
-    return tnf_prob[(r1 * (r1 - 1) + r2)% max_prob_per_kernel];
+    Distance d = tnf_prob[(r1 * (r1 - 1) + r2) % max_prob_per_kernel];
+    if(d != cal_tnf_dist(r1, r2)) {
+        std::cout << "error" << std::endl;
+    }
+    return d;
 }
 
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed) {
@@ -2576,7 +2580,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
-            if (1) {
+            if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
@@ -2588,7 +2592,7 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            if(0){
+            if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 #pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
