@@ -2601,7 +2601,7 @@ int main(int argc, char const *argv[]) {
                     Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
                         #pragma omp critical(ADD_EDGE_1)
-                        { boost::add_edge(i, j, Weight(s), gprob); }
+                        { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
                 }
             }
