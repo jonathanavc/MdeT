@@ -955,7 +955,7 @@ Distance cal_dist(size_t r1, size_t r2) {
 }
 
 Distance cal_tnf_dist2(size_t r1, size_t r2) {
-    return tnf_prob[(r1 * r1 + r2)% max_prob_per_kernel];
+    return tnf_prob[(r1 * (r1 - 1) + r2)% max_prob_per_kernel];
 }
 
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed) {
