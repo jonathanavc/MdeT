@@ -2592,7 +2592,7 @@ int main(int argc, char const *argv[]) {
                     size_t prob_to_process = _prob_per_thread;
                     if(j == numThreads - 1) prob_to_process += _total % numThreads;
                     size_t prob_cont = 0;
-                    _index_prob = prob_des + (j * _prob_per_thread);
+                    size_t _index_prob = prob_des + (j * _prob_per_thread);
                     size_t discriminante = 1 + 8 * _index_prob;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index_prob - r1 * (r1 - 1) / 2;
