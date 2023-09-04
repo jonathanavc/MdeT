@@ -2584,11 +2584,11 @@ int main(int argc, char const *argv[]) {
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     if (abs(tnf_prob[j] - cal_tnf_dist(r1, r2)) > 0.001)
-                        std::cout << "i: " << i << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
+                        std::cout << "index: " << _index << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            if(1){
+            if(0){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 #pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
