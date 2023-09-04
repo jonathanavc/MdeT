@@ -2600,6 +2600,7 @@ int main(int argc, char const *argv[]) {
                     bool passed = true;
                     Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
+                        std::cout << "r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
                         #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
@@ -2616,62 +2617,6 @@ int main(int argc, char const *argv[]) {
         seqs_h_index_i.clear();
         TIMERSTOP(_tnf_prob);
     }
-
-    /*
-    if (1) {
-        size_tnf_prob = (nobs * (nobs - 1)) / 2;
-        TIMERSTART(_tnf_prob);
-        double *gprob_d;
-        cudaStream_t streams[n_STREAMS];
-        TIMERSTART(memorymalloc);
-        cudaMallocHost((void **)&tnf_prob, size_tnf_prob * sizeof(double));
-        cudaMalloc((void **)&gprob_d, size_tnf_prob * sizeof(double));
-        TIMERSTOP(memorymalloc);
-
-        {
-            size_t total_prob = size_tnf_prob;
-            std::cout << "total_prob: " << total_prob << std::endl;
-            size_t prob_per_kernel = total_prob / n_STREAMS;
-            for (int i = 0; i < n_STREAMS; i++) {
-                size_t _des = prob_per_kernel * i;
-                size_t prob_to_process = prob_per_kernel;
-                cudaStreamCreate(&streams[i]);
-                if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
-                size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-                std::cout << "prob_to_process: " << prob_to_process << std::endl;
-                std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
-
-                get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, seqs_d_index, _des, nobs, prob_per_thread,
-                                                                        _des + prob_to_process);
-                cudaMemcpyAsync(tnf_prob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
-            }
-            for (int i = 0; i < n_STREAMS; i++) {
-                cudaStreamSynchronize(streams[i]);
-                cudaStreamDestroy(streams[i]);
-            }
-            cudaError_t err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
-                exit(1);
-            }
-        }
-        cudaFree(gprob_d);
-        TIMERSTOP(_tnf_prob);
-    }
-    cudaFree(TNF_d);
-    cudaFree(seqs_d_index);
-    */
-    /*
-    for (size_t i = 1; i < nobs; i++) {
-        for (size_t j = 0; j < i; j++) {
-            double _tnf_dist = cal_tnf_dist(i, j);
-            if (abs(tnf_prob[(i * (i - 1) / 2) + j] - _tnf_dist) > 0.01) {
-                std::cout << "i: " << i << " j: " << j << " tnf_prob: " << tnf_prob[(i * (i - 1) / 2) + j]
-                          << " tnf_dist: " << _tnf_dist << std::endl;
-            }
-        }
-    }
-    */
 
     TIMERSTART(probabilisticgraph);
     if (0 & !loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
