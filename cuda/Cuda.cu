@@ -962,13 +962,12 @@ Distance cal_tnf_dist2(size_t r1, size_t r2) {
     return d;
 }
 
-Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed) {
+Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distance tnf_dist) {
     assert(smallCtgs.find(r1) == smallCtgs.end());
     assert(smallCtgs.find(r2) == smallCtgs.end());
-    Distance abd_dist = 0, tnf_dist = 0;
+    Distance abd_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
-    tnf_dist = cal_tnf_dist2(r1, r2);
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -981,13 +980,6 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed) {
         if (nnz > 0) w = std::min(std::log(nnz + 1) / LOG101, 0.9);  // progressive weight depending on sample sizes
         return abd_dist * w + tnf_dist * (1 - w);
     }
-}
-
-Distance cal_dist2(size_t r1, size_t r2){
-    Distance maxDist = 1;
-    bool passed = true;
-    return cal_dist(r1, r2, maxDist, passed);
-
 }
 
 static Similarity get_prob(size_t r1, size_t r2) {
@@ -2602,7 +2594,7 @@ int main(int argc, char const *argv[]) {
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
                     bool passed = true;
-                    Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
+                    Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[j]);
                     //std::cout <<"index: "<< _index << " r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
                     if (passed && s >= requiredMinP) {
                         //std::cout << "r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
