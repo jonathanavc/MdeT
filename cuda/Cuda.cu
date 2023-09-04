@@ -2597,7 +2597,7 @@ int main(int argc, char const *argv[]) {
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     bool passed = true;
-                    Similarity s = 1. - cal_dist2(i, j, 1. - requiredMinP, passed);
+                    Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
                     if (passed && s >= requiredMinP) {
                         #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(i, j, Weight(s), gprob); }
