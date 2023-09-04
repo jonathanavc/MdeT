@@ -2588,7 +2588,7 @@ int main(int argc, char const *argv[]) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = _total / numThreads;
                 #pragma omp parallel for 
-                for(int j = 0; i < numThreads; j++){   
+                for(int j = 0; j < numThreads; j++){   
                     size_t prob_to_process = _prob_per_thread;
                     if(j == numThreads - 1) prob_to_process += _total % numThreads;
                     size_t prob_cont = 0;
