@@ -2599,9 +2599,9 @@ int main(int argc, char const *argv[]) {
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
                     bool passed = true;
                     Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
-                    std::cout <<"index: "<< _index << " r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
+                    //std::cout <<"index: "<< _index << " r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
                     if (passed && s >= requiredMinP) {
-                        std::cout << "r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
+                        //std::cout << "r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
                         #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
