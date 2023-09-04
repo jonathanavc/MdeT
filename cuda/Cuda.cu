@@ -2586,7 +2586,32 @@ int main(int argc, char const *argv[]) {
             }
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
+                size_t _prob_per_thread = _total / numThreads;
                 #pragma omp parallel for 
+                for(int j = 0; i < numThreads; j++){   
+                    size_t prob_to_process = _prob_per_thread;
+                    if(j == numThreads - 1) prob_to_process += _total % numThreads;
+                    size_t prob_cont = 0;
+                    _index_prob = prob_des + (j * _prob_per_thread);
+                    size_t discriminante = 1 + 8 * _index_prob;
+                    size_t r1 = (1 + sqrt(discriminante)) / 2;
+                    size_t r2 = _index_prob - r1 * (r1 - 1) / 2;
+                    while(prob_cont < prob_to_process){
+                        for(;r2 < r1; r2++){
+                            if(prob_cont == prob_to_process) break;
+                            bool passed = true;
+                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[prob_cont]);
+                            if (passed && s >= requiredMinP) {
+                                #pragma omp critical(ADD_EDGE_1)
+                                { boost::add_edge(r1, r2, Weight(s), gprob); }
+                            }
+                            prob_cont++;
+                        }
+                        r2 = 0;
+                        r1++;
+                    }
+                }
+                /*
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
                     size_t discriminante = 1 + 8 * _index;
@@ -2602,6 +2627,7 @@ int main(int argc, char const *argv[]) {
                         { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
                 }
+                */
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
