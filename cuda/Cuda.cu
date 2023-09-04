@@ -2597,9 +2597,12 @@ int main(int argc, char const *argv[]) {
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index_prob - r1 * (r1 - 1) / 2;
                     while(prob_cont < prob_to_process){
-                        if(smallCtgs.find(r1) != smallCtgs.end()) continue;
+                        //if(smallCtgs.find(r1) != smallCtgs.end()) continue;
                         for(;r2 < r1; r2++){
-                            if(smallCtgs.find(r2) != smallCtgs.end()) continue;
+                            if(smallCtgs.find(r2) != smallCtgs.end() || smallCtgs.find(r1) != smallCtgs.end()){
+                                prob_cont++;
+                                continue;
+                            }
                             if(prob_cont == prob_to_process) break;
                             bool passed = true;
                             Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[prob_cont% max_prob_per_kernel]);
