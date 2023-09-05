@@ -2624,7 +2624,7 @@ int main(int argc, char const *argv[]) {
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    std::cout << r1 << " " << r2 << std::endl;
+                    //std::cout << r1 << " " << r2 << std::endl;
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
                     if(((r1 *(r1-1))/2 + r2)% max_prob_per_kernel != j){
                         std::cout << "index: " << _index << " r1: " << r1 << " r2: " << r2 << " j: " << j << std::endl;
