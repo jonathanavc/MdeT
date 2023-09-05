@@ -955,11 +955,7 @@ Distance cal_dist(size_t r1, size_t r2) {
 }
 
 Distance cal_tnf_dist2(size_t r1, size_t r2) {
-    Distance d = tnf_prob[(r1 * (r1 - 1) + r2) % max_prob_per_kernel];
-    if(abs(d != cal_tnf_dist(r1, r2)) >= 1e-6) {
-        std::cout << "error" << std::endl;
-    }
-    return d;
+    return tnf_prob[((r1 * (r1 - 1))/2 + r2) % max_prob_per_kernel];
 }
 
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distance tnf_dist) {
@@ -968,6 +964,9 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distanc
     Distance abd_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
+    if(tnf_dist == 0){
+        tnf_dist = cal_tnf_dist2(r1, r2);
+    }
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -2601,18 +2600,16 @@ int main(int argc, char const *argv[]) {
                         //if(smallCtgs.find(r1) != smallCtgs.end()) continue;
                         for(;r2 < r1; r2++){
                             if(smallCtgs.find(r2) != smallCtgs.end() || smallCtgs.find(r1) != smallCtgs.end()){
-                                _index_prob++;
                                 prob_cont++;
                                 continue;
                             }
                             if(prob_cont == prob_to_process) break;
                             bool passed = true;
-                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index_prob % max_prob_per_kernel]);
+                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed);
                             if (passed && s >= requiredMinP) {
                                 #pragma omp critical(ADD_EDGE_1)
                                 { boost::add_edge(r1, r2, Weight(s), gprob); }
                             }
-                            _index_prob++;
                             prob_cont++;
                         }
                         r2 = 0;
