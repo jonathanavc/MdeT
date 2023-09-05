@@ -2586,16 +2586,15 @@ int main(int argc, char const *argv[]) {
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-                if(0){
+                if(1){
                     #pragma omp parallel for 
                     for(int i = 0; i < numThreads; i++){
-                        size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
-                        size_t prob_index = prob_des + _prob_per_thread * i;
-                        size_t discriminante = 1 + 8 * prob_index;
+                        size_t _limit = min(_prob_per_thread * (i + 1), _total);
+                        size_t prob_index = _prob_per_thread * i;
+                        size_t discriminante = 1 + 8 * (prob_des + prob_index);
                         size_t r1 = (1 + sqrt(discriminante)) / 2;
                         size_t r2 = prob_index - r1 * (r1 - 1) / 2;
                         while(prob_index < _limit){
-                            //std::cout << "prob_index: " << prob_index << " r1: " << r1 << " r2: " << r2 << std::endl;
                             if(smallCtgs.find(r1) != smallCtgs.end()){
                                 prob_index += r1 - r2;
                                 r2 = 0;
@@ -2609,13 +2608,10 @@ int main(int argc, char const *argv[]) {
                                     continue;
                                 }
                                 bool passed = true;
-                                Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
+                                Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[prob_index]);
                                 if (passed && s >= requiredMinP) {
                                     #pragma omp critical(ADD_EDGE_1)
-                                    { 
-                                        //boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]);
-                                        boost::add_edge(r1, r2, Weight(s), gprob); 
-                                    }
+                                    { boost::add_edge(r1, r2, Weight(s), gprob); }
                                 }
                                 prob_index++;
                                 r2++;
@@ -2624,8 +2620,7 @@ int main(int argc, char const *argv[]) {
                             r1++;
                         }
                     }
-                }
-                else{
+                } else {
                     #pragma omp parallel for 
                     for (size_t j = 0; j < _total; j++) {
                         size_t _index = prob_des + j;
