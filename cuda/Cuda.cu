@@ -959,7 +959,7 @@ Distance cal_dist(size_t r1, size_t r2) {
     return cal_dist(r1, r2, maxDist, passed);
 }
 
-Distance cal_tnf_dist2(size_t r1, size_t r2) { return tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % max_prob_per_kernel]; }
+//Distance cal_tnf_dist2(size_t r1, size_t r2) { return tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % max_prob_per_kernel]; }
 
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distance tnf_dist) {
     assert(smallCtgs.find(r1) == smallCtgs.end());
@@ -967,9 +967,11 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distanc
     Distance abd_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
+    /*
     if (tnf_dist == -1) {
         tnf_dist = cal_tnf_dist2(r1, r2);
     }
+    */
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
