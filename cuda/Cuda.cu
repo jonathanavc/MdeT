@@ -2601,7 +2601,7 @@ int main(int argc, char const *argv[]) {
                             r1++;
                             continue;
                         }
-                        while(r1 < r2){
+                        while(r2 < r1){
                             if(smallCtgs.find(r2) != smallCtgs.end()){
                                 prob_index++;
                                 r2++;
