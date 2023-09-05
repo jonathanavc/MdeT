@@ -2607,8 +2607,8 @@ int main(int argc, char const *argv[]) {
                                 r2++;
                                 continue;
                             }
-                            bool passed = true;
-                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[prob_index % max_prob_per_kernel]);
+                            bool passed = true;)
+                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
                             if (passed && s >= requiredMinP) {
                                 #pragma omp critical(ADD_EDGE_1)
                                 { 
