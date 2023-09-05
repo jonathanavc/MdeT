@@ -2585,32 +2585,36 @@ int main(int argc, char const *argv[]) {
             }
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                size_t _prob_per_thread = _total / numThreads;
+                size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
     
                 #pragma omp parallel for 
-                for(int j = 0; j < numThreads; j++){   
-                    size_t prob_to_process = _prob_per_thread;
-                    if(j == numThreads - 1) prob_to_process += _total % numThreads;
-                    size_t prob_cont = 0;
-                    size_t _index_prob = prob_des + (j * _prob_per_thread);
-                    size_t discriminante = 1 + 8 * _index_prob;
+                for(int i = 0; i < numThreads; i++){
+                    size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + total_prob);
+                    size_t prob_index = prob_des + _prob_per_thread * i;
+                    size_t discriminante = 1 + 8 * prob_index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
-                    size_t r2 = _index_prob - r1 * (r1 - 1) / 2;
-                    while(prob_cont < prob_to_process){
-                        //if(smallCtgs.find(r1) != smallCtgs.end()) continue;
-                        for(;r2 < r1; r2++){
-                            if(smallCtgs.find(r2) != smallCtgs.end() || smallCtgs.find(r1) != smallCtgs.end()){
-                                prob_cont++;
+                    size_t r2 = j - r1 * (r1 - 1) / 2;
+                    while(prob_index < _limit){
+                        if(smallCtgs.find(r1) != smallCtgs.end()){
+                            prob_inde += r1 - r2;
+                            r2 = 0;
+                            r1++;
+                            continue;
+                        }
+                        while(r1 < r2){
+                            if(smallCtgs.find(r2) != smallCtgs.end()){
+                                prob_index++;
+                                r2++;
                                 continue;
                             }
-                            if(prob_cont == prob_to_process) break;
                             bool passed = true;
-                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
+                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[prob_index % max_prob_per_kernel]);
                             if (passed && s >= requiredMinP) {
                                 #pragma omp critical(ADD_EDGE_1)
                                 { boost::add_edge(r1, r2, Weight(s), gprob); }
                             }
-                            prob_cont++;
+                            prob_index++;
+                            r2++;
                         }
                         r2 = 0;
                         r1++;
