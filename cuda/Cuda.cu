@@ -2595,7 +2595,7 @@ int main(int argc, char const *argv[]) {
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = prob_index - r1 * (r1 - 1) / 2;
                     while(prob_index < _limit){
-                        std::cout << "prob_index: " << prob_index << " r1: " << r1 << " r2: " << r2 << std::endl;
+                        //std::cout << "prob_index: " << prob_index << " r1: " << r1 << " r2: " << r2 << std::endl;
                         if(smallCtgs.find(r1) != smallCtgs.end()){
                             prob_index += r1 - r2;
                             r2 = 0;
