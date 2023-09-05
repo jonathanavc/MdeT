@@ -1869,11 +1869,13 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         cudaMemcpyAsync(tnf_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(double),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
+    /*
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
     getError("kernel");
+    */
 }
 
 void wait_for_tnf_prob_kernel(cudaStream_t *streams) {
