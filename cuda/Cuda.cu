@@ -959,7 +959,7 @@ Distance cal_dist(size_t r1, size_t r2) {
     return cal_dist(r1, r2, maxDist, passed);
 }
 
-//Distance cal_tnf_dist2(size_t r1, size_t r2) { return tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % max_prob_per_kernel]; }
+// Distance cal_tnf_dist2(size_t r1, size_t r2) { return tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % max_prob_per_kernel]; }
 
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distance tnf_dist) {
     assert(smallCtgs.find(r1) == smallCtgs.end());
@@ -1864,7 +1864,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
 
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
+        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d[_index] + prob_per_kernel * i, TNF_d, seqs_d_size_d,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
                                                                 prob_des + prob_per_kernel * i + prob_to_process);
         cudaMemcpyAsync(tnf_prob[_index] + prob_per_kernel * i, tnf_prob_d[_index] + prob_per_kernel * i,
@@ -2608,9 +2608,9 @@ int main(int argc, char const *argv[]) {
     if (1) {
         int _index = 0;
         TIMERSTART(_tnf_prob);
-        thre gprob.m_vertices.resize(nobs);
+        gprob.m_vertices.resize(nobs);
         UndirectedGraph gprobt[numThreads];
-        sdt::thread threads[2];
+        sdt::thread threads[2][2];
         // for (int i = 0; i < numThreads; i++) gprobt[i].m_vertices.resize(nobs);
         size_t prob_des = 0;
         size_t total_prob = (nobs * (nobs - 1)) / 2;
@@ -2627,17 +2627,17 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
-            if (i != 0) {
-                thread[_index] =
-                    std::thread([&]() { create_graph(total_prob, prob_des, requiredMinP, gprobt, _index, threads[_index]); });
-                // create_graph(total_prob, prob_des, requiredMinP, gprobt);
-                progress.track(min(max_prob_per_kernel, total_prob - prob_des));
-                verbose_message("Building a tnf graph: %s\r", progress.getProgress());
-                prob_des += max_prob_per_kernel;
-                _index = (_index + 1) % 2;
-            }
-            threads[_index] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
+            if(threads[_index][1].joinable()) threads[_index][1].join();
+            threads[_index][0] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
             // launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
+            threads[_index][1] =
+                std::thread([&]() { create_graph(total_prob, prob_des, requiredMinP, gprobt, _index, threads[_index][0]); });
+            // create_graph(total_prob, prob_des, requiredMinP, gprobt);
+            progress.track(min(max_prob_per_kernel, total_prob - prob_des));
+            verbose_message("Building a tnf graph: %s\r", progress.getProgress());
+            prob_des += max_prob_per_kernel;
+            _index = (_index + 1) % 2;
+            
             if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 for (size_t j = 0; j < _total; j++) {
@@ -2651,7 +2651,6 @@ int main(int argc, char const *argv[]) {
                 }
             }
         }
-        wait_for_tnf_prob_kernel(streams);
         create_graph(total_prob, prob_des, requiredMinP, gprobt);
         progress.track(min(max_prob_per_kernel, total_prob - prob_des));
         verbose_message("Building a tnf graph: %s\r", progress.getProgress());
