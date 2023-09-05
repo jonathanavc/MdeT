@@ -514,8 +514,8 @@ static float *TNF_d;
 // char *seqs_d;
 static char *_mem;
 static size_t fsize;
-static double *tnf_prob;
-static double *tnf_prob_d;
+static double *tnf_prob[2];
+static double *tnf_prob_d[2];
 static size_t *seqs_d_size_d;
 static size_t max_prob_per_kernel;
 static char *seqs_d;
@@ -1852,7 +1852,8 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, cudaStream_t *streams) {
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, int _index) {
+    cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
@@ -1864,27 +1865,18 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
                                                                 prob_des + prob_per_kernel * i, prob_per_thread,
                                                                 prob_des + prob_per_kernel * i + prob_to_process);
-        cudaMemcpyAsync(tnf_prob + prob_per_kernel * i, tnf_prob_d + prob_per_kernel * i, prob_to_process * sizeof(double),
-                        cudaMemcpyDeviceToHost, streams[i]);
+        cudaMemcpyAsync(tnf_prob[_index] + prob_per_kernel * i, tnf_prob_d[_index] + prob_per_kernel * i,
+                        prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
     }
-    /*
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
     getError("kernel");
-    */
 }
 
-void wait_for_tnf_prob_kernel(cudaStream_t *streams) {
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    getError("tnf_prob_kernel");
-}
-
-void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, UndirectedGraph *gprobt) {
+void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, UndirectedGraph *gprobt, int _index, std::thread &t) {
+    t.join();
     if (1) {
         size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
         size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
@@ -1912,7 +1904,8 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, Und
                             continue;
                         }
                         bool passed = true;
-                        Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
+                        Similarity s =
+                            1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index][prob_index % max_prob_per_kernel]);
                         if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                             { boost::add_edge(r1, r2, Weight(s), gprob); }
@@ -2611,37 +2604,38 @@ int main(int argc, char const *argv[]) {
         requiredMinP = .75;
 
     if (1) {
-        cudaStream_t streams[n_STREAMS];
-        gprob.m_vertices.resize(nobs);
-        UndirectedGraph gprobt[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            gprobt[i].m_vertices.resize(nobs);
-        }
-        size_t prob_des = 0;
+        int _index = 0;
         TIMERSTART(_tnf_prob);
+        thre gprob.m_vertices.resize(nobs);
+        UndirectedGraph gprobt[numThreads];
+        sdt::thread threads[2];
+        // for (int i = 0; i < numThreads; i++) gprobt[i].m_vertices.resize(nobs);
+        size_t prob_des = 0;
         size_t total_prob = (nobs * (nobs - 1)) / 2;
-        max_prob_per_kernel = max_gpu_mem / sizeof(double);
+        max_prob_per_kernel = max_gpu_mem / (sizeof(double) * 2);
         size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
-        // std::cout << "total_prob: " << total_prob << std::endl;
-        // std::cout << "max_prob_per_kernel: " << max_prob_per_kernel << std::endl;
-        // std::cout << "cant_kernels: " << cant_kernels << std::endl;
         ProgressTracker progress = ProgressTracker(total_prob);
         for (size_t i = 0; i < nobs; i++) {
             seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
         }
-        cudaMallocHost((void **)&tnf_prob, max_prob_per_kernel * sizeof(double));
-        cudaMalloc((void **)&tnf_prob_d, max_prob_per_kernel * sizeof(double));
+        for (int i = 0; i < 2; i++) {
+            cudaMallocHost((void **)&tnf_prob[i], max_prob_per_kernel * sizeof(double));
+            cudaMalloc((void **)&tnf_prob_d[i], max_prob_per_kernel * sizeof(double));
+        }
         cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             if (i != 0) {
-                wait_for_tnf_prob_kernel(streams);
-                create_graph(total_prob, prob_des, requiredMinP, gprobt);
+                thread[_index] =
+                    std::thread([&]() { create_graph(total_prob, prob_des, requiredMinP, gprobt, _index, threads[_index]); });
+                // create_graph(total_prob, prob_des, requiredMinP, gprobt);
                 progress.track(min(max_prob_per_kernel, total_prob - prob_des));
                 verbose_message("Building a tnf graph: %s\r", progress.getProgress());
                 prob_des += max_prob_per_kernel;
+                _index = (_index + 1) % 2;
             }
-            launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, streams);
+            threads[_index] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
+            // launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 for (size_t j = 0; j < _total; j++) {
