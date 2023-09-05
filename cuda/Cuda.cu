@@ -2593,10 +2593,10 @@ int main(int argc, char const *argv[]) {
                     size_t prob_index = prob_des + _prob_per_thread * i;
                     size_t discriminante = 1 + 8 * prob_index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
-                    size_t r2 = j - r1 * (r1 - 1) / 2;
+                    size_t r2 = prob_index - r1 * (r1 - 1) / 2;
                     while(prob_index < _limit){
                         if(smallCtgs.find(r1) != smallCtgs.end()){
-                            prob_inde += r1 - r2;
+                            prob_index += r1 - r2;
                             r2 = 0;
                             r1++;
                             continue;
