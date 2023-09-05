@@ -1915,7 +1915,8 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, Und
                         Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
                         if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                            { boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
+                            { boost::add_edge(r1, r2, Weight(s), gprob); }
+                            //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
                         }
                         prob_index++;
                         r2++;
@@ -2504,7 +2505,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 2000000000;  // 4gb
+    size_t max_gpu_mem = 500000000;  // 4gb
     // calcular matriz de tetranucleotidos
     TIMERSTART(TNF_CAL);
     // float *TNF2;
