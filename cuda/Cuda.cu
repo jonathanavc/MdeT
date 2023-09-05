@@ -2627,7 +2627,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
-            if(threads[_index][1].joinable()) threads[_index][1].join();
+            if (threads[_index][1].joinable()) threads[_index][1].join();
             threads[_index][0] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
             // launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             threads[_index][1] =
@@ -2637,7 +2637,7 @@ int main(int argc, char const *argv[]) {
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             prob_des += max_prob_per_kernel;
             _index = (_index + 1) % 2;
-            
+            /*
             if (0) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 for (size_t j = 0; j < _total; j++) {
@@ -2650,11 +2650,8 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
+            */
         }
-        create_graph(total_prob, prob_des, requiredMinP, gprobt);
-        progress.track(min(max_prob_per_kernel, total_prob - prob_des));
-        verbose_message("Building a tnf graph: %s\r", progress.getProgress());
-        // prob_des += max_prob_per_kernel;
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
         cudaFree(seqs_d_size_d);
