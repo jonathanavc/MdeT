@@ -1852,8 +1852,6 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-
-
 void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, cudaStream_t *streams) {
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
@@ -2636,7 +2634,7 @@ int main(int argc, char const *argv[]) {
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             if (i != 0) {
-                wait_for_tnf_kernel(streams);
+                wait_for_tnf_prob_kernel(streams);
                 create_graph(total_prob, prob_des, requiredMinP, gprobt);
                 progress.track(min(max_prob_per_kernel, total_prob - prob_des));
                 verbose_message("Building a tnf graph: %s\r", progress.getProgress());
@@ -2656,7 +2654,7 @@ int main(int argc, char const *argv[]) {
                 }
             }
         }
-        wait_for_tnf_kernel(streams);
+        wait_for_tnf_prob_kernel(streams);
         create_graph(total_prob, prob_des, requiredMinP, gprobt);
         progress.track(min(max_prob_per_kernel, total_prob - prob_des));
         verbose_message("Building a tnf graph: %s\r", progress.getProgress());
