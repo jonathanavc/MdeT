@@ -2589,7 +2589,7 @@ int main(int argc, char const *argv[]) {
     
                 //#pragma omp parallel for 
                 for(int i = 0; i < numThreads; i++){
-                    size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + total_prob);
+                    size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total_prob);
                     size_t prob_index = prob_des + _prob_per_thread * i;
                     size_t discriminante = 1 + 8 * prob_index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
