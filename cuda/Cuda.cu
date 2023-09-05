@@ -964,7 +964,7 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distanc
     Distance abd_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
-    if(tnf_dist == 0){
+    if(tnf_dist == -1){
         tnf_dist = cal_tnf_dist2(r1, r2);
     }
     if (!passed && tnf_dist > maxDist) {
@@ -2605,7 +2605,7 @@ int main(int argc, char const *argv[]) {
                             }
                             if(prob_cont == prob_to_process) break;
                             bool passed = true;
-                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, 0);
+                            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
                             if (passed && s >= requiredMinP) {
                                 #pragma omp critical(ADD_EDGE_1)
                                 { boost::add_edge(r1, r2, Weight(s), gprob); }
