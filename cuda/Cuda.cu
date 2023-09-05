@@ -2663,572 +2663,573 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            wait_for_tnf_kernel(streams);
-            create_graph(total_prob, prob_des, requiredMinP, gprobt);
-            progress.track(min(max_prob_per_kernel, total_prob - prob_des));
-            verbose_message("Building a tnf graph: %s\r", progress.getProgress());
-            prob_des += max_prob_per_kernel;
-            cudaFree(TNF_d);
-            cudaFree(tnf_prob_d);
-            cudaFree(seqs_d_size_d);
-            cudaFreeHost(tnf_prob);
-            seqs_h_index_i.clear();
-            TIMERSTOP(_tnf_prob);
         }
+        wait_for_tnf_kernel(streams);
+        create_graph(total_prob, prob_des, requiredMinP, gprobt);
+        progress.track(min(max_prob_per_kernel, total_prob - prob_des));
+        verbose_message("Building a tnf graph: %s\r", progress.getProgress());
+        //prob_des += max_prob_per_kernel;
+        cudaFree(TNF_d);
+        cudaFree(tnf_prob_d);
+        cudaFree(seqs_d_size_d);
+        cudaFreeHost(tnf_prob);
+        seqs_h_index_i.clear();
+        TIMERSTOP(_tnf_prob);
+    }
 
-        TIMERSTART(probabilisticgraph);
-        if (0 & !loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
-            ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
-            gprob.m_vertices.resize(nobs);
-            /*
-            UndirectedGraph gprobt[numThreads];
-            for (int i = 0; i < numThreads; i++) {
-                gprobt[i].m_vertices.resize(nobs);
-            }
-            */
+    TIMERSTART(probabilisticgraph);
+    if (0 & !loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+        gprob.m_vertices.resize(nobs);
+        /*
+        UndirectedGraph gprobt[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            gprobt[i].m_vertices.resize(nobs);
+        }
+        */
 #pragma omp parallel for schedule(dynamic)
-            for (size_t i = 1; i < nobs; ++i) {
-                if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
-                    for (long long j = i - 1; j >= 0; j--) {       // populate lower triangle
-                        if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
-                            continue;
-                        bool passed = true;
-                        // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
-                        Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
-                        if (passed && s >= requiredMinP) {
-                            // boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
+        for (size_t i = 1; i < nobs; ++i) {
+            if (smallCtgs.find(i) == smallCtgs.end()) {        // Don't build graph for small contigs
+                for (long long j = i - 1; j >= 0; j--) {       // populate lower triangle
+                    if (smallCtgs.find(j) != smallCtgs.end())  // Don't build graph for small contigs
+                        continue;
+                    bool passed = true;
+                    // Similarity s = 1. - tnf_prob[((i * (i - 1)) / 2) + j];
+                    Similarity s = 1. - cal_dist(i, j, 1. - requiredMinP, passed);
+                    if (passed && s >= requiredMinP) {
+                        // boost::add_edge(i, j, Weight(s), gprobt[omp_get_thread_num()]);
 
 #pragma omp critical(ADD_EDGE_1)
-                            { boost::add_edge(i, j, Weight(s), gprob); }
-                        }
+                        { boost::add_edge(i, j, Weight(s), gprob); }
                     }
                 }
-                if (verbose) {
-                    progress.track(i);
-                    if (omp_get_thread_num() == 0 && progress.isStepMarker())
-                        verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
-                }
             }
-            /*
-            for (size_t i = 0; i < numThreads; i++) {
-                boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
-                for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
-                    auto source = boost::source(*ei, gprobt[i]);
-                    auto target = boost::target(*ei, gprobt[i]);
-                    double weight = boost::get(boost::edge_weight, gprobt[i], *ei);
-                    boost::add_edge(source, target, Weight(weight), gprob);
-                }
+            if (verbose) {
+                progress.track(i);
+                if (omp_get_thread_num() == 0 && progress.isStepMarker())
+                    verbose_message("Building a probabilistic graph: %s\r", progress.getProgress());
             }
-            */
-            // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
         }
-
         /*
-        if (1) {
-
-            // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-            // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
-            double *gprob_d;
-            cudaStream_t streams[n_STREAMS];
-            cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular
-        inferior) cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double)); size_t total_prob = (nobs * (nobs - 1)) / 2;
-            std::cout << "total_prob: " << total_prob << std::endl;
-            size_t prob_per_kernel = total_prob / n_STREAMS;
-            for (int i = 0; i < n_STREAMS; i++) {
-                size_t _des = prob_per_kernel * i;
-                size_t prob_to_process = prob_per_kernel;
-                cudaStreamCreate(&streams[i]);
-                if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
-                size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-                // std::cout << "prob_to_process: " << prob_to_process << std::endl;
-                // std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
-
-                get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
-                cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+        for (size_t i = 0; i < numThreads; i++) {
+            boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
+            for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
+                auto source = boost::source(*ei, gprobt[i]);
+                auto target = boost::target(*ei, gprobt[i]);
+                double weight = boost::get(boost::edge_weight, gprobt[i], *ei);
+                boost::add_edge(source, target, Weight(weight), gprob);
             }
-            for (int i = 0; i < n_STREAMS; i++) {
-                cudaStreamSynchronize(streams[i]);
-                cudaStreamDestroy(streams[i]);
-            }
-            // cudaFree(gprob_d);
-            // cudaFree(TNF_d);
         }
-        std::cout << "\n";
         */
-        TIMERSTOP(probabilisticgraph);
-        verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
-                        boost::num_edges(gprob));
+        // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
+    }
 
-        /*
+    /*
+    if (1) {
 
-        std::cout << "NOBS: " << nobs << std::endl;
-        for (size_t i = 0; i < 10; i++) {
-            std::cout << gprob[i] << " ";
+        // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
+        // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
+        double *gprob_d;
+        cudaStream_t streams[n_STREAMS];
+        cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular
+    inferior) cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double)); size_t total_prob = (nobs * (nobs - 1)) / 2;
+        std::cout << "total_prob: " << total_prob << std::endl;
+        size_t prob_per_kernel = total_prob / n_STREAMS;
+        for (int i = 0; i < n_STREAMS; i++) {
+            size_t _des = prob_per_kernel * i;
+            size_t prob_to_process = prob_per_kernel;
+            cudaStreamCreate(&streams[i]);
+            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
+            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            // std::cout << "prob_to_process: " << prob_to_process << std::endl;
+            // std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
+
+            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
+            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
         }
-        std::cout << "... ";
-        for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
-            std::cout << (int)gprob[i] << " ";
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
         }
-        std::cout << std::endl;
-        */
-        gIdx = boost::get(boost::vertex_index, gprob);
-        gWgt = boost::get(boost::edge_weight, gprob);
+        // cudaFree(gprob_d);
+        // cudaFree(TNF_d);
+    }
+    std::cout << "\n";
+    */
+    TIMERSTOP(probabilisticgraph);
+    verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
+                    boost::num_edges(gprob));
 
-        bool good_pair = pairFile.length() > 0 && readPairFile();
+    /*
 
-        boost::numeric::ublas::matrix<size_t> resES(nobs, B, 0);
+    std::cout << "NOBS: " << nobs << std::endl;
+    for (size_t i = 0; i < 10; i++) {
+        std::cout << gprob[i] << " ";
+    }
+    std::cout << "... ";
+    for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
+        std::cout << (int)gprob[i] << " ";
+    }
+    std::cout << std::endl;
+    */
+    gIdx = boost::get(boost::vertex_index, gprob);
+    gWgt = boost::get(boost::edge_weight, gprob);
 
-        ClassMap cls;
+    bool good_pair = pairFile.length() > 0 && readPairFile();
 
-        if (!loadBootFromFile(resES)) {
-            for (int b = 0; b < B; ++b) {
-                ContigVector _medoid_ids;
-                std::vector<double> medoid_vals;
-                ContigSet binned;
-                ContigSet leftovers;
-                ClassIdType good_class_ids;
-                cls.clear();
+    boost::numeric::ublas::matrix<size_t> resES(nobs, B, 0);
 
-                if (b > 0) {
-                    if (rABD.size() > 0) {
-                        for (std::list<DistancePair>::iterator it = rABD.begin(); it != rABD.end(); ++it) {
-                            it->second = rand();
-                            rABD2.push_back(*it);
-                        }
-                        rABD.clear();
+    ClassMap cls;
+
+    if (!loadBootFromFile(resES)) {
+        for (int b = 0; b < B; ++b) {
+            ContigVector _medoid_ids;
+            std::vector<double> medoid_vals;
+            ContigSet binned;
+            ContigSet leftovers;
+            ClassIdType good_class_ids;
+            cls.clear();
+
+            if (b > 0) {
+                if (rABD.size() > 0) {
+                    for (std::list<DistancePair>::iterator it = rABD.begin(); it != rABD.end(); ++it) {
+                        it->second = rand();
+                        rABD2.push_back(*it);
                     }
-                    rABD = rABD2;
-                    rABD2.clear();
+                    rABD.clear();
                 }
-                rABD.sort(cmp_abd);
+                rABD = rABD2;
+                rABD2.clear();
+            }
+            rABD.sort(cmp_abd);
 
-                pam(_medoid_ids, medoid_vals, binned, cls, leftovers, good_class_ids);
+            pam(_medoid_ids, medoid_vals, binned, cls, leftovers, good_class_ids);
 
+            if (!useEB)
+                verbose_message("Leftover contigs before fish_more: %2.2f%% (%d out of %d)\n", (double)leftovers.size() / nobs * 100.,
+                                leftovers.size(), nobs);
+
+            bool leftout = true;
+            int fished = 1;
+            while (leftout) {
+                leftout = false;
+
+                fish_more_by_friends_membership(cls, leftovers, good_class_ids);
                 if (!useEB)
-                    verbose_message("Leftover contigs before fish_more: %2.2f%% (%d out of %d)\n",
-                                    (double)leftovers.size() / nobs * 100., leftovers.size(), nobs);
+                    verbose_message(
+                        "Leftover contigs after fish_more_by_friends_membership (roughly): %2.2f%% (%d out of %d), %d bins   \r",
+                        (double)leftovers.size() / nobs * 100., leftovers.size(), nobs, good_class_ids.size());
 
-                bool leftout = true;
-                int fished = 1;
-                while (leftout) {
-                    leftout = false;
-
-                    fish_more_by_friends_membership(cls, leftovers, good_class_ids);
-                    if (!useEB)
-                        verbose_message(
-                            "Leftover contigs after fish_more_by_friends_membership (roughly): %2.2f%% (%d out of %d), %d bins   \r",
-                            (double)leftovers.size() / nobs * 100., leftovers.size(), nobs, good_class_ids.size());
-
-                    ClassIdType good_class_ids2;
-                    for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
-                        size_t s = 0;
-                        size_t kk = *it;
-                        for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                            s += seqs[gCtgIdx[*it2]].size();
-                        }
-                        if (s < std::min(seedClsSize * (size_t)std::pow(2, fished), minClsSize)) {
-                            leftovers.insert(cls[kk].begin(), cls[kk].end());
-                            leftout = true;
-                        } else
-                            good_class_ids2.insert(kk);
-                    }
-
-                    good_class_ids = good_class_ids2;
-
-                    fished++;
-                }
-
-                if (!useEB) std::cout << std::endl;
-
+                ClassIdType good_class_ids2;
                 for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
-                    fish_more(*it, cls, leftovers);
+                    size_t s = 0;
+                    size_t kk = *it;
+                    for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
+                        s += seqs[gCtgIdx[*it2]].size();
+                    }
+                    if (s < std::min(seedClsSize * (size_t)std::pow(2, fished), minClsSize)) {
+                        leftovers.insert(cls[kk].begin(), cls[kk].end());
+                        leftout = true;
+                    } else
+                        good_class_ids2.insert(kk);
                 }
+
+                good_class_ids = good_class_ids2;
+
+                fished++;
+            }
+
+            if (!useEB) std::cout << std::endl;
+
+            for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+                fish_more(*it, cls, leftovers);
+            }
+            if (!useEB)
+                verbose_message("Leftover contigs after fish_more (roughly): %2.2f%% (%d out of %d)\n",
+                                (double)leftovers.size() / nobs * 100., leftovers.size(), nobs);
+
+            if (minCorr > 0) {
+                size_t fished = fish_more_by_corr(_medoid_ids, cls, leftovers, good_class_ids);
                 if (!useEB)
-                    verbose_message("Leftover contigs after fish_more (roughly): %2.2f%% (%d out of %d)\n",
-                                    (double)leftovers.size() / nobs * 100., leftovers.size(), nobs);
+                    verbose_message("Leftover contigs after fish_more_by_corr (roughly): %2.2f%% (%d out of %d)\n",
+                                    (double)(leftovers.size() - fished) / nobs * 100., (leftovers.size() - fished), nobs);
+            }
 
-                if (minCorr > 0) {
-                    size_t fished = fish_more_by_corr(_medoid_ids, cls, leftovers, good_class_ids);
-                    if (!useEB)
-                        verbose_message("Leftover contigs after fish_more_by_corr (roughly): %2.2f%% (%d out of %d)\n",
-                                        (double)(leftovers.size() - fished) / nobs * 100., (leftovers.size() - fished), nobs);
+            if (good_pair) {
+                fish_pairs(binned, cls, good_class_ids);
+
+                if (!useEB) {
+                    verbose_message("Number of clusters formed before merging: %d\n", good_class_ids.size());  // # of bins >= 2
+                                                                                                               // members
+                    verbose_message("Merging bins that share >= %2.2f%%\n", minShared * 100.);
+                }
+                // sort bin by # of contigs; for each bin; find the first bin that shared >= minShared and merge two bins; iterate
+                size_t k = 0;
+
+                // convert cls => cls bit set where each element represent each contig
+                std::unordered_map<int, boost::dynamic_bitset<>> clsB;
+                for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+                    boost::dynamic_bitset<> bs(seqs.size());
+#pragma omp parallel for
+                    for (size_t m = 0; m < cls[*it].size(); ++m) {
+#pragma omp critical(FUZZY_1)
+                        bs[cls[*it][m]] = 1;
+                    }
+                    assert(bs.count() == cls[*it].size());
+                    clsB[*it] = bs;
+                    assert(bs.count() == clsB[*it].count());
                 }
 
-                if (good_pair) {
-                    fish_pairs(binned, cls, good_class_ids);
-
-                    if (!useEB) {
-                        verbose_message("Number of clusters formed before merging: %d\n", good_class_ids.size());  // # of bins >= 2
-                                                                                                                   // members
-                        verbose_message("Merging bins that share >= %2.2f%%\n", minShared * 100.);
-                    }
-                    // sort bin by # of contigs; for each bin; find the first bin that shared >= minShared and merge two bins; iterate
-                    size_t k = 0;
-
-                    // convert cls => cls bit set where each element represent each contig
-                    std::unordered_map<int, boost::dynamic_bitset<>> clsB;
+                while (k < good_class_ids.size()) {
+                    std::vector<ClsSizePair> cls_size;
                     for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
-                        boost::dynamic_bitset<> bs(seqs.size());
-#pragma omp parallel for
-                        for (size_t m = 0; m < cls[*it].size(); ++m) {
-#pragma omp critical(FUZZY_1)
-                            bs[cls[*it][m]] = 1;
-                        }
-                        assert(bs.count() == cls[*it].size());
-                        clsB[*it] = bs;
-                        assert(bs.count() == clsB[*it].count());
+                        ClsSizePair csp(*it, cls[*it].size());
+                        cls_size.push_back(csp);
                     }
+                    sort(cls_size.begin(), cls_size.end(), cmp_cls_size);
 
-                    while (k < good_class_ids.size()) {
-                        std::vector<ClsSizePair> cls_size;
-                        for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
-                            ClsSizePair csp(*it, cls[*it].size());
-                            cls_size.push_back(csp);
-                        }
-                        sort(cls_size.begin(), cls_size.end(), cmp_cls_size);
+                    int cls1 = cls_size[k].first;
 
-                        int cls1 = cls_size[k].first;
-
-                        bool isMerged = false;
-                        std::vector<size_t> kk_hist(omp_get_max_threads(), cls_size.size());
+                    bool isMerged = false;
+                    std::vector<size_t> kk_hist(omp_get_max_threads(), cls_size.size());
 
 #pragma omp parallel for schedule(static, 1)
-                        for (size_t kk = k + 1; kk < cls_size.size(); ++kk) {
-                            if (isMerged) continue;
-                            int cls2 = cls_size[kk].first;
+                    for (size_t kk = k + 1; kk < cls_size.size(); ++kk) {
+                        if (isMerged) continue;
+                        int cls2 = cls_size[kk].first;
 
-                            boost::dynamic_bitset<> tmp = clsB[cls2] & clsB[cls1];
-                            double shared = (double)tmp.count() / cls_size[k].second;
+                        boost::dynamic_bitset<> tmp = clsB[cls2] & clsB[cls1];
+                        double shared = (double)tmp.count() / cls_size[k].second;
 
-                            if (debug && !useEB && omp_get_thread_num() == 0)
-                                verbose_message("clsB[cls2]: %d, clsB[cls1]: %d, tmp: %d, cls_size[k].second: %d, shared: %2.2f\n",
-                                                clsB[cls2].count(), clsB[cls1].count(), tmp.count(), cls_size[k].second, shared * 100);
+                        if (debug && !useEB && omp_get_thread_num() == 0)
+                            verbose_message("clsB[cls2]: %d, clsB[cls1]: %d, tmp: %d, cls_size[k].second: %d, shared: %2.2f\n",
+                                            clsB[cls2].count(), clsB[cls1].count(), tmp.count(), cls_size[k].second, shared * 100);
 
-                            if (shared >= minShared) {
-                                if (!useEB && omp_get_thread_num() == 0)
-                                    verbose_message("Bin %d and %d were merged to %d (%2.2f%% shared)\n", cls1 + 1, cls2 + 1, cls2 + 1,
-                                                    shared * 100.);
-                                kk_hist[omp_get_thread_num()] = kk;
-                                isMerged = true;
-                            }
-                        }
-
-                        if (isMerged) {
-                            size_t kk = *std::min_element(kk_hist.begin(), kk_hist.end());
-                            k = 0;  // reset whenever any bins are combined so that it start from the smallest again (inefficient but
-                                    // most thorough way)
-                            size_t cls2 = cls_size[kk].first;
-                            // combine cls1 and cls2 => make it as cls2
-                            clsB[cls2] |= clsB[cls1];
-                            clsB.erase(cls1);
-                            ContigSet tmp;
-                            tmp.insert(cls[cls2].begin(), cls[cls2].end());
-                            tmp.insert(cls[cls1].begin(), cls[cls1].end());
-                            cls[cls2].clear();
-                            cls[cls2].insert(cls[cls2].end(), tmp.begin(), tmp.end());
-                            cls[cls1].clear();
-                            cls.erase(cls1);
-                            good_class_ids.erase(cls1);
-                        } else {  // k and kk were not merged
-                            ++k;
-                        }
-
-                        if (debug) std::cout << "good_class_ids.size(): " << good_class_ids.size() << ", kk: " << k << std::endl;
-                    }
-                }
-
-                if (useEB) {
-                    for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
-                        for (ContigVector::iterator it2 = cls[*it].begin(); it2 != cls[*it].end(); ++it2) {
-                            resES(*it2, b) = *it;
+                        if (shared >= minShared) {
+                            if (!useEB && omp_get_thread_num() == 0)
+                                verbose_message("Bin %d and %d were merged to %d (%2.2f%% shared)\n", cls1 + 1, cls2 + 1, cls2 + 1,
+                                                shared * 100.);
+                            kk_hist[omp_get_thread_num()] = kk;
+                            isMerged = true;
                         }
                     }
-                    verbose_message("Bootstrapping %d/%d [%.1fGb / %.1fGb]          \r", b + 1, B, getUsedPhysMem(),
-                                    getTotalPhysMem() / 1024 / 1024);
+
+                    if (isMerged) {
+                        size_t kk = *std::min_element(kk_hist.begin(), kk_hist.end());
+                        k = 0;  // reset whenever any bins are combined so that it start from the smallest again (inefficient but
+                                // most thorough way)
+                        size_t cls2 = cls_size[kk].first;
+                        // combine cls1 and cls2 => make it as cls2
+                        clsB[cls2] |= clsB[cls1];
+                        clsB.erase(cls1);
+                        ContigSet tmp;
+                        tmp.insert(cls[cls2].begin(), cls[cls2].end());
+                        tmp.insert(cls[cls1].begin(), cls[cls1].end());
+                        cls[cls2].clear();
+                        cls[cls2].insert(cls[cls2].end(), tmp.begin(), tmp.end());
+                        cls[cls1].clear();
+                        cls.erase(cls1);
+                        good_class_ids.erase(cls1);
+                    } else {  // k and kk were not merged
+                        ++k;
+                    }
+
+                    if (debug) std::cout << "good_class_ids.size(): " << good_class_ids.size() << ", kk: " << k << std::endl;
                 }
             }
 
             if (useEB) {
-                verbose_message("Bootstrapping %d/%d [%.1fGb / %.1fGb]             \n", B, B, getUsedPhysMem(),
+                for (ClassIdType::const_iterator it = good_class_ids.begin(); it != good_class_ids.end(); ++it) {
+                    for (ContigVector::iterator it2 = cls[*it].begin(); it2 != cls[*it].end(); ++it2) {
+                        resES(*it2, b) = *it;
+                    }
+                }
+                verbose_message("Bootstrapping %d/%d [%.1fGb / %.1fGb]          \r", b + 1, B, getUsedPhysMem(),
                                 getTotalPhysMem() / 1024 / 1024);
-                saveBootToFile(resES);
             }
         }
 
-        cudaFreeHost(TNF);
-        // cudaFreeHost(ABD);
-        // cudaFreeHost(ABD_VAR);
-        gprob.clear();
-        gprob.m_edges.resize(0);
-        gprob.m_vertices.resize(0);
-        gprob.m_vertices.shrink_to_fit();
-
-        ABD.clear();
-        ABD_VAR.clear();
-        ABD.resize(0, 0, false);
-        ABD_VAR.resize(0, 0, false);
-
         if (useEB) {
-            igraph_t g;
-            igraph_empty(&g, nobs, 0);
+            verbose_message("Bootstrapping %d/%d [%.1fGb / %.1fGb]             \n", B, B, getUsedPhysMem(),
+                            getTotalPhysMem() / 1024 / 1024);
+            saveBootToFile(resES);
+        }
+    }
 
-            igraph_weight_vector_t weights;
-            igraph_vector_init(&weights, 0);
+    cudaFreeHost(TNF);
+    // cudaFreeHost(ABD);
+    // cudaFreeHost(ABD_VAR);
+    gprob.clear();
+    gprob.m_edges.resize(0);
+    gprob.m_vertices.resize(0);
+    gprob.m_vertices.shrink_to_fit();
 
-            g.incs = igraph_Calloc(g.n, igraph_edge_vector_t);
-            for (node_t i = 0; i < g.n; i++) {
-                igraph_vector_init(&g.incs[i], 0);
-            }
+    ABD.clear();
+    ABD_VAR.clear();
+    ABD.resize(0, 0, false);
+    ABD_VAR.resize(0, 0, false);
 
-            ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+    if (useEB) {
+        igraph_t g;
+        igraph_empty(&g, nobs, 0);
 
-            if (!loadENSFromFile(g, weights)) {
-                edge_t reserved = (edge_t)nobs * 1000;
+        igraph_weight_vector_t weights;
+        igraph_vector_init(&weights, 0);
 
-                igraph_vector_reserve(&weights, reserved);
-                igraph_vector_reserve(&g.from, reserved);
-                igraph_vector_reserve(&g.to, reserved);
+        g.incs = igraph_Calloc(g.n, igraph_edge_vector_t);
+        for (node_t i = 0; i < g.n; i++) {
+            igraph_vector_init(&g.incs[i], 0);
+        }
 
-                size_t cutoff = (size_t)B * pB;
-                std::vector<size_t> num_binned(nobs, 0);
+        ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
+
+        if (!loadENSFromFile(g, weights)) {
+            edge_t reserved = (edge_t)nobs * 1000;
+
+            igraph_vector_reserve(&weights, reserved);
+            igraph_vector_reserve(&g.from, reserved);
+            igraph_vector_reserve(&g.to, reserved);
+
+            size_t cutoff = (size_t)B * pB;
+            std::vector<size_t> num_binned(nobs, 0);
 
 #pragma omp parallel for
-                for (size_t i = 0; i < nobs; ++i)
-                    for (int j = 0; j < B; ++j) num_binned[i] += resES(i, j) > 0;
+            for (size_t i = 0; i < nobs; ++i)
+                for (int j = 0; j < B; ++j) num_binned[i] += resES(i, j) > 0;
 
 #pragma omp parallel for schedule(dynamic, 100)
-                for (node_t i = 0; i < nobs; ++i) {
-                    if (num_binned[i] >= cutoff) {
-                        for (node_t j = i + 1; j < nobs; ++j) {
-                            if (num_binned[j] < cutoff) continue;
+            for (node_t i = 0; i < nobs; ++i) {
+                if (num_binned[i] >= cutoff) {
+                    for (node_t j = i + 1; j < nobs; ++j) {
+                        if (num_binned[j] < cutoff) continue;
 
-                            size_t _scr = 0;
-                            for (int h = 0; h < B; ++h)
-                                if (resES(i, h) > 0 && resES(j, h) > 0) _scr += resES(i, h) == resES(j, h);
+                        size_t _scr = 0;
+                        for (int h = 0; h < B; ++h)
+                            if (resES(i, h) > 0 && resES(j, h) > 0) _scr += resES(i, h) == resES(j, h);
 
-                            if (_scr >= cutoff) {
+                        if (_scr >= cutoff) {
 #pragma omp critical(ENSEMBLE_ADD_WEIGHT)
-                                {
-                                    igraph_vector_push_back(&weights, (float)_scr / B);
-                                    igraph_vector_push_back(&g.from, (uint_least32_t)j);
-                                    igraph_vector_push_back(&g.to, (uint_least32_t)i);
+                            {
+                                igraph_vector_push_back(&weights, (float)_scr / B);
+                                igraph_vector_push_back(&g.from, (uint_least32_t)j);
+                                igraph_vector_push_back(&g.to, (uint_least32_t)i);
 
-                                    igraph_vector_push_back(&g.incs[i], igraph_vector_size(&g.from) - 1);
-                                    igraph_vector_push_back(&g.incs[j], igraph_vector_size(&g.from) - 1);
-                                }
+                                igraph_vector_push_back(&g.incs[i], igraph_vector_size(&g.from) - 1);
+                                igraph_vector_push_back(&g.incs[j], igraph_vector_size(&g.from) - 1);
                             }
                         }
                     }
-                    if (verbose) {
-                        progress.track(nobs - i - 1);
-                        if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
-                            verbose_message("Building Ensemble Graph %s [%.1fGb / %.1fGb]\r", progress.getProgress(), getUsedPhysMem(),
-                                            getTotalPhysMem() / 1024 / 1024);
-                        }
+                }
+                if (verbose) {
+                    progress.track(nobs - i - 1);
+                    if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
+                        verbose_message("Building Ensemble Graph %s [%.1fGb / %.1fGb]\r", progress.getProgress(), getUsedPhysMem(),
+                                        getTotalPhysMem() / 1024 / 1024);
                     }
                 }
-                verbose_message("Building Ensemble Graph %s [%.1fGb / %.1fGb]\r", progress.getProgress(), getUsedPhysMem(),
-                                getTotalPhysMem() / 1024 / 1024);
-
-                igraph_vector_resize_min(&g.to);
-                igraph_vector_resize_min(&g.from);
-                igraph_vector_resize_min(&weights);
-
-                // saveENSToFile(g, weights);
             }
+            verbose_message("Building Ensemble Graph %s [%.1fGb / %.1fGb]\r", progress.getProgress(), getUsedPhysMem(),
+                            getTotalPhysMem() / 1024 / 1024);
 
-            verbose_message("Finished Ensemble Graph (%lld vertices and %lld edges) [%.1fGb / %.1fGb]                          \n",
-                            igraph_vcount(&g), igraph_ecount(&g), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+            igraph_vector_resize_min(&g.to);
+            igraph_vector_resize_min(&g.from);
+            igraph_vector_resize_min(&weights);
 
-            igraph_node_vector_t membership;
-            igraph_vector_init(&membership, 0);
+            // saveENSToFile(g, weights);
+        }
 
-            igraph_rng_seed(igraph_rng_default(), seed);
+        verbose_message("Finished Ensemble Graph (%lld vertices and %lld edges) [%.1fGb / %.1fGb]                          \n",
+                        igraph_vcount(&g), igraph_ecount(&g), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
-            verbose_message("Starting Ensemble Binning [%.1fGb / %.1fGb]\n", getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
-            igraph_community_label_propagation(&g, &membership, &weights);
-            verbose_message("Finished Ensemble Binning [%.1fGb / %.1fGb]\n", getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+        igraph_node_vector_t membership;
+        igraph_vector_init(&membership, 0);
 
-            igraph_destroy(&g);
-            igraph_vector_destroy(&weights);
+        igraph_rng_seed(igraph_rng_default(), seed);
 
-            if (debug) {
-                std::ofstream os(outFile.c_str());
-                os.rdbuf()->pubsetbuf(os_buffer, buf_size);
-                for (size_t i = 0; i < nobs; ++i) {
-                    os << contig_names[gCtgIdx[i]] << tab_delim;
-                    os << VECTOR(membership)[i] << line_delim;
-                }
-                for (std::unordered_map<std::string_view, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
-                    os << contig_names[it->second] << tab_delim << 0 << line_delim;
-                }
-                os.close();
-            }
+        verbose_message("Starting Ensemble Binning [%.1fGb / %.1fGb]\n", getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+        igraph_community_label_propagation(&g, &membership, &weights);
+        verbose_message("Finished Ensemble Binning [%.1fGb / %.1fGb]\n", getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
-            cls.clear();
+        igraph_destroy(&g);
+        igraph_vector_destroy(&weights);
+
+        if (debug) {
+            std::ofstream os(outFile.c_str());
+            os.rdbuf()->pubsetbuf(os_buffer, buf_size);
             for (size_t i = 0; i < nobs; ++i) {
-                cls[VECTOR(membership)[i]].push_back(i);
+                os << contig_names[gCtgIdx[i]] << tab_delim;
+                os << VECTOR(membership)[i] << line_delim;
             }
-
-            igraph_vector_destroy(&membership);
+            for (std::unordered_map<std::string_view, size_t>::const_iterator it = ignored.begin(); it != ignored.end(); ++it) {
+                os << contig_names[it->second] << tab_delim << 0 << line_delim;
+            }
+            os.close();
         }
 
-        // if everything was fine, delete intermediate files
-        if (!keep && useEB) {
-            std::remove(("boot." + std::to_string(commandline_hash)).c_str());
-            std::remove(("ens." + std::to_string(commandline_hash)).c_str());
-            verbose_message("Cleaned up intermediate files\n");
+        cls.clear();
+        for (size_t i = 0; i < nobs; ++i) {
+            cls[VECTOR(membership)[i]].push_back(i);
         }
 
-        Distance binnedSize = 0;
+        igraph_vector_destroy(&membership);
+    }
 
-        // One of ways to make the bin ids deterministic... sort bins by their size
-        std::unordered_map<size_t, size_t> cls_size;
-        std::vector<DistancePair> cls_med_abd;
-        for (ClassMap::const_iterator it = cls.begin(); it != cls.end(); ++it) {
-            int kk = it->first;
-            size_t s = 0;
+    // if everything was fine, delete intermediate files
+    if (!keep && useEB) {
+        std::remove(("boot." + std::to_string(commandline_hash)).c_str());
+        std::remove(("ens." + std::to_string(commandline_hash)).c_str());
+        verbose_message("Cleaned up intermediate files\n");
+    }
+
+    Distance binnedSize = 0;
+
+    // One of ways to make the bin ids deterministic... sort bins by their size
+    std::unordered_map<size_t, size_t> cls_size;
+    std::vector<DistancePair> cls_med_abd;
+    for (ClassMap::const_iterator it = cls.begin(); it != cls.end(); ++it) {
+        int kk = it->first;
+        size_t s = 0;
+
+        for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
+            s += seqs[gCtgIdx[*it2]].size();
+        }
+        binnedSize += s;
+        cls_size[kk] = s;
+
+        DistancePair dp(kk, s);
+        cls_med_abd.push_back(dp);
+    }
+    sort(cls_med_abd.begin(), cls_med_abd.end(), cmp_abd);
+
+    ContigSet binned;
+
+    size_t bin_id = 1;
+    for (size_t k = 0; k < cls_med_abd.size(); ++k) {
+        size_t kk = cls_med_abd[k].first;
+
+        if (!fuzzy) {
+            int s = (int)cls_size[kk];
+            binnedSize -= s;
+            ContigSet unique;
+            for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
+                if (binned.find(*it2) != binned.end()) {  // binned already
+                    s -= (int)seqs[gCtgIdx[*it2]].size();
+                } else {
+                    binned.insert(*it2);
+                    unique.insert(*it2);
+                }
+            }
+            cls_size[kk] = s;
+            if (cls_size[kk] < minClsSize) {
+                continue;
+            }
+            binnedSize += cls_size[kk];
+            cls[kk].clear();
+            cls[kk].insert(cls[kk].end(), unique.begin(), unique.end());
+        }
+
+        if (!noBinOut) {
+            std::string outFile_cls = outFile + ".";
+            outFile_cls.append(boost::lexical_cast<std::string>(bin_id));
+            if (!onlyLabel) outFile_cls.append(".fa");
+
+            std::ofstream os(outFile_cls.c_str());
+            os.rdbuf()->pubsetbuf(os_buffer, buf_size);
 
             for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                s += seqs[gCtgIdx[*it2]].size();
-            }
-            binnedSize += s;
-            cls_size[kk] = s;
-
-            DistancePair dp(kk, s);
-            cls_med_abd.push_back(dp);
-        }
-        sort(cls_med_abd.begin(), cls_med_abd.end(), cmp_abd);
-
-        ContigSet binned;
-
-        size_t bin_id = 1;
-        for (size_t k = 0; k < cls_med_abd.size(); ++k) {
-            size_t kk = cls_med_abd[k].first;
-
-            if (!fuzzy) {
-                int s = (int)cls_size[kk];
-                binnedSize -= s;
-                ContigSet unique;
-                for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                    if (binned.find(*it2) != binned.end()) {  // binned already
-                        s -= (int)seqs[gCtgIdx[*it2]].size();
-                    } else {
-                        binned.insert(*it2);
-                        unique.insert(*it2);
+                std::string_view &label = contig_names[gCtgIdx[*it2]];
+                if (onlyLabel) {
+                    os << label << line_delim;
+                } else {
+                    std::string_view &seq = seqs[gCtgIdx[*it2]];
+                    os << fasta_delim << label << line_delim;
+                    for (size_t s = 0; s < seq.length(); s += 60) {
+                        os << seq.substr(s, 60) << line_delim;
                     }
                 }
-                cls_size[kk] = s;
-                if (cls_size[kk] < minClsSize) {
-                    continue;
-                }
-                binnedSize += cls_size[kk];
-                cls[kk].clear();
-                cls[kk].insert(cls[kk].end(), unique.begin(), unique.end());
             }
+            os.close();
 
-            if (!noBinOut) {
-                std::string outFile_cls = outFile + ".";
-                outFile_cls.append(boost::lexical_cast<std::string>(bin_id));
-                if (!onlyLabel) outFile_cls.append(".fa");
+            if (debug)
+                std::cout << "Bin " << bin_id << " (" << cls_size[kk] << " bases in " << cls[kk].size()
+                          << " contigs) was saved to: " << outFile_cls << std::endl;
+        }
 
-                std::ofstream os(outFile_cls.c_str());
+        bin_id++;
+    }
+
+    if (verbose) {
+        unsigned long long totalSize = 0;
+        for (std::vector<std::string_view>::iterator it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
+        verbose_message("%2.2f%% (%lld out of %lld bases) was binned.\n", (double)binnedSize / totalSize * 100,
+                        (unsigned long long)binnedSize, totalSize);
+    }
+
+    std::cout << "Number of clusters formed: " << bin_id - 1 << std::endl;
+
+    if (saveCls || outUnbinned) {
+#pragma omp parallel for
+        for (size_t k = 0; k < cls_med_abd.size(); ++k) {
+            ContigVector &clsV = cls[cls_med_abd[k].first];
+
+            // convert to global index
+            for (size_t m = 0; m < clsV.size(); ++m) {
+                clsV[m] = gCtgIdx[clsV[m]];
+            }
+        }
+
+        std::vector<size_t> clsMap(seqs.size(), 0);
+#pragma omp parallel for
+        for (size_t k = 0; k < cls_med_abd.size(); ++k) {
+            size_t kk = cls_med_abd[k].first;
+            for (size_t i = 0; i < cls[kk].size(); ++i) {
+                assert(cls[kk][i] < (int)clsMap.size());
+                clsMap[cls[kk][i]] = k + 1;
+            }
+        }
+
+        if (saveCls) {
+            if (!fuzzy) {
+                std::ofstream os(outFile.c_str());
                 os.rdbuf()->pubsetbuf(os_buffer, buf_size);
 
-                for (ContigVector::iterator it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                    std::string_view &label = contig_names[gCtgIdx[*it2]];
+                for (size_t i = 0; i < clsMap.size(); ++i) {
+                    os << contig_names[i];
+                    os << tab_delim << clsMap[i] << line_delim;
+                }
+                os.flush();
+                os.close();
+            } else {
+                // rows as contigs and columns as bins, so wanted to represent complete memberships.
+            }
+        }
+
+        if (outUnbinned) {
+            std::string outFile_cls = outFile + ".";
+            outFile_cls.append("unbinned");
+            if (!onlyLabel) outFile_cls.append(".fa");
+
+            std::ofstream os(outFile_cls.c_str());
+            os.rdbuf()->pubsetbuf(os_buffer, buf_size);
+
+            for (size_t i = 0; i < clsMap.size(); ++i) {
+                if (clsMap[i] == 0) {
                     if (onlyLabel) {
-                        os << label << line_delim;
+                        os << contig_names[i] << line_delim;
                     } else {
-                        std::string_view &seq = seqs[gCtgIdx[*it2]];
-                        os << fasta_delim << label << line_delim;
+                        std::string_view &seq = seqs[i];
+                        os << fasta_delim << contig_names[i] << line_delim;
                         for (size_t s = 0; s < seq.length(); s += 60) {
                             os << seq.substr(s, 60) << line_delim;
                         }
                     }
                 }
-                os.close();
-
-                if (debug)
-                    std::cout << "Bin " << bin_id << " (" << cls_size[kk] << " bases in " << cls[kk].size()
-                              << " contigs) was saved to: " << outFile_cls << std::endl;
             }
-
-            bin_id++;
+            os.flush();
+            os.close();
         }
-
-        if (verbose) {
-            unsigned long long totalSize = 0;
-            for (std::vector<std::string_view>::iterator it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
-            verbose_message("%2.2f%% (%lld out of %lld bases) was binned.\n", (double)binnedSize / totalSize * 100,
-                            (unsigned long long)binnedSize, totalSize);
-        }
-
-        std::cout << "Number of clusters formed: " << bin_id - 1 << std::endl;
-
-        if (saveCls || outUnbinned) {
-#pragma omp parallel for
-            for (size_t k = 0; k < cls_med_abd.size(); ++k) {
-                ContigVector &clsV = cls[cls_med_abd[k].first];
-
-                // convert to global index
-                for (size_t m = 0; m < clsV.size(); ++m) {
-                    clsV[m] = gCtgIdx[clsV[m]];
-                }
-            }
-
-            std::vector<size_t> clsMap(seqs.size(), 0);
-#pragma omp parallel for
-            for (size_t k = 0; k < cls_med_abd.size(); ++k) {
-                size_t kk = cls_med_abd[k].first;
-                for (size_t i = 0; i < cls[kk].size(); ++i) {
-                    assert(cls[kk][i] < (int)clsMap.size());
-                    clsMap[cls[kk][i]] = k + 1;
-                }
-            }
-
-            if (saveCls) {
-                if (!fuzzy) {
-                    std::ofstream os(outFile.c_str());
-                    os.rdbuf()->pubsetbuf(os_buffer, buf_size);
-
-                    for (size_t i = 0; i < clsMap.size(); ++i) {
-                        os << contig_names[i];
-                        os << tab_delim << clsMap[i] << line_delim;
-                    }
-                    os.flush();
-                    os.close();
-                } else {
-                    // rows as contigs and columns as bins, so wanted to represent complete memberships.
-                }
-            }
-
-            if (outUnbinned) {
-                std::string outFile_cls = outFile + ".";
-                outFile_cls.append("unbinned");
-                if (!onlyLabel) outFile_cls.append(".fa");
-
-                std::ofstream os(outFile_cls.c_str());
-                os.rdbuf()->pubsetbuf(os_buffer, buf_size);
-
-                for (size_t i = 0; i < clsMap.size(); ++i) {
-                    if (clsMap[i] == 0) {
-                        if (onlyLabel) {
-                            os << contig_names[i] << line_delim;
-                        } else {
-                            std::string_view &seq = seqs[i];
-                            os << fasta_delim << contig_names[i] << line_delim;
-                            for (size_t s = 0; s < seq.length(); s += 60) {
-                                os << seq.substr(s, 60) << line_delim;
-                            }
-                        }
-                    }
-                }
-                os.flush();
-                os.close();
-            }
-        }
-        cudaFreeHost(_mem);
-        // TIMERSTOP(total);
-        return 0;
     }
+    cudaFreeHost(_mem);
+    // TIMERSTOP(total);
+    return 0;
+}
