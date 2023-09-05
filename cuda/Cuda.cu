@@ -2587,6 +2587,7 @@ int main(int argc, char const *argv[]) {
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = _total / numThreads;
+                /*
                 #pragma omp parallel for 
                 for(int j = 0; j < numThreads; j++){   
                     size_t prob_to_process = _prob_per_thread;
@@ -2616,13 +2617,17 @@ int main(int argc, char const *argv[]) {
                         r1++;
                     }
                 }
-                /*
+                */
+                #pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
                     size_t discriminante = 1 + 8 * _index;
                     size_t r1 = (1 + sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
+                    if((r1 *(r1-1) + r2)% max_prob_per_kernel != j){
+                        std::cout << "index: " << _index << " r1: " << r1 << " r2: " << r2 << " j: " << j << std::endl;
+                    }
                     bool passed = true;
                     Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[j]);
                     //std::cout <<"index: "<< _index << " r1: " << r1 << " r2: " << r2 << " s: " << s << std::endl;
@@ -2632,7 +2637,6 @@ int main(int argc, char const *argv[]) {
                         { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
                 }
-                */
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
