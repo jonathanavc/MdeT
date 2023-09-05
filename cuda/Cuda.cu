@@ -2587,6 +2587,7 @@ int main(int argc, char const *argv[]) {
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
                 if(1){
+                    //mejor
                     #pragma omp parallel for 
                     for(int i = 0; i < numThreads; i++){
                         size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
@@ -2612,7 +2613,7 @@ int main(int argc, char const *argv[]) {
                                 Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
                                 if (passed && s >= requiredMinP) {
                                     #pragma omp critical(ADD_EDGE_1)
-                                    { boost::add_edge(r1, r2, Weight(s), gprob); }
+                                    { boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
                                 }
                                 prob_index++;
                                 r2++;
