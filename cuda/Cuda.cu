@@ -1881,7 +1881,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
     getError("kernel");
 }
 
-void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph * gprobt){
+void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, UndirectedGraph * gprobt){
     if(1){
         size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
         size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
@@ -2642,7 +2642,7 @@ int main(int argc, char const *argv[]) {
                                   << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
                 }
             }
-            create_graph(total_prob, prob_des, gprobt);
+            create_graph(total_prob, prob_des, requiredMinP, gprobt);
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             prob_des += max_prob_per_kernel;
