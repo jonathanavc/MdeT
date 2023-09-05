@@ -518,6 +518,8 @@ static double *tnf_prob;
 static double *tnf_prob_d;
 static size_t *seqs_d_size_d;
 static size_t max_prob_per_kernel;
+static char *seqs_d;
+static size_t *seqs_d_index;
 
 typedef std::vector<int> ContigVector;
 typedef std::set<int> ClassIdType;  // ordered
@@ -1819,8 +1821,6 @@ void getError(std::string s = "") {
 }
 
 void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des, cudaStream_t *streams) {
-    char *seqs_d;
-    size_t *seqs_d_index;
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
 
@@ -1859,7 +1859,7 @@ void wait_for_tnf_kernel(cudaStream_t *streams) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    getError("kernel");
+    getError("tnf_kernel");
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
 }
@@ -2668,7 +2668,7 @@ int main(int argc, char const *argv[]) {
         create_graph(total_prob, prob_des, requiredMinP, gprobt);
         progress.track(min(max_prob_per_kernel, total_prob - prob_des));
         verbose_message("Building a tnf graph: %s\r", progress.getProgress());
-        //prob_des += max_prob_per_kernel;
+        // prob_des += max_prob_per_kernel;
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
         cudaFree(seqs_d_size_d);
