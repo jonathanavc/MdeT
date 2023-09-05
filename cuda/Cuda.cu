@@ -1821,7 +1821,7 @@ void getError(std::string s = "") {
 }
 
 void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
-    cudastream_t streams[n_STREAMS];
+    cudaStream_t streams[n_STREAMS];
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
     size_t contig_per_kernel = cobs / n_STREAMS;
