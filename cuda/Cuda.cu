@@ -2587,7 +2587,7 @@ int main(int argc, char const *argv[]) {
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = _total / numThreads;
-                /*
+    
                 #pragma omp parallel for 
                 for(int j = 0; j < numThreads; j++){   
                     size_t prob_to_process = _prob_per_thread;
@@ -2619,7 +2619,7 @@ int main(int argc, char const *argv[]) {
                         r1++;
                     }
                 }
-                */
+                /*
                 #pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
@@ -2634,6 +2634,7 @@ int main(int argc, char const *argv[]) {
                         { boost::add_edge(r1, r2, Weight(s), gprob); }
                     }
                 }
+                */
             }
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
