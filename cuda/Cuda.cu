@@ -2610,7 +2610,7 @@ int main(int argc, char const *argv[]) {
         TIMERSTART(_tnf_prob);
         gprob.m_vertices.resize(nobs);
         UndirectedGraph gprobt[numThreads];
-        sdt::thread threads[2][2];
+        std::thread threads[2][2];
         // for (int i = 0; i < numThreads; i++) gprobt[i].m_vertices.resize(nobs);
         size_t prob_des = 0;
         size_t total_prob = (nobs * (nobs - 1)) / 2;
