@@ -2586,7 +2586,7 @@ int main(int argc, char const *argv[]) {
             if(1){
                 size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
                 size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-                if(0){
+                if(1){
                     #pragma omp parallel for 
                     for(int i = 0; i < numThreads; i++){
                         size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
@@ -2602,6 +2602,7 @@ int main(int argc, char const *argv[]) {
                                 continue;
                             }
                             while(r2 < r1){
+                                if(prob_index == _limit) break;
                                 if(smallCtgs.find(r2) != smallCtgs.end()){
                                     prob_index++;
                                     r2++;
