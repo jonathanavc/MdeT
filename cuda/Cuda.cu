@@ -2622,7 +2622,7 @@ int main(int argc, char const *argv[]) {
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
                     size_t discriminante = 1 + 8 * _index;
-                    size_t r1 = (1 + sqrt(discriminante)) / 2;
+                    size_t r1 = (sqrt(discriminante)) / 2;
                     size_t r2 = _index - r1 * (r1 - 1) / 2;
                     if(smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
                     if((r1 *(r1-1) + r2)% max_prob_per_kernel != j){
