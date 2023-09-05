@@ -2618,7 +2618,7 @@ int main(int argc, char const *argv[]) {
                     }
                 }
                 */
-                #pragma omp parallel for 
+                //#pragma omp parallel for 
                 for (size_t j = 0; j < _total; j++) {
                     size_t _index = prob_des + j;
                     size_t discriminante = 1 + 8 * _index;
