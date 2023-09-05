@@ -1820,7 +1820,7 @@ void getError(std::string s = "") {
     }
 }
 
-void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des, cudaStream_t *streams) {
+void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaMalloc((void **)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void **)&seqs_d_index, 2 * cobs * sizeof(size_t));
 
@@ -1843,7 +1843,6 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des, cudaStream
         cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des, contig_to_process * 136 * sizeof(float),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
-    /*
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
@@ -1851,34 +1850,17 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des, cudaStream
     getError("kernel");
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
-    */
 }
 
-void wait_for_tnf_kernel(cudaStream_t *streams) {
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    getError("tnf_kernel");
-    cudaFree(seqs_d);
-    cudaFree(seqs_d_index);
-}
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob) {
-    // std::cout << "launch_tnf_prob_kernel:" << prob_des << std::endl;
-    cudaStream_t streams[n_STREAMS];
+
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, cudaStream_t *streams) {
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
-    // std::cout << "total_prob_kernel:" << total_prob_kernel << std::endl;
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamCreate(&streams[i]);
-        // size_t prob_des = prob_per_kernel * i;
         size_t prob_to_process = prob_per_kernel;
-        // std::cout << "prob_des:" << prob_des << "|prob_per_kernel:" << prob_per_kernel << "|prob_to_process:" << prob_to_process <<
-        // std::endl;
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
-        // std::cout << "stream:" << i << "|ini:" << prob_des + prob_per_kernel * i << "|fin:" << prob_des + prob_per_kernel * i +
-        // prob_to_process << std::endl;
 
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d + prob_per_kernel * i, TNF_d, seqs_d_size_d,
@@ -1892,6 +1874,14 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         cudaStreamDestroy(streams[i]);
     }
     getError("kernel");
+}
+
+void wait_for_tnf_prob_kernel(cudaStream_t *streams) {
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
+    }
+    getError("tnf_prob_kernel");
 }
 
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, UndirectedGraph *gprobt) {
