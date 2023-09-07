@@ -2653,6 +2653,9 @@ int main(int argc, char const *argv[]) {
             }
             */
         }
+        for (int i = 0; i < 2; i++) {
+            if (threads[i].joinable()) threads[i].join();
+        }
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
         cudaFree(seqs_d_size_d);
