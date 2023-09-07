@@ -2609,9 +2609,8 @@ int main(int argc, char const *argv[]) {
         int _index = 0;
         TIMERSTART(_tnf_prob);
         gprob.m_vertices.resize(nobs);
-        UndirectedGraph gprobt[numThreads];
+        //UndirectedGraph gprobt[numThreads];
         std::thread threads[2];
-        // for (int i = 0; i < numThreads; i++) gprobt[i].m_vertices.resize(nobs);
         size_t prob_des = 0;
         size_t total_prob = (nobs * (nobs - 1)) / 2;
         max_prob_per_kernel = max_gpu_mem / (sizeof(double) * 2);
