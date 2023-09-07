@@ -1854,7 +1854,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph gprobt, Distance requiredMinP, int _index) {
+void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph * gprobt, Distance requiredMinP, int _index) {
     if (1) {
         size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
         size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
@@ -1915,7 +1915,7 @@ void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph gprobt, Di
     }
 }
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, UndirectedGraph gprobt, Distance minProb,
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, UndirectedGraph * gprobt, Distance minProb,
                             int _index) {
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
