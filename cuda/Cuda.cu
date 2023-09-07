@@ -1855,61 +1855,59 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
+    size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
+    size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
     if (1) {
-        size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-        size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-        if (1) {
 // mejor
 #pragma omp parallel for
-            for (int i = 0; i < numThreads; i++) {
-                size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
-                size_t prob_index = prob_des + _prob_per_thread * i;
-                size_t discriminante = 1 + 8 * prob_index;
-                size_t r1 = (1 + sqrt(discriminante)) / 2;
-                size_t r2 = prob_index - r1 * (r1 - 1) / 2;
-                while (prob_index < _limit) {
-                    if (smallCtgs.find(r1) != smallCtgs.end()) {
-                        prob_index += r1 - r2;
-                        r2 = 0;
-                        r1++;
-                        continue;
-                    }
-                    while (r2 < r1) {
-                        if (prob_index == _limit) break;
-                        if (smallCtgs.find(r2) != smallCtgs.end()) {
-                            prob_index++;
-                            r2++;
-                            continue;
-                        }
-                        bool passed = true;
-                        Similarity s =
-                            1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index][prob_index % max_prob_per_kernel]);
-                        if (passed && s >= requiredMinP) {
-#pragma omp critical(ADD_EDGE_1)
-                            { boost::add_edge(r1, r2, Weight(s), gprob); }
-                            //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
-                        }
-                        prob_index++;
-                        r2++;
-                    }
+        for (int i = 0; i < numThreads; i++) {
+            size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
+            size_t prob_index = prob_des + _prob_per_thread * i;
+            size_t discriminante = 1 + 8 * prob_index;
+            size_t r1 = (1 + sqrt(discriminante)) / 2;
+            size_t r2 = prob_index - r1 * (r1 - 1) / 2;
+            while (prob_index < _limit) {
+                if (smallCtgs.find(r1) != smallCtgs.end()) {
+                    prob_index += r1 - r2;
                     r2 = 0;
                     r1++;
+                    continue;
                 }
-            }
-        } else {
-#pragma omp parallel for
-            for (size_t j = 0; j < _total; j++) {
-                size_t _index = prob_des + j;
-                size_t discriminante = 1 + 8 * _index;
-                size_t r1 = (1 + sqrt(discriminante)) / 2;
-                size_t r2 = _index - r1 * (r1 - 1) / 2;
-                if (smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
-                bool passed = true;
-                Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
-                if (passed && s >= requiredMinP) {
+                while (r2 < r1) {
+                    if (prob_index == _limit) break;
+                    if (smallCtgs.find(r2) != smallCtgs.end()) {
+                        prob_index++;
+                        r2++;
+                        continue;
+                    }
+                    bool passed = true;
+                    Similarity s =
+                        1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index][prob_index % max_prob_per_kernel]);
+                    if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                    { boost::add_edge(r1, r2, Weight(s), gprob); }
+                        { boost::add_edge(r1, r2, Weight(s), gprob); }
+                        //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
+                    }
+                    prob_index++;
+                    r2++;
                 }
+                r2 = 0;
+                r1++;
+            }
+        }
+    } else {
+#pragma omp parallel for
+        for (size_t j = 0; j < _total; j++) {
+            size_t _index = prob_des + j;
+            size_t discriminante = 1 + 8 * _index;
+            size_t r1 = (1 + sqrt(discriminante)) / 2;
+            size_t r2 = _index - r1 * (r1 - 1) / 2;
+            if (smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
+            bool passed = true;
+            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
+            if (passed && s >= requiredMinP) {
+#pragma omp critical(ADD_EDGE_1)
+                { boost::add_edge(r1, r2, Weight(s), gprob); }
             }
         }
     }
@@ -2609,7 +2607,7 @@ int main(int argc, char const *argv[]) {
         int _index = 0;
         TIMERSTART(_tnf_prob);
         gprob.m_vertices.resize(nobs);
-        //UndirectedGraph gprobt[numThreads];
+        // UndirectedGraph gprobt[numThreads];
         std::thread threads[2];
         size_t prob_des = 0;
         size_t total_prob = (nobs * (nobs - 1)) / 2;
