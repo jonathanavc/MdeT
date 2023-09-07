@@ -1854,30 +1854,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, int _index) {
-    cudaStream_t streams[n_STREAMS];
-    size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
-    size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamCreate(&streams[i]);
-        size_t prob_to_process = prob_per_kernel;
-        if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
-
-        size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d[_index] + prob_per_kernel * i, TNF_d, seqs_d_size_d,
-                                                                prob_des + prob_per_kernel * i, prob_per_thread,
-                                                                prob_des + prob_per_kernel * i + prob_to_process);
-        cudaMemcpyAsync(tnf_prob[_index] + prob_per_kernel * i, tnf_prob_d[_index] + prob_per_kernel * i,
-                        prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
-    }
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    getError("kernel");
-}
-
-void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, UndirectedGraph *gprobt, int _index) {
+void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
     if (1) {
         size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
         size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
@@ -1936,6 +1913,30 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, Und
             }
         }
     }
+}
+
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, Distace minProb, int _index) {
+    cudaStream_t streams[n_STREAMS];
+    size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
+    size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamCreate(&streams[i]);
+        size_t prob_to_process = prob_per_kernel;
+        if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
+
+        size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(tnf_prob_d[_index] + prob_per_kernel * i, TNF_d, seqs_d_size_d,
+                                                                prob_des + prob_per_kernel * i, prob_per_thread,
+                                                                prob_des + prob_per_kernel * i + prob_to_process);
+        cudaMemcpyAsync(tnf_prob[_index] + prob_per_kernel * i, tnf_prob_d[_index] + prob_per_kernel * i,
+                        prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
+    }
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
+    }
+    getError("kernel");
+    create_graph(total_prob, prob_des, minProb, _index);
 }
 
 int main(int argc, char const *argv[]) {
@@ -2628,11 +2629,10 @@ int main(int argc, char const *argv[]) {
         for (size_t i = 0; i < cant_kernels; i++) {
             if (threads[_index].joinable()) {
                 threads[_index].join();
-                threads[_index] = std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, _index);
             }
-            // threads[_index] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
+            threads[_index] = std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, requiredMinP, _index);
             //  launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
-            threads[_index] = std::thread([&]() { create_graph(total_prob, prob_des, requiredMinP, gprobt, _index); });
+            // threads[_index] = std::thread(create_graph, total_prob, prob_des, requiredMinP, gprobt, _index);
             // create_graph(total_prob, prob_des, requiredMinP, gprobt);
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
