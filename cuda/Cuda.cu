@@ -1936,7 +1936,7 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
         cudaStreamDestroy(streams[i]);
     }
     getError("kernel");
-    create_graph(total_prob, prob_des, gprobt, minProb, _index);
+    create_graph(total_prob, prob_des, minProb, _index);
 }
 
 int main(int argc, char const *argv[]) {
