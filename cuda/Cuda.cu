@@ -2626,7 +2626,7 @@ int main(int argc, char const *argv[]) {
         cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
-            if (threads[_index][1].joinable()) threads[_index][1].join();
+            if (threads[_index].joinable()) threads[_index].join();
             threads[_index] = std::thread([&]() { launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob, _index); });
             // launch_tnf_prob_kernel(max_prob_per_kernel, prob_des, total_prob);
             threads[_index] = std::thread([&]() { create_graph(total_prob, prob_des, requiredMinP, gprobt, _index); });
