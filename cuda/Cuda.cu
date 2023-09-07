@@ -1854,7 +1854,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph *gprobt, Distance requiredMinP, int _index) {
+void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
     if (1) {
         size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
         size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
@@ -1886,8 +1886,8 @@ void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph *gprobt, D
                             1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index][prob_index % max_prob_per_kernel]);
                         if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                            //{ boost::add_edge(r1, r2, Weight(s), gprob); }
-                            { boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
+                            { boost::add_edge(r1, r2, Weight(s), gprob); }
+                            //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
                         }
                         prob_index++;
                         r2++;
@@ -1915,8 +1915,7 @@ void create_graph(size_t total_prob, size_t prob_des, UndirectedGraph *gprobt, D
     }
 }
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, UndirectedGraph *gprobt, Distance minProb,
-                            int _index) {
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, Distance minProb, int _index) {
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
@@ -2633,8 +2632,7 @@ int main(int argc, char const *argv[]) {
                 progress.track(min(max_prob_per_kernel, total_prob - prob_des));
                 verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             }
-            threads[_index] =
-                std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, &gprobt[0], requiredMinP, _index);
+            threads[_index] = std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, requiredMinP, _index);
             prob_des += max_prob_per_kernel;
             _index = (_index + 1) % 2;
             /*
@@ -2654,6 +2652,8 @@ int main(int argc, char const *argv[]) {
         }
         for (int i = 0; i < 2; i++) {
             if (threads[i].joinable()) threads[i].join();
+            progress.track(min(max_prob_per_kernel, total_prob - prob_des));
+            verbose_message("Building a tnf graph: %s\r", progress.getProgress());
         }
         cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
