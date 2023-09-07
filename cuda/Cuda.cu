@@ -2634,7 +2634,7 @@ int main(int argc, char const *argv[]) {
                 verbose_message("Building a tnf graph: %s\r", progress.getProgress());
             }
             threads[_index] =
-                std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, gprobt, requiredMinP, _index);
+                std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, &gprobt[0], requiredMinP, _index);
             prob_des += max_prob_per_kernel;
             _index = (_index + 1) % 2;
             /*
