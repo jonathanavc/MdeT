@@ -2634,20 +2634,6 @@ int main(int argc, char const *argv[]) {
             threads[_index] = std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, requiredMinP, _index);
             prob_des += max_prob_per_kernel;
             _index = (_index + 1) % 2;
-            /*
-            if (0) {
-                size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
-                for (size_t j = 0; j < _total; j++) {
-                    size_t _index = prob_des + j;
-                    size_t discriminante = 1 + 8 * _index;
-                    size_t r1 = (1 + sqrt(discriminante)) / 2;
-                    size_t r2 = _index - r1 * (r1 - 1) / 2;
-                    if (abs(tnf_prob[j] - cal_tnf_dist(r1, r2)) > 0.001)
-                        std::cout << "index: " << _index << " r1: " << r1 << " r2: " << r2 << " tnf_prob: " << tnf_prob[i]
-                                  << " tnf_dist: " << cal_tnf_dist(r1, r2) << std::endl;
-                }
-            }
-            */
         }
         for (int i = 0; i < 2; i++) {
             if (threads[i].joinable()) threads[i].join();
