@@ -1915,7 +1915,7 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
     }
 }
 
-void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, Distace minProb, int _index) {
+void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t total_prob, Distance minProb, int _index) {
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = min(max_prob_per_kernel, total_prob - prob_des);
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
