@@ -166,6 +166,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     r2 = prob_index - r1 * (r1 - 1) / 2;
 
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
+    if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
         /*
         for (int i = 0; i < 136; i++) {
