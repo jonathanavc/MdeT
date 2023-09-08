@@ -1775,64 +1775,32 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
-    UndirectedGraph gprobt[numThreads];
-    for (int i = 0; i < numThreads; i++) {
-        gprobt[i].m_vertices.resize(nobs);
-    }
     size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
     size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-    if (1) {
-// mejor
 #pragma omp parallel for
-        for (int i = 0; i < numThreads; i++) {
-            size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
-            size_t prob_index = prob_des + _prob_per_thread * i;
-            size_t discriminante = 1 + 8 * prob_index;
-            size_t r1 = (1 + sqrt(discriminante)) / 2;
-            size_t r2 = prob_index - r1 * (r1 - 1) / 2;
-            while (prob_index < _limit) {
-                while (r2 < r1) {
-                    if (prob_index == _limit) break;
-                    bool passed = true;
-                    Similarity s = 1. - cal_dist2(contigs[r1], contigs[r2], 1. - requiredMinP, passed,
-                                                  tnf_prob[_index][prob_index % max_prob_per_kernel]);
-                    // std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
-                    if (passed && s >= requiredMinP) {
-                        // #pragma omp critical(ADD_EDGE_1)
-                        //{ boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
-                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprobt[omp_get_thread_num()]);
-                    }
-                    prob_index++;
-                    r2++;
-                }
-                r2 = 0;
-                r1++;
-            }
-        }
-        for (size_t i = 0; i < numThreads; i++) {
-            boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
-            for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
-                auto source = boost::source(*ei, gprobt[i]);
-                auto target = boost::target(*ei, gprobt[i]);
-                double weight = boost::get(boost::edge_weight, gprobt[i], *ei);
-                boost::add_edge(source, target, Weight(weight), gprob);
-            }
-        }
-
-    } else {
-#pragma omp parallel for
-        for (size_t j = 0; j < _total; j++) {
-            size_t _index = prob_des + j;
-            size_t discriminante = 1 + 8 * _index;
-            size_t r1 = (1 + sqrt(discriminante)) / 2;
-            size_t r2 = _index - r1 * (r1 - 1) / 2;
-            if (smallCtgs.find(r1) != smallCtgs.end() || smallCtgs.find(r2) != smallCtgs.end()) continue;
-            bool passed = true;
-            Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
-            if (passed && s >= requiredMinP) {
+    for (int i = 0; i < numThreads; i++) {
+        size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
+        size_t prob_index = prob_des + _prob_per_thread * i;
+        size_t discriminante = 1 + 8 * prob_index;
+        size_t r1 = (1 + sqrt(discriminante)) / 2;
+        size_t r2 = prob_index - r1 * (r1 - 1) / 2;
+        while (prob_index < _limit) {
+            while (r2 < r1) {
+                if (prob_index == _limit) break;
+                bool passed = true;
+                Similarity s = 1. - cal_dist2(contigs[r1], contigs[r2], 1. - requiredMinP, passed,
+                                              tnf_prob[_index][prob_index % max_prob_per_kernel]);
+                // std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
+                if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
+                    { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
+                    // boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprobt[omp_get_thread_num()]);
+                }
+                prob_index++;
+                r2++;
             }
+            r2 = 0;
+            r1++;
         }
     }
 }
