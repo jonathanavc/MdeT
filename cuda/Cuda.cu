@@ -2512,9 +2512,9 @@ int main(int argc, char const *argv[]) {
 
     max_gpu_mem = min(max_gpu_mem, (size_t)500000000);
 
+    TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         int _index = 0;
-        TIMERSTART(_tnf_prob);
         gprob.m_vertices.resize(nobs);
         // UndirectedGraph gprobt[numThreads];
         std::thread threads[2];
@@ -2554,10 +2554,10 @@ int main(int argc, char const *argv[]) {
         cudaFree(seqs_d_size_d);
         cudaFreeHost(tnf_prob);
         seqs_h_index_i.clear();
-        TIMERSTOP(_tnf_prob);
     }
+    TIMERSTOP(probabilisticgraph);
 
-    TIMERSTART(probabilisticgraph);
+    // TIMERSTART(probabilisticgraph);
     if (0 & !loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         ProgressTracker progress = ProgressTracker(nobs * (nobs - 1) / 2, nobs / 100 + 1);
         gprob.m_vertices.resize(nobs);
@@ -2603,7 +2603,7 @@ int main(int argc, char const *argv[]) {
         */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
-    TIMERSTOP(probabilisticgraph);
+    //TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
