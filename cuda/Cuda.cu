@@ -168,14 +168,12 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
     if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
-        /*
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
         }
-        */
         while (r2 < r1) {
             if (tnf_dist_index == _limit2) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], TNF + r1 * 136, TNF + r2 * 136);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
             tnf_dist_index++;
             r2++;
         }
