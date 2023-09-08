@@ -166,7 +166,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     r2 = prob_index - r1 * (r1 - 1) / 2;
 
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
-    while (tnf_dist_index < _limit2) {
+    while (tnf_dist_index != _limit2) {
         /*
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
@@ -2411,13 +2411,13 @@ int main(int argc, char const *argv[]) {
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
         }
-        cudaFree(TNF_d);
         cudaFree(tnf_prob_d);
         cudaFree(seqs_d_size_d);
         cudaFreeHost(tnf_prob);
         seqs_h_index_i.clear();
         saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
+    cudaFree(TNF_d);
     TIMERSTOP(probabilisticgraph);
 
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
