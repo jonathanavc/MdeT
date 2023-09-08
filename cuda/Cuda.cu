@@ -2496,7 +2496,7 @@ int main(int argc, char const *argv[]) {
         */
         for (size_t i = 0; i < ncontigs; i++) {
             for (int j = 0; j < 136; j++) {
-                TNF(contgs[i], j) = TNF_data[i * 136 + j];
+                TNF(contigs[i], j) = TNF_data[i * 136 + j];
             }
         }
         cudaFreeHost(TNF_data);
