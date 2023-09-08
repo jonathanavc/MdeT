@@ -1888,8 +1888,8 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
                     bool passed = true;
                     Similarity s = 1. - cal_dist2(contigs[r1], contigs[r2], 1. - requiredMinP, passed,
                                                   tnf_prob[_index][prob_index % max_prob_per_kernel]);
+                    std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
                     if (passed && s >= requiredMinP) {
-                        std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
                         //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
