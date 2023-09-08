@@ -406,6 +406,7 @@ static std::vector<size_t> contigs;
 static float *TNF_d;
 
 // char *seqs_d;
+static size_t ncontigs;
 static char *_mem;
 static size_t fsize;
 static double *tnf_prob[2];
@@ -1082,7 +1083,12 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     } else {
         return false;
     }
-
+    for (size_t i = 0; i < ncontigs; i++) {
+        for (int j = 0; j < 136; j++) {
+            TNF_data[i * 136 + j] = TNF(contigs[i], j);
+        }
+    }
+    cudaMemcpy(TNF_d, TNF_data, ncontigs * 136 * sizeof(float), cudaMemcpyHostToDevice);
     return true;
 }
 
@@ -2398,7 +2404,7 @@ int main(int argc, char const *argv[]) {
             contigs.push_back(i);
         }
     }
-    size_t ncontigs = contigs.size();
+    ncontigs = contigs.size();
 
     TIMERSTART(TNF_CAL);
     // float *TNF2;
@@ -2432,51 +2438,6 @@ int main(int argc, char const *argv[]) {
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
-        // cargar todo el archivo en gpu
-        /*
-        if (1) {
-            float *TNF_d;
-            char *seqs_d;
-            size_t *seqs_d_index;
-            seqs_h_index_i.reserve(nobs);
-            seqs_h_index_e.reserve(nobs);
-            cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
-            cudaMalloc((void **)&seqs_d, fsize);
-            cudaMalloc((void **)&seqs_d_index, 2 * nobs * sizeof(size_t));
-            cudaStream_t streams[n_STREAMS];
-            size_t contig_per_kernel = nobs / n_STREAMS;
-            for (int i = 0; i < n_STREAMS; i++) {
-                cudaStreamCreate(&streams[i]);
-                size_t contig_to_process = contig_per_kernel;
-                size_t _des = contig_per_kernel * i;
-                size_t TNF_des = _des * 136;
-                if (i == n_STREAMS - 1) contig_to_process += (nobs % n_STREAMS);
-                size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-                for (size_t j = 0; j < contig_to_process; j++) {
-                    seqs_h_index_i.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem);
-                    seqs_h_index_e.emplace_back(&seqs[gCtgIdx[_des + j]][0] - _mem + seqs[gCtgIdx[_des + j]].size());
-                }
-                cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], _mem + seqs_h_index_i[_des],
-                                seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice,
-                                streams[i]);
-                cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t),
-                                cudaMemcpyHostToDevice, streams[i]);
-                cudaMemcpyAsync(seqs_d_index + nobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
-                                cudaMemcpyHostToDevice, streams[i]);
-                get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                                   contigs_per_thread, nobs);
-                cudaMemcpyAsync(TNF2 + TNF_des, TNF_d + TNF_des, contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost,
-                                streams[i]);
-            }
-            for (int i = 0; i < n_STREAMS; i++) {
-                cudaStreamSynchronize(streams[i]);
-                cudaStreamDestroy(streams[i]);
-            }
-            seqs_h_index_i.clear();
-            seqs_h_index_e.clear();
-            cudaFree(seqs_d);
-        }
-        */
         for (size_t i = 0; i < ncontigs; i++) {
             for (int j = 0; j < 136; j++) {
                 if (TNF_data[i * 136 + j] != TNF_data[i * 136 + j]) {
@@ -2485,20 +2446,11 @@ int main(int argc, char const *argv[]) {
                 TNF(contigs[i], j) = TNF_data[i * 136 + j];
             }
         }
-        cudaFreeHost(TNF_data);
         saveTNFToFile(saveTNFFile, minContig);
     }
+    cudaFreeHost(TNF_data);
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
-
-    /*
-    for (size_t i = 0; i < ncontigs; i++) {
-        for (size_t j = 0; j < 136; j++) {
-            std::cout << TNF[i * 136 + j] << " ";
-        }
-        std::cout << "\n";
-    }
-    */
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
@@ -2516,7 +2468,6 @@ int main(int argc, char const *argv[]) {
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         int _index = 0;
         gprob.m_vertices.resize(nobs);
-        // UndirectedGraph gprobt[numThreads];
         std::thread threads[2];
         size_t prob_des = 0;
         size_t total_prob = (ncontigs * (ncontigs - 1)) / 2;
@@ -2603,7 +2554,7 @@ int main(int argc, char const *argv[]) {
         */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
-    //TIMERSTOP(probabilisticgraph);
+    // TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
