@@ -2593,6 +2593,12 @@ int main(int argc, char const *argv[]) {
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
+    for (size_t i = 0; i < contigs; i++) {
+        for (size_t j = 0; j < 136; j++) {
+            std::cout << TNF[i * 136 + j] << " ";
+        }
+        std::cout << "\n";
+    }
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
