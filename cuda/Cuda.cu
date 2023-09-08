@@ -154,65 +154,6 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     return prob;
 }
 
-/*
-__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, const float *__restrict__ _tnf, const float *__restrict__ TNF,
-                                  const size_t *__restrict__ seqs_d_index, const size_t seqs_d_index_size) {
-    double d = 0;
-    for (size_t i = 0; i < 136; ++i) {
-        d += (_tnf[i] - TNF[r2 * 136 + i]) * (_tnf[i] - TNF[r2 * 136 + i]);  // euclidean distance
-    }
-    d = sqrt(d);
-    double b, c;
-    double ctg1_s = seqs_d_index[r1 + seqs_d_index_size] - seqs_d_index[r1];
-    double ctg2_s = seqs_d_index[r2 + seqs_d_index_size] - seqs_d_index[r2];
-    double ctg1 = min(ctg1_s, (double)500000);
-    double ctg2 = min(ctg2_s, (double)500000);
-    double lw[19];
-    lw[0] = log10(min(ctg1, ctg2));
-    lw[1] = log10(max(ctg1, ctg2));
-    lw[2] = lw[0] * lw[0];
-    lw[4] = lw[2] * lw[0];
-    lw[6] = lw[4] * lw[0];
-    lw[8] = lw[6] * lw[0];
-    lw[10] = lw[8] * lw[0];
-    lw[11] = lw[10] * lw[0];
-    lw[3] = lw[1] * lw[1];
-    lw[5] = lw[3] * lw[1];
-    lw[7] = lw[5] * lw[1];
-    lw[9] = lw[7] * lw[1];
-    lw[12] = lw[0] * lw[1];
-    lw[14] = lw[4] * lw[5];
-    lw[15] = lw[6] * lw[7];
-    lw[16] = lw[8] * lw[9];
-    lw[13] = lw[2] * lw[3];
-    lw[18] = lw[9] * lw[1];
-    double prob;
-    b = 46349.1624324381 + -76092.3748553155 * lw[0] + -639.918334183 * lw[1] + 53873.3933743949 * lw[2] + -156.6547554844 * lw[3] +
-        -21263.6010657275 * lw[4] + 64.7719132839 * lw[5] + 5003.2646455284 * lw[6] + -8.5014386744 * lw[7] + -700.5825500292 * lw[8] +
-        0.3968284526 * lw[9] + 54.037542743 * lw[10] + -1.7713972342 * lw[11] + 474.0850141891 * lw[12] + -23.966597785 * lw[13] +
-        0.7800219061 * lw[14] + -0.0138723693 * lw[15] + 0.0001027543 * lw[16];
-    c = -443565.465710869 + 718862.10804858 * lw[0] + 5114.1630934534 * lw[1] + -501588.206183097 * lw[2] + 784.4442123743 * lw[3] +
-        194712.394138513 * lw[4] + -377.9645994741 * lw[5] + -45088.7863182741 * lw[6] + 50.5960513287 * lw[7] +
-        6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
-        -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
-    prob = 1.0 / (1 + exp(-(b + c * d)));
-    if (prob >= .1) {
-        b = 6770.9351457442 + -5933.7589419767 * lw[0] + -2976.2879986855 * lw[1] + 3279.7524685865 * lw[2] + 1602.7544794819 * lw[3] +
-            -967.2906583423 * lw[4] + -462.0149190219 * lw[5] + 159.8317289682 * lw[6] + 74.4884405822 * lw[7] +
-            -14.0267151808 * lw[8] + -6.3644917671 * lw[9] + 0.5108811613 * lw[10] + 0.2252455343 * lw[18] + 0.965040193 * lw[13] +
-            -0.0546309127 * lw[14] + 0.0012917084 * lw[15] + -1.14383e-05 * lw[16];
-        c = 39406.5712626297 + -77863.1741143294 * lw[0] + 9586.8761567725 * lw[1] + 55360.1701572325 * lw[2] +
-            -5825.2491611377 * lw[3] + -21887.8400068324 * lw[4] + 1751.6803621934 * lw[5] + 5158.3764225203 * lw[6] +
-            -290.1765894829 * lw[7] + -724.0348081819 * lw[8] + 25.364646181 * lw[9] + 56.0522105105 * lw[10] +
-            -0.9172073892 * lw[18] + -1.8470088417 * lw[11] + 449.4660736502 * lw[12] + -24.4141920625 * lw[13] +
-            0.8465834103 * lw[14] + -0.0158943762 * lw[15] + 0.0001235384 * lw[16];
-        prob = 1.0 / (1 + exp(-(b + c * d)));
-        prob = prob < .1 ? .1 : prob;
-    }
-    return prob;
-}
-*/
-
 __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size, size_t _des,
                              const size_t contig_per_thread, const size_t limit) {
     size_t r1;
@@ -257,52 +198,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     }
 }
 
-/*
-__global__ void get_tnf_prob2(double *tnf_dist, float *TNF, size_t *seqs_d_size, size_t nobs, size_t contig_per_thread) {
-    const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
-    float _tnf[136];
-    size_t tnf_prob_index;
-    for (int i = 0; i < contig_per_thread; i++) {
-        int contig_index = index + i;
-        if (contig_index >= nobs) break;
-        for (int i = 0; i < 136; i++) {
-            _tnf[i] = TNF[contig_index + i];
-        }
-        int row = (contig_index * (contig_index - 1)) / 2;
-        for (int j = contig_index - 1; j >= 0; j--) {
-            tnf_prob_index = row + j;
-            // tnf_dist[tnf_prob_index] = cal_tnf_dist_d2(contig_index, j, _tnf, TNF, seqs_d_index, nobs);
-            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(contig_index, j, TNF, seqs_d_size);
-            __syncthreads();
-        }
-    }
-}
-*/
-
-/*
-__global__ void get_tnf_prob3(double *tnf_dist, float *TNF, size_t *seqs_d_index, size_t nobs, size_t contig_per_thread) {
-    const size_t index = contig_per_thread * (threadIdx.x + blockIdx.x * blockDim.x) + 1;
-    size_t tnf_prob_index;
-    for (size_t i = index + 1; i < index + contig_per_thread; i++) {
-        for (size_t j = index; j < i; j++) {
-            if (i == j) continue;
-            tnf_prob_index = (i * (i - 1)) / 2 + j;
-            tnf_dist[tnf_prob_index] = cal_tnf_dist_d(i, j, TNF, seqs_d_index, nobs);
-        }
-    }
-    __syncthreads();
-
-    size_t _tam = contig_per_thread;
-    size_t contig_i;
-    size_t contig_e;
-    for (size_t i = 0; i < count; i++) {
-        if (index % 2 == 0) {
-            _tam *= 2;
-        }
-    }
-}
-*/
-
 __device__ short get_tn(const char *contig, const size_t index) {
     unsigned char N;
     short tn = 0;
@@ -337,12 +232,10 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         double rsum = 0;
         for (int c = 0; c < 136; ++c) {
             rsum += TNF_temp[c] * TNF_temp[c];
-            // rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
         }
         rsum = sqrt(rsum);
         for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
-            // TNF_d[tnf_index + c] /= rsum;  // OK
         }
     }
     /*
@@ -533,8 +426,8 @@ static size_t nobs2;  // number of contigs used for binning
 
 static boost::numeric::ublas::matrix<float> ABD;
 static boost::numeric::ublas::matrix<float> ABD_VAR;
-// static boost::numeric::ublas::matrix<float> TNF;
-static float *TNF;
+static boost::numeric::ublas::matrix<float> TNF;
+static float *TNF_data;
 
 // typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
 
@@ -766,9 +659,6 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     double d = 0;
-    __m256 dis;
-    size_t _r1 = r1 * 136;
-    size_t _r2 = r2 * 136;
     /*
     for (int i = 0; i < 136; i += 8) {
         dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
@@ -778,7 +668,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     */
 
     for (size_t i = 0; i < 136; ++i) {
-        d += (TNF[_r1 + i] - TNF[_r2 + i]) * (TNF[_r1 + i] - TNF[_r2 + i]);  // euclidean distance
+        d += (TNF(r1, i) - TNF(r2, i)) * (TNF(r1, i) - TNF(r2, i));  // euclidean distance
     }
 
     d = sqrt(d);
@@ -882,9 +772,7 @@ Distance cal_abd_dist2(Poisson &p1, Poisson &p2) {
 Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
     Distance d = 0;
     int nns = 0;
-
     assert(r1 < nobs && r2 < nobs);
-
     Distance m1sum = 0, m2sum = 0;
     //	Distance v1sum = 0, v2sum = 0;
     for (size_t i = 0; i < nABD; ++i) {
@@ -925,7 +813,6 @@ Distance cal_abd_dist(size_t r1, size_t r2, int &nnz) {
         // both samples are very low abundance, use TNF
         return 1;
     }
-
     if (nns == (int)nABD)  // the same
         return 0;
     else
@@ -960,19 +847,11 @@ Distance cal_dist(size_t r1, size_t r2) {
     return cal_dist(r1, r2, maxDist, passed);
 }
 
-// Distance cal_tnf_dist2(size_t r1, size_t r2) { return tnf_prob[((r1 * (r1 - 1)) / 2 + r2) % max_prob_per_kernel]; }
-
 Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distance tnf_dist) {
-    assert(smallCtgs.find(r1) == smallCtgs.end());
-    assert(smallCtgs.find(r2) == smallCtgs.end());
     Distance abd_dist = 0;
     int nnz = 0;
     if (r1 == r2) return 0;
-    /*
-    if (tnf_dist == -1) {
-        tnf_dist = cal_tnf_dist2(r1, r2);
-    }
-    */
+
     if (!passed && tnf_dist > maxDist) {
         return 1;
     }
@@ -1012,21 +891,16 @@ Distance cal_abd_corr(size_t r1, size_t r2) {
     double delta_x, delta_y;
     double mean_x = 0.0, mean_y = 0.0;
     double r = 0.0;
-
     size_t s = 0;  // skipped
-
     for (i = 0; i < nABD; ++i) {
         Distance m1 = ABD(r1, i);
         Distance m2 = ABD(r2, i);
-
         ii = i - s;
-
         if (ii == 0) {
             mean_x = m1;
             mean_y = m2;
             continue;
         }
-
         ratio = ii / (ii + 1.0);
         delta_x = m1 - mean_x;
         delta_y = m2 - mean_y;
@@ -1036,13 +910,10 @@ Distance cal_abd_corr(size_t r1, size_t r2) {
         mean_x += delta_x / (ii + 1.0);
         mean_y += delta_y / (ii + 1.0);
     }
-
     r = sum_cross / (sqrt(sum_xsq) * sqrt(sum_ysq));
-
     if (nABD - s < minSamples) {
         return 0;
     }
-
     return r;
 }
 
@@ -1187,6 +1058,7 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
 }
 
 void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
+    /*
     if (saveTNFFile.empty()) return;
     std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
     if (out) {
@@ -1204,6 +1076,7 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
         std::cout << "Error al guardar en TNF.bin" << std::endl;
     }
     out.close();
+    */
 }
 
 void saveBootToFile(boost::numeric::ublas::matrix<size_t> &boot) {
@@ -1843,8 +1716,8 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                            contig_to_process, contigs_per_thread, cobs);
-        cudaMemcpyAsync(TNF + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des, contig_to_process * 136 * sizeof(float),
-                        cudaMemcpyDeviceToHost, streams[i]);
+        cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
+                        contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
@@ -1868,27 +1741,12 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
             size_t r1 = (1 + sqrt(discriminante)) / 2;
             size_t r2 = prob_index - r1 * (r1 - 1) / 2;
             while (prob_index < _limit) {
-                /*
-                if (smallCtgs.find(r1) != smallCtgs.end()) {
-                    prob_index += r1 - r2;
-                    r2 = 0;
-                    r1++;
-                    continue;
-                }
-                */
                 while (r2 < r1) {
                     if (prob_index == _limit) break;
-                    /*
-                    if (smallCtgs.find(r2) != smallCtgs.end()) {
-                        prob_index++;
-                        r2++;
-                        continue;
-                    }
-                    */
                     bool passed = true;
                     Similarity s = 1. - cal_dist2(contigs[r1], contigs[r2], 1. - requiredMinP, passed,
                                                   tnf_prob[_index][prob_index % max_prob_per_kernel]);
-                    //std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
+                    // std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
                         { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
@@ -2217,7 +2075,6 @@ int main(int argc, char const *argv[]) {
         std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
-        // TIMERSTART(load_file);
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
@@ -2236,10 +2093,8 @@ int main(int argc, char const *argv[]) {
         for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
             readerThreads[i].join();
         }
-        close(fpint);
-        // TIMERSTOP(load_file);
 
-        // TIMERSTART(read_file);
+        close(fpint);
         size_t __min = std::min(minContigByCorr, minContigByCorrForGraph);
         size_t contig_name_i;
         size_t contig_name_e;
@@ -2516,14 +2371,16 @@ int main(int argc, char const *argv[]) {
 
     TIMERSTART(TNF_CAL);
     // float *TNF2;
-    cudaMallocHost((void **)&TNF, ncontigs * 136 * sizeof(float));
+    cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, ncontigs * 136 * sizeof(float));
     seqs_h_index_i.reserve(ncontigs);
     seqs_h_index_e.reserve(ncontigs);
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
                                                      // cargar solo parte del archivo en gpu
-        size_t cobs = 0;                             // current obs
+        TNF.resize(nobs, nTNF);
+        TNF.clear();
+        size_t cobs = 0;  // current obs
         size_t _first = 0;
         for (size_t i = 0; i < ncontigs; i++) {
             if (seqs[gCtgIdx[contigs[i]]].data() - seqs[gCtgIdx[contigs[_first]]].data() + seqs[gCtgIdx[contigs[i]]].size() >
@@ -2589,10 +2446,17 @@ int main(int argc, char const *argv[]) {
             cudaFree(seqs_d);
         }
         */
+        for (size_t i = 0; i < ncontigs; i++) {
+            for (int j = 0; j < 136; j++) {
+                TNF(contgs[i], j) = TNF_data[i * 136 + j];
+            }
+        }
+        cudaFreeHost(TNF_data);
         saveTNFToFile(saveTNFFile, minContig);
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
+
     /*
     for (size_t i = 0; i < ncontigs; i++) {
         for (size_t j = 0; j < 136; j++) {
