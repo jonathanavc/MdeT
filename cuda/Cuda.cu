@@ -509,6 +509,7 @@ static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<size_t> seqs_h_index_i;
 static std::vector<size_t> seqs_h_index_e;
+static std::vector<size_t> contigs;
 static float *TNF_d;
 
 // char *seqs_d;
@@ -1867,25 +1868,29 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
             size_t r1 = (1 + sqrt(discriminante)) / 2;
             size_t r2 = prob_index - r1 * (r1 - 1) / 2;
             while (prob_index < _limit) {
+                /*
                 if (smallCtgs.find(r1) != smallCtgs.end()) {
                     prob_index += r1 - r2;
                     r2 = 0;
                     r1++;
                     continue;
                 }
+                */
                 while (r2 < r1) {
                     if (prob_index == _limit) break;
+                    /*
                     if (smallCtgs.find(r2) != smallCtgs.end()) {
                         prob_index++;
                         r2++;
                         continue;
                     }
+                    */
                     bool passed = true;
                     Similarity s =
                         1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, tnf_prob[_index][prob_index % max_prob_per_kernel]);
                     if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                        { boost::add_edge(r1, r2, Weight(s), gprob); }
+                        { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
                         //{ boost::add_edge(r1, r2, Weight(s), gprobt[omp_get_thread_num()]); }
                     }
                     prob_index++;
@@ -1907,7 +1912,7 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
             Similarity s = 1. - cal_dist2(r1, r2, 1. - requiredMinP, passed, -1);
             if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                { boost::add_edge(r1, r2, Weight(s), gprob); }
+                { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
             }
         }
     }
@@ -2500,31 +2505,41 @@ int main(int argc, char const *argv[]) {
     }
     size_t max_gpu_mem = 1000000000;  // 4gb
     // calcular matriz de tetranucleotidos
+    
+    for (int i = 0; i++; i < nobs) {
+        if (smallCtgs.find(i) == smallCtgs.end()) {
+            contigs.push_back(i);
+        }
+    }
+    size_t ncontigs = contigs.size();
+
     TIMERSTART(TNF_CAL);
     // float *TNF2;
-    cudaMallocHost((void **)&TNF, nobs * 136 * sizeof(float));
-    cudaMalloc((void **)&TNF_d, nobs * 136 * sizeof(float));
-    seqs_h_index_i.reserve(nobs);
-    seqs_h_index_e.reserve(nobs);
+    cudaMallocHost((void **)&TNF, ncontigs * 136 * sizeof(float));
+    cudaMalloc((void **)&TNF_d, ncontigs * 136 * sizeof(float));
+    seqs_h_index_i.reserve(ncontigs);
+    seqs_h_index_e.reserve(ncontigs);
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
                                                      // cargar solo parte del archivo en gpu
         size_t cobs = 0;                             // current obs
         size_t _first = 0;
-        for (size_t i = 0; i < nobs; i++) {
-            if (seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size() > max_gpu_mem) {
+        for (size_t i = 0; i < ncontigs; i++) {
+            if (seqs[gCtgIdx[contigs[i]]].data() - seqs[gCtgIdx[contigs[_first]]].data() + seqs[gCtgIdx[contigs[i]]].size() >
+                max_gpu_mem) {
                 launch_tnf_kernel(cobs, _first, i - cobs);
                 seqs_h_index_i.clear();
                 seqs_h_index_e.clear();
                 _first = i;
                 cobs = 0;
             }
-            seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data());
-            seqs_h_index_e.emplace_back(seqs[gCtgIdx[i]].data() - seqs[gCtgIdx[_first]].data() + seqs[gCtgIdx[i]].size());
+            seqs_h_index_i.emplace_back(seqs[gCtgIdx[contigs[i]]].data() - seqs[gCtgIdx[contigs[_first]]].data());
+            seqs_h_index_e.emplace_back(seqs[gCtgIdx[contigs[i]]].data() - seqs[gCtgIdx[contigs[_first]]].data() +
+                                        seqs[gCtgIdx[contigs[i]]].size());
             cobs++;
         }
         if (cobs != 0) {
-            launch_tnf_kernel(cobs, _first, nobs - cobs);
+            launch_tnf_kernel(cobs, _first, ncontigs - cobs);
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
@@ -2577,22 +2592,7 @@ int main(int argc, char const *argv[]) {
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
-    /*
-    bool _TNF = false;
-    for (size_t i = 0; i < nobs; i++) {
-        for (size_t j = 0; j < 136; j++) {
-            if (TNF[i * 136 + j] != TNF2[i * 136 + j]) {
-                std::cout << "i: " << i << " j: " << j << " TNF: " << TNF[i * 136 + j] << " TNF2: " << TNF2[i * 136 + j] << std::endl;
-                _TNF = true;
-            }
-        }
-    }
-    if (_TNF)
-        std::cout << "TNF is not equal" << std::endl;
-    else
-        std::cout << "TNF is equal" << std::endl;
 
-    */
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
             rABD.push_back(std::make_pair(i, rand()));
@@ -2603,25 +2603,25 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    if (1) {
+    if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         int _index = 0;
         TIMERSTART(_tnf_prob);
         gprob.m_vertices.resize(nobs);
         // UndirectedGraph gprobt[numThreads];
         std::thread threads[2];
         size_t prob_des = 0;
-        size_t total_prob = (nobs * (nobs - 1)) / 2;
+        size_t total_prob = (ncontigs * (ncontigs - 1)) / 2;
         max_prob_per_kernel = max_gpu_mem / (sizeof(double) * 2);
         size_t cant_kernels = (total_prob + max_prob_per_kernel - 1) / max_prob_per_kernel;
         ProgressTracker progress = ProgressTracker(total_prob);
-        for (size_t i = 0; i < nobs; i++) {
-            seqs_h_index_i.emplace_back(seqs[gCtgIdx[i]].length());
+        for (size_t i = 0; i < ncontigs; i++) {
+            seqs_h_index_i.emplace_back(seqs[gCtgIdx[contigs[i]]].length());
         }
         for (int i = 0; i < 2; i++) {
             cudaMallocHost((void **)&tnf_prob[i], max_prob_per_kernel * sizeof(double));
             cudaMalloc((void **)&tnf_prob_d[i], max_prob_per_kernel * sizeof(double));
         }
-        cudaMalloc((void **)&seqs_d_size_d, nobs * sizeof(size_t));
+        cudaMalloc((void **)&seqs_d_size_d, ncontigs * sizeof(size_t));
         cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             if (threads[_index].joinable()) {
@@ -2692,55 +2692,10 @@ int main(int argc, char const *argv[]) {
         */
         // saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
-
-    /*
-    if (1) {
-
-        // cudaMalloc(&TNF_d, nobs * 136 * sizeof(double));
-        // cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(double), cudaMemcpyHostToDevice);
-        double *gprob_d;
-        cudaStream_t streams[n_STREAMS];
-        cudaMallocHost((void **)&gprob, (nobs * (nobs - 1)) / 2 * sizeof(double));  // matriz de probabilidades (triangular
-    inferior) cudaMalloc((void **)&gprob_d, (nobs * (nobs - 1)) / 2 * sizeof(double)); size_t total_prob = (nobs * (nobs - 1)) / 2;
-        std::cout << "total_prob: " << total_prob << std::endl;
-        size_t prob_per_kernel = total_prob / n_STREAMS;
-        for (int i = 0; i < n_STREAMS; i++) {
-            size_t _des = prob_per_kernel * i;
-            size_t prob_to_process = prob_per_kernel;
-            cudaStreamCreate(&streams[i]);
-            if (i == n_STREAMS - 1) prob_to_process += (total_prob % n_STREAMS);
-            size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-            // std::cout << "prob_to_process: " << prob_to_process << std::endl;
-            // std::cout << "prob_per_thread: " << prob_per_thread << std::endl;
-
-            get_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(gprob_d, TNF_d, NULL, _des, seqs_d_index, nobs, prob_per_thread);
-            cudaMemcpyAsync(gprob + _des, gprob_d + _des, prob_to_process * sizeof(double), cudaMemcpyDeviceToHost, streams[i]);
-        }
-        for (int i = 0; i < n_STREAMS; i++) {
-            cudaStreamSynchronize(streams[i]);
-            cudaStreamDestroy(streams[i]);
-        }
-        // cudaFree(gprob_d);
-        // cudaFree(TNF_d);
-    }
-    std::cout << "\n";
-    */
     TIMERSTOP(probabilisticgraph);
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
 
-    /*
-
-    std::cout << "NOBS: " << nobs << std::endl;
-    for (size_t i = 0; i < 10; i++) {
-        std::cout << gprob[i] << " ";
-    }
-    std::cout << "... ";
-    for (size_t i = ((nobs * (nobs - 1)) / 2) - 10; i < (nobs * (nobs - 1)) / 2; i++) {
-        std::cout << (int)gprob[i] << " ";
-    }
-    std::cout << std::endl;
-    */
     gIdx = boost::get(boost::vertex_index, gprob);
     gWgt = boost::get(boost::edge_weight, gprob);
 
