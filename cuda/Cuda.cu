@@ -2593,12 +2593,14 @@ int main(int argc, char const *argv[]) {
     }
     TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
+    /*
     for (size_t i = 0; i < ncontigs; i++) {
         for (size_t j = 0; j < 136; j++) {
             std::cout << TNF[i * 136 + j] << " ";
         }
         std::cout << "\n";
     }
+    */
 
     if (rABD.size() == 0) {
         for (size_t i = 0; i < nobs; ++i) {
@@ -2629,7 +2631,7 @@ int main(int argc, char const *argv[]) {
             cudaMalloc((void **)&tnf_prob_d[i], max_prob_per_kernel * sizeof(double));
         }
         cudaMalloc((void **)&seqs_d_size_d, ncontigs * sizeof(size_t));
-        cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(seqs_d_size_d, seqs_h_index_i.data(), ncontigs * sizeof(size_t), cudaMemcpyHostToDevice);
         for (size_t i = 0; i < cant_kernels; i++) {
             if (threads[_index].joinable()) {
                 threads[_index].join();
