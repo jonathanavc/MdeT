@@ -2506,7 +2506,7 @@ int main(int argc, char const *argv[]) {
     size_t max_gpu_mem = 1000000000;  // 4gb
     // calcular matriz de tetranucleotidos
     
-    for (int i = 0; i++; i < nobs) {
+    for (int i = 0; i < nobs; i++) {
         if (smallCtgs.find(i) == smallCtgs.end()) {
             contigs.push_back(i);
         }
