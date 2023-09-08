@@ -2390,7 +2390,7 @@ int main(int argc, char const *argv[]) {
 
         assert(rABD.size() == nobs);
     }
-    size_t max_gpu_mem = 1000000000;  // 4gb
+    size_t max_gpu_mem = 4000000000;  // 4gb
     // calcular matriz de tetranucleotidos
     contigs.reserve(nobs);
     for (int i = 0; i < nobs; i++) {
