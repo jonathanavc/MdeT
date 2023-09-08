@@ -165,31 +165,16 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     r1 = (1 + sqrt((double)discriminante)) / 2;
     r2 = prob_index - r1 * (r1 - 1) / 2;
 
-    /*
-    size_t _limit = min(prob_index + contig_per_thread, limit);
-    while(prob_index < _limit){
-        for (int i = 0; i < 136; i++) {
-            _TNF[i] = TNF[r1 * 136 + i];
-        }
-        while(r2 < r1){
-            if (prob_index == _limit) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
-            tnf_dist_index++;
-            prob_index++;
-            r2++;
-        }
-        r2 = 0;
-        r1++;
-    }
-    */
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
     while (tnf_dist_index < _limit2) {
+        /*
         for (int i = 0; i < 136; i++) {
             _TNF[i] = TNF[r1 * 136 + i];
         }
+        */
         while (r2 < r1) {
             if (tnf_dist_index == _limit2) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF, TNF + r2 * 136);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], TNF + r1 * 136, TNF + r2 * 136);
             tnf_dist_index++;
             r2++;
         }
@@ -227,7 +212,6 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             short tn = get_tn(contig, j);
             if (tn & 256) continue;
             TNF_temp[TNmap_d[tn]]++;
-            //++TNF_d[tnf_index + TNmap_d[tn]];
         }
         double rsum = 0;
         for (int c = 0; c < 136; ++c) {
@@ -238,81 +222,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
             TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
         }
     }
-    /*
-    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    for (int i = 0; i < contigs_per_thread; i++) {
-        const size_t contig_index = (thead_id * contigs_per_thread) + i;
-        const size_t tnf_index = contig_index * 136;
-        if (contig_index >= nobs) break;
-        for (int j = 0; j < 136; j++) TNF_d[tnf_index + j] = 0;
-    }
-
-    for (int i = 0; i < contigs_per_thread; i++) {
-        const size_t contig_index = (thead_id * contigs_per_thread) + i;
-        const size_t tnf_index = contig_index * 136;
-        if (contig_index >= nobs) break;
-        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
-        const char *contig = seqs_d + seqs_d_index[contig_index];
-        for (size_t j = 0; j < contig_size - 3; ++j) {
-            short tn = get_tn(contig, j);
-            if (tn & 256) continue;
-            ++TNF_d[tnf_index + TNmap_d[tn]];
-        }
-        double rsum = 0;
-        float _aux = 0;
-        for (int c = 0; c < 136; ++c) {
-            // _aux = TNF_d[tnf_index + c];
-            // rsum += _aux * _aux;
-            rsum += TNF_d[tnf_index + c] * TNF_d[tnf_index + c];
-        }
-        rsum = sqrt(rsum);
-        for (int c = 0; c < 136; ++c) {
-            TNF_d[tnf_index + c] /= rsum;  // OK
-        }
-    }
-    */
 }
-
-/*
-__global__ void get_TNF_local(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
-                              size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    // const size_t minContig = 2500;
-    // const size_t minContigByCorr = 1000;
-    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    // crea un tnf de forma local
-    float TNF_temp[136];
-
-    for (size_t i = 0; i < contigs_per_thread; i++) {
-        for (int j = 0; j < 136; j++) {
-            TNF_temp[j] = 0;
-        }
-        const size_t contig_index = (thead_id * contigs_per_thread) + i;
-        if (contig_index >= nobs) break;
-        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
-        // calcular independiente si es small contig o no
-        // if (contig_size >= minContig || contig_size < minContigByCorr) {
-        const char *contig = seqs_d + seqs_d_index[contig_index];
-        for (size_t j = 0; j < contig_size - 3; ++j) {
-            short tn = get_tn(contig, j);
-            if (tn & 256) continue;
-            ++TNF_temp[TNmap_d[tn]];
-        }
-        double rsum = 0;
-        for (size_t c = 0; c < 136; ++c) {
-            rsum += TNF_temp[c] * TNF_temp[c];
-        }
-        rsum = sqrt(rsum);
-        for (size_t c = 0; c < 136; ++c) {
-            TNF_temp[c] /= rsum;  // OK
-        }
-        //}
-        // guardar en la memoria global
-        for (size_t c = 0; c < 136; ++c) {
-            TNF_d[contig_index * 136 + c] = TNF_temp[c];
-        }
-    }
-}
-*/
 
 typedef double Distance;
 typedef double Similarity;
