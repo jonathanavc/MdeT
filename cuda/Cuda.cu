@@ -2535,8 +2535,10 @@ int main(int argc, char const *argv[]) {
         for (size_t i = 0; i < cant_kernels; i++) {
             if (threads[_index].joinable()) {
                 threads[_index].join();
-                progress.track(min(max_prob_per_kernel, total_prob - prob_des));
-                verbose_message("Building a tnf graph: %s\r", progress.getProgress());
+                if (_index == 1) {
+                    progress.track(min(max_prob_per_kernel * 2, total_prob - prob_des));
+                    verbose_message("Building a tnf graph: %s\r", progress.getProgress());
+                }
             }
             threads[_index] = std::thread(launch_tnf_prob_kernel, max_prob_per_kernel, prob_des, total_prob, requiredMinP, _index);
             prob_des += max_prob_per_kernel;
