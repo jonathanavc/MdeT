@@ -2320,7 +2320,7 @@ int main(int argc, char const *argv[]) {
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
                                                      // cargar solo parte del archivo en gpu
-        ProgressTracker progress(nobs);
+        ProgressTracker progress(ncontigs);
         TNF.resize(nobs, 136);
         TNF.clear();
         size_t cobs = 0;  // current obs
