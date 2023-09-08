@@ -1800,7 +1800,7 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
                     if (passed && s >= requiredMinP) {
                         // #pragma omp critical(ADD_EDGE_1)
                         //{ boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
-                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprobt[omp_get_thread_num()]);
+                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), &gprobt[omp_get_thread_num()]);
                     }
                     prob_index++;
                     r2++;
