@@ -659,14 +659,6 @@ inline float hsum_avx(__m256 v) {
 
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     double d = 0;
-    /*
-    for (int i = 0; i < 136; i += 8) {
-        dis = _mm256_sub_ps(_mm256_load_ps(TNF + _r1 + i), _mm256_load_ps(TNF + _r2 + i));
-        dis = _mm256_mul_ps(dis, dis);
-        d += hsum_avx(dis);
-    }
-    */
-
     for (size_t i = 0; i < 136; ++i) {
         d += (TNF(r1, i) - TNF(r2, i)) * (TNF(r1, i) - TNF(r2, i));  // euclidean distance
     }
@@ -1756,7 +1748,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[gCtgIdx[_first]][0] + seqs_h_index_i[_des],
+        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[gCtgIdx[contigs[_first]]][0] + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
@@ -1850,15 +1842,6 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
 }
 
 int main(int argc, char const *argv[]) {
-    /*
-    if (argc > 2) {
-        n_BLOCKS = atoi(argv[1]);
-        n_THREADS = atoi(argv[2]);
-        if (argc > 3) {
-            inFile = argv[3];
-        }
-    }
-    */
     std::string saveTNFFile, saveDistanceFile;
     po::options_description desc("Allowed options", 110, 110 / 2);
     desc.add_options()("help,h", "produce help message")("inFile,i", po::value<std::string>(&inFile),
