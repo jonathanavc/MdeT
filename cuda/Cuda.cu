@@ -327,7 +327,7 @@ typedef boost::graph_traits<UndirectedGraph>::edge_descriptor edge_descriptor;
 typedef boost::graph_traits<UndirectedGraph>::out_edge_iterator out_edge_iterator;
 typedef boost::graph_traits<UndirectedGraph>::vertex_descriptor vertex_descriptor;
 
-static std::string version = "Metabat cuda 0.1";
+static std::string version = "Metabat cuda 0.2";
 static std::string DATE = "2023-07-14";
 static bool verbose = false;
 static bool debug = false;
