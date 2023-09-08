@@ -1071,20 +1071,20 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
             ia >> loadedMinContig;
             if (loadedMinContig != requiredMinContig) {
                 std::cerr << "[Warning!] Saved TNF file has different minContig " << loadedMinContig << " vs required "
-                          << requiredMinContig << ". Recalculating..." << endl;
+                          << requiredMinContig << ". Recalculating..." << std::endl;
                 return false;
             }
 
             ia >> TNF;
             if (TNF.size1() != nobs) {
                 std::cerr << "[Warning!] Saved TNF file was not generated from the same data. It should have " << nobs
-                          << " contigs, but have " << TNF.size1() << endl;
+                          << " contigs, but have " << TNF.size1() << std::endl;
                 return false;
             }
         } catch (...) {
             std::cerr << "[Warning!] A exception occurred. Saved TNF file was possibly generated from different version of boost "
                          "library. Recalculating..."
-                      << endl;
+                      << std::endl;
             return false;
         }
     } else {
