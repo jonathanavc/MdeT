@@ -1017,7 +1017,7 @@ bool loadBootFromFile(boost::numeric::ublas::matrix<size_t> &boot) {
 
     return true;
 }
-
+/*
 bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     if (saveTNFFile.empty()) return false;
     FILE *fp = fopen(saveTNFFile.c_str(), "r");
@@ -1055,10 +1055,52 @@ bool loadTNFFromFile(std::string saveTNFFile, size_t requiredMinContig) {
     }
     close(fpint);
     return true;
+}*/
+
+bool loadDistanceFromFile(std::string saveDistanceFile, Distance requiredMinP, size_t requiredMinContig) {
+	if (saveDistanceFile.empty())
+		return false;
+	std::ifstream is(saveDistanceFile.c_str());
+	if (is.good()) {
+		verbose_message("Loading saved graph from %s\n", saveDistanceFile.c_str());
+		try {
+			boost::archive::binary_iarchive ia(is);
+			Distance loadedMinP;
+			ia >> loadedMinP;
+			if (loadedMinP > requiredMinP) {
+				std::cerr << "[Warning!] Saved probability graph file has greater minP " << loadedMinP
+						<< " vs required " << requiredMinP << ". Recalculating..." << endl;
+				return false;
+			}
+			size_t loadedMinContig;
+			ia >> loadedMinContig;
+			if (loadedMinContig != requiredMinContig) {
+				std::cerr << "[Warning!] Saved probability graph file has different minContig " << loadedMinContig
+						<< " vs required " << requiredMinContig << ". Recalculating..." << endl;
+				return false;
+			}
+			ia >> gprob;
+
+			if (boost::num_vertices(gprob) != nobs) {
+				std::cerr << "[Warning!] Saved probability graph file has different number of contigs "
+						<< boost::num_vertices(gprob) << " vs required " << nobs << ". Recalculating..." << endl;
+				return false;
+			}
+		} catch (...) {
+			std::cerr
+					<< "[Warning!] A exception occurred. Saved graph file was possibly generated from different version of boost library. Recalculating..."
+					<< endl;
+			return false;
+		}
+	} else {
+		return false;
+	}
+	return true;
 }
 
+
+/*
 void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
-    /*
     if (saveTNFFile.empty()) return;
     std::ofstream out(saveTNFFile.c_str(), std::ios::out | std::ios::binary);
     if (out) {
@@ -1076,7 +1118,19 @@ void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
         std::cout << "Error al guardar en TNF.bin" << std::endl;
     }
     out.close();
-    */
+}
+*/
+
+void saveTNFToFile(std::string saveTNFFile, size_t requiredMinContig) {
+	if (saveTNFFile.empty())
+		return;
+	std::ofstream os(saveTNFFile.c_str());
+	if (os.good()) {
+		verbose_message("Saving TNF file to %s                                    \n", saveTNFFile.c_str());
+		boost::archive::binary_oarchive oa(os);
+		oa << requiredMinContig;
+		oa << TNF;
+	}
 }
 
 void saveBootToFile(boost::numeric::ublas::matrix<size_t> &boot) {
@@ -2378,7 +2432,7 @@ int main(int argc, char const *argv[]) {
     // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
     if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
                                                      // cargar solo parte del archivo en gpu
-        TNF.resize(nobs, nTNF);
+        TNF.resize(nobs, 136);
         TNF.clear();
         size_t cobs = 0;  // current obs
         size_t _first = 0;
@@ -2753,7 +2807,7 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    cudaFreeHost(TNF);
+    TNF.clear();
     // cudaFreeHost(ABD);
     // cudaFreeHost(ABD_VAR);
     gprob.clear();
