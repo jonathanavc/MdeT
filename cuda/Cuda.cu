@@ -1809,6 +1809,16 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
                 r1++;
             }
         }
+        for (size_t i = 0; i < numThreads; i++) {
+            boost::graph_traits<UndirectedGraph>::edge_iterator ei, ei_end;
+            for (boost::tie(ei, ei_end) = boost::edges(gprobt[i]); ei != ei_end; ++ei) {
+                auto source = boost::source(*ei, gprobt[i]);
+                auto target = boost::target(*ei, gprobt[i]);
+                double weight = boost::get(boost::edge_weight, gprobt[i], *ei);
+                boost::add_edge(source, target, Weight(weight), gprob);
+            }
+        }
+
     } else {
 #pragma omp parallel for
         for (size_t j = 0; j < _total; j++) {
