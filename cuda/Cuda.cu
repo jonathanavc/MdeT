@@ -2479,6 +2479,9 @@ int main(int argc, char const *argv[]) {
         */
         for (size_t i = 0; i < ncontigs; i++) {
             for (int j = 0; j < 136; j++) {
+                if (TNF_data[i * 136 + j] != TNF_data[i * 136 + j]) {
+                    std::cout << "ERROR:" << contigs[i] << " " << j << std::endl;
+                }
                 TNF(contigs[i], j) = TNF_data[i * 136 + j];
             }
         }
