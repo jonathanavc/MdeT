@@ -93,7 +93,6 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
-__device__ __constant__ double floor_prob = 0.1;
 __device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
@@ -103,7 +102,6 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         tn1 = TNF1[i];
         tn2 = TNF2[i];
         d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
-        // d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
     d = sqrt(d);
     double b, c;
@@ -140,7 +138,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
     double preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
+    prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
     // prob = 1.0 / (1 + exp(-(b + c * d)));
 
     // return prob;
@@ -616,7 +614,9 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
         6220.3310639927 * lw[8] + -2.3670776453 * lw[9] + -473.269785487 * lw[10] + 15.3213264134 * lw[11] +
         -3282.8510348085 * lw[12] + 164.0438603974 * lw[13] + -5.2778800755 * lw[14] + 0.0929379305 * lw[15] + -0.0006826817 * lw[16];
     // logistic model
-    prob = 1.0 / (1 + exp(-(b + c * d)));
+    double preProb = -(b + c * d);
+    prob = preProb <= 2.197224577336219564216435173875652253627777099609375 ? 0.1 : 1.0 / (1 + exp(preProb));
+    // prob = 1.0 / (1 + exp(-(b + c * d)));
     if (prob >= .1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw[0] + -2976.2879986855 * lw[1] + 3279.7524685865 * lw[2] + 1602.7544794819 * lw[3] +
             -967.2906583423 * lw[4] + -462.0149190219 * lw[5] + 159.8317289682 * lw[6] + 74.4884405822 * lw[7] +
