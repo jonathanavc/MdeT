@@ -93,6 +93,9 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
+__device__ __constant__ double floor_prob = 0.1;
+__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
     double d = 0.0;
     float tn1, tn2;
@@ -135,7 +138,10 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     c = _c1[0] + _c1[1] * lw[0] + _c1[2] * lw[1] + _c1[3] * lw[2] + _c1[4] * lw[3] + _c1[5] * lw[4] + _c1[6] * lw[5] + _c1[7] * lw[6] +
         _c1[8] * lw[7] + _c1[9] * lw[8] + _c1[10] * lw[9] + _c1[11] * lw[10] + _c1[12] * lw[11] + _c1[13] * lw[12] + _c1[14] * lw[13] +
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
-    prob = 1.0 / (1 + exp(-(b + c * d)));
+
+    doouble preProb = -(b + c * d);
+    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + EXP(preProb));
+    // prob = 1.0 / (1 + exp(-(b + c * d)));
 
     // return prob;
 
