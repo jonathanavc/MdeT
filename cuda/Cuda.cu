@@ -771,10 +771,9 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distanc
 static Similarity get_prob(size_t r1, size_t r2) {
     if (r1 == r2) return 1;
     edge_descriptor e;
-    return boost::get(gWgt, e);
-    //bool found;
-    // boost::tie(e, found) = boost::edge(r1, r2, gprob);
-    // return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
+    bool found;
+    boost::tie(e, found) = boost::edge(r1, r2, gprob);
+    return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
 }
 
 static bool cmp_cls_size(const ClsSizePair &i, const ClsSizePair &j) {
