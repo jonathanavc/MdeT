@@ -140,7 +140,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
     doouble preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + EXP(preProb));
+    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
     // prob = 1.0 / (1 + exp(-(b + c * d)));
 
     // return prob;
