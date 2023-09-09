@@ -2313,11 +2313,11 @@ int main(int argc, char const *argv[]) {
     ncontigs = contigs.size();
 
     TIMERSTART(TNF_CAL);
-    cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeoƒf(float));
+    cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, ncontigs * 136 * sizeof(float));
     seqs_h_index_i.reserve(ncontigs);
     seqs_h_index_e.reserve(ncontigs);
-    ƒ if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         ProgressTracker progress(ncontigs);
         TNF.resize(nobs, 136);
         TNF.clear();
