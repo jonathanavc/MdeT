@@ -771,9 +771,10 @@ Distance cal_dist2(size_t r1, size_t r2, Distance maxDist, bool &passed, Distanc
 static Similarity get_prob(size_t r1, size_t r2) {
     if (r1 == r2) return 1;
     edge_descriptor e;
-    bool found;
-    boost::tie(e, found) = boost::edge(r1, r2, gprob);
-    return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
+    return boost::get(gWgt, e);
+    //bool found;
+    // boost::tie(e, found) = boost::edge(r1, r2, gprob);
+    // return found ? boost::get(gWgt, e) : 1 - cal_dist(r1, r2);
 }
 
 static bool cmp_cls_size(const ClsSizePair &i, const ClsSizePair &j) {
@@ -2312,14 +2313,11 @@ int main(int argc, char const *argv[]) {
     ncontigs = contigs.size();
 
     TIMERSTART(TNF_CAL);
-    // float *TNF2;
-    cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeof(float));
+    cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeoƒf(float));
     cudaMalloc((void **)&TNF_d, ncontigs * 136 * sizeof(float));
     seqs_h_index_i.reserve(ncontigs);
     seqs_h_index_e.reserve(ncontigs);
-    // cudaMallocHost((void **)&TNF2, nobs * 136 * sizeof(float));
-    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
-                                                     // cargar solo parte del archivo en gpu
+    ƒ if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
         ProgressTracker progress(ncontigs);
         TNF.resize(nobs, 136);
         TNF.clear();
