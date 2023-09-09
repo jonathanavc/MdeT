@@ -176,6 +176,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
             TNF_r2 += 136;
             r2++;
         }
+        TNF_r2 = TNF;
         r2 = 0;
         r1++;
     }
