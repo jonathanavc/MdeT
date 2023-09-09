@@ -572,8 +572,8 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     __m256 _r1;
     __m256 _r2;
     for (size_t i = 0; i < 136; i += 8) {
-        _r1 = _mm256_load_ps(TNF_data + r1 * 136 + i);
-        _r2 = _mm256_load_ps(TNF_data + r2 * 136 + i);
+        _r1 = _mm256_load_ps(TNF.data() + r1 * 136 + i);
+        _r2 = _mm256_load_ps(TNF.data() + r2 * 136 + i);
         _r1 = _mm256_sub_ps(_r1, _r2);
         _r1 = _mm256_mul_ps(_r1, _r1);
         d += hsum_avx(_r1);
