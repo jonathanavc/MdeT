@@ -2020,7 +2020,7 @@ int main(int argc, char const *argv[]) {
     // TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
-    TIMERSTART(READ);
+    //TIMERSTART(READ);
     FILE *fp = fopen(inFile.c_str(), "r");
     if (fp == NULL) {
         std::cout << "Error opening file: " << inFile << std::endl;
@@ -2088,7 +2088,7 @@ int main(int argc, char const *argv[]) {
         contig_names.shrink_to_fit();  // liberar memoria no usada
         // TIMERSTOP(read_file);
     }
-    TIMERSTOP(READ);
+    //TIMERSTOP(READ);
     // std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
@@ -2320,7 +2320,7 @@ int main(int argc, char const *argv[]) {
     }
     ncontigs = contigs.size();
 
-    TIMERSTART(TNF_CAL);
+    //TIMERSTART(TNF_CAL);
     cudaMallocHost((void **)&TNF_data, ncontigs * 136 * sizeof(float));
     cudaMalloc((void **)&TNF_d, ncontigs * 136 * sizeof(float));
     seqs_h_index_i.reserve(ncontigs);
@@ -2365,7 +2365,7 @@ int main(int argc, char const *argv[]) {
         saveTNFToFile(saveTNFFile, minContig);
     }
     cudaFreeHost(TNF_data);
-    TIMERSTOP(TNF_CAL);
+    //TIMERSTOP(TNF_CAL);
     verbose_message("Finished TNF calculation.                                  \n");
 
     if (rABD.size() == 0) {
@@ -2380,7 +2380,7 @@ int main(int argc, char const *argv[]) {
 
     max_gpu_mem = min(max_gpu_mem, (size_t)400000000);
 
-    TIMERSTART(probabilisticgraph);
+    //TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
         int _index = 0;
         gprob.m_vertices.resize(nobs);
@@ -2423,7 +2423,7 @@ int main(int argc, char const *argv[]) {
         saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
     cudaFree(TNF_d);
-    TIMERSTOP(probabilisticgraph);
+    //TIMERSTOP(probabilisticgraph);
 
     verbose_message("Finished building a probabilistic graph. (%d vertices and %d edges)          \n", boost::num_vertices(gprob),
                     boost::num_edges(gprob));
