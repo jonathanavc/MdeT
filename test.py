@@ -27,7 +27,7 @@ for bloq in cuda_bloqs:
         tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] = []
         for i in range(0, num_ex):
             print("[T:"+str(thread)+"/B:"+str(bloq)+"]"+"Cuda "+ str((i/num_ex) * 100) + "%", end='\r')
-            p = subprocess.Popen(['./metabatcuda', str(bloq), str(thread), archivo], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            p = subprocess.Popen(['./metabatcuda',"-cs 10" "-cb " + str(bloq),"-ct" + str(thread), "-i "+ archivo, "-o out/out", "-v"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             out, err = p.communicate()
             valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
             tiempos['cuda']['n_bloqs'][str(bloq)]['n_threads'][str(thread)] += valores
