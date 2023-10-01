@@ -12,16 +12,18 @@ cuda_streams = [1,2,4,6,8,10,12]
 cuda_threads = [16,32,64,128]
 cuda_bloqs = [32,64,128,256,512,1024,2048]
 
-#tiempos = {}
+tiempos = {}
 
 for thread in threads:
+    tiempos[thread] = []
     for i in range(0, num_ex):
         print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-        print(out)
-        print(err)
+        tiempos[thread] += [valores[0], valores[1], valores[3] valores[2]]
+        print(valores)
+
 '''
 for bloq in cuda_bloqs:
     for thread in cuda_threads:
