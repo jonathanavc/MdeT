@@ -25,7 +25,7 @@ for thread in threads:
         'binning': []
     }
     for i in range(0, num_ex):
-        print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
+        #print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
@@ -36,7 +36,7 @@ for thread in threads:
         tiempos[thread]['prob'].append(float(valores[2]))
         tiempos[thread]['binning'].append(float(valores[4]))
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
-        print("read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])))
+        print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])), end='\r')
     
     tiempos[thread]['avg'] = {
         "read": avg(tiempos[thread]['read']),
