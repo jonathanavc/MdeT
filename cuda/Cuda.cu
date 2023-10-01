@@ -2035,7 +2035,7 @@ int main(int argc, char const *argv[]) {
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
         size_t chunk = fsize / numThreads;
-        cudaMallocHost((void **)&_mem, fsize);
+        cuda_check(cudaMallocHost((void **)&_mem, fsize));
         getError("READ");
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
         std::thread readerThreads[numThreads];
