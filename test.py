@@ -29,10 +29,10 @@ for thread in threads:
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-        tiempos[thread]['read'] += valores[0]
-        tiempos[thread]['tnf'] += valores[1]
-        tiempos[thread]['prob'] += valores[2]
-        tiempos[thread]['binning'] += valores[4]
+        tiempos[thread]['read'] += float(valores[0])
+        tiempos[thread]['tnf'] += float(valores[1])
+        tiempos[thread]['prob'] += float(valores[2])
+        tiempos[thread]['binning'] += float(valores[4])
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
         print("read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])))
     
