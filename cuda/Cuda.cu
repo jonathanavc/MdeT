@@ -2030,6 +2030,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "Error opening file: " << inFile << std::endl;
         return 1;
     } else {
+        std::cout << "Reading file: " << inFile << std::endl;
         fseek(fp, 0L, SEEK_END);
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
