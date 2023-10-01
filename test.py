@@ -57,6 +57,6 @@ for bloq in cuda_bloqs:
 '''
 
 #GUARDAR
-#_json = json.dumps(tiempos)
-#with open(datetime.now().strftime("Test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
-#    outfile.write(_json)
+_json = json.dumps(tiempos)
+with open(datetime.now().strftime("Test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
+    outfile.write(_json)
