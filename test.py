@@ -36,7 +36,7 @@ for thread in threads:
         tiempos[thread]['prob'].append(float(valores[2]))
         tiempos[thread]['binning'].append(float(valores[4]))
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
-        print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])), end='\r')
+        print("[T:"+str(thread)+']'+"metabat1 "+ str(((i + 1)/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])), end='\r')
     
     tiempos[thread]['avg'] = {
         "read": avg(tiempos[thread]['read']),
