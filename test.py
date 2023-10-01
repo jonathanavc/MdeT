@@ -31,10 +31,10 @@ for thread in threads:
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
         print(type(valores[0]))
         print(float(valores[0]))
-        tiempos[thread]['read'] += float(valores[0])
-        tiempos[thread]['tnf'] += float(valores[1])
-        tiempos[thread]['prob'] += float(valores[2])
-        tiempos[thread]['binning'] += float(valores[4])
+        tiempos[thread]['read'].append(float(valores[0]))
+        tiempos[thread]['tnf'].append(float(valores[1]))
+        tiempos[thread]['prob'].append(float(valores[2]))
+        tiempos[thread]['binning'].append(float(valores[4]))
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
         print("read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])))
     
