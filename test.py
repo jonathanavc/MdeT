@@ -67,7 +67,7 @@ for thread in threads:
         "prob": std(tiempos[thread]['prob']),
         "binning": std(tiempos[thread]['binning'])
     }
-    print("\n")
+    print()
 
 '''
 for bloq in cuda_bloqs:
