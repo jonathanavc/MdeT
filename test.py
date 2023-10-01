@@ -4,7 +4,7 @@ import json
 import re
 from datetime import datetime
 
-print(sys.argv[1])
+print("File: " + sys.argv[1])
 archivo = sys.argv[1]
 num_ex = 10
 threads = [1,2,4,9,18,36,72]
@@ -17,6 +17,11 @@ tiempos = {}
 def avg(arr):
     return sum(arr)/len(arr)
 
+def std(arr):
+    avg = avg(arr)
+    return sum([(x-avg)**2 for x in arr])/len(arr)
+
+print("Metabat1")
 for thread in threads:
     tiempos[thread] = {
         'read': [],
@@ -36,13 +41,19 @@ for thread in threads:
         tiempos[thread]['prob'].append(float(valores[2]))
         tiempos[thread]['binning'].append(float(valores[4]))
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
-        print("[T:"+str(thread)+']'+"metabat1 "+ str(((i + 1)/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])), end='\r')
+        print("[T:"+str(thread)+']'+"metabat1 "+ str(((i + 1)/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + "±" + std(tiempos[thread]['read']) + " tnf: " + str(avg(tiempos[thread]['tnf']))+ "±" + std(tiempos[thread]['tnf']) + " prob: " + str(avg(tiempos[thread]['prob'])) + "±" + std(tiempos[thread]['prob']) + " binning: " + str(avg(tiempos[thread]['binning']  + '±' + std(tiempos[thread]['binning']))), end='\r')
     
     tiempos[thread]['avg'] = {
         "read": avg(tiempos[thread]['read']),
         "tnf": avg(tiempos[thread]['tnf']),
         "prob": avg(tiempos[thread]['prob']),
         "binning": avg(tiempos[thread]['binning'])
+    }
+    tiempos[thread]['std'] = {
+        "read": std(tiempos[thread]['read']),
+        "tnf": std(tiempos[thread]['tnf']),
+        "prob": std(tiempos[thread]['prob']),
+        "binning": std(tiempos[thread]['binning'])
     }
     print("\n")
 
