@@ -2041,6 +2041,10 @@ int main(int argc, char const *argv[]) {
             return 1;
         }
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+        if (fpint == -1) {
+            std::cout << "Error opening file: " << inFile << std::endl;
+            return 1;
+        }
         std::thread readerThreads[numThreads];
         for (int i = 0; i < numThreads; i++) {
             size_t _size;
