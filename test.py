@@ -44,6 +44,7 @@ for thread in threads:
         "prob": avg(tiempos[thread]['prob']),
         "binning": avg(tiempos[thread]['binning'])
     }
+    print("\n")
 
 '''
 for bloq in cuda_bloqs:
