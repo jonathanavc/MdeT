@@ -19,16 +19,17 @@ def avg(arr):
 
 for thread in threads:
     tiempos[thread] = {
-        "read": [],
-        "tnf": [],
-        "prob": [],
-        "binning": []
+        'read': [],
+        'tnf': [],
+        'prob': [],
+        'binning': []
     }
     for i in range(0, num_ex):
         print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+        type(valores[0])
         print(valores[0])
         tiempos[thread]['read'] += float(valores[0])
         tiempos[thread]['tnf'] += float(valores[1])
