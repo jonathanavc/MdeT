@@ -14,15 +14,34 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 
 tiempos = {}
 
+def avg(arr):
+    return sum(arr)/len(arr)
+
 for thread in threads:
-    tiempos[thread] = []
+    tiempos[thread] = {
+        "read": [],
+        "tnf": [],
+        "prob": [],
+        "binning": []
+    }
     for i in range(0, num_ex):
         print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-        tiempos[thread] += [valores[0], valores[1], valores[3] valores[2]]
-        print(valores)
+        tiempos[thread]['read'] += valores[0]
+        tiempos[thread]['tnf'] += valores[1]
+        tiempos[thread]['prob'] += valores[2]
+        tiempos[thread]['binning'] += valores[4]
+        #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
+        print("read: " + str(avg(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])))
+    
+    tiempos[thread]['avg'] = {
+        "read": avg(tiempos[thread]['read']),
+        "tnf": avg(tiempos[thread]['tnf']),
+        "prob": avg(tiempos[thread]['prob']),
+        "binning": avg(tiempos[thread]['binning'])
+    }
 
 '''
 for bloq in cuda_bloqs:
