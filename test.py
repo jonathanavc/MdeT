@@ -41,8 +41,19 @@ for thread in threads:
         tiempos[thread]['prob'].append(float(valores[2]))
         tiempos[thread]['binning'].append(float(valores[4]))
         #tiempos[thread] += [valores[0], valores[1], valores[3], valores[2]]
-        #print("[T:"+ str(thread) + ']'+"metabat1 "+ str(((i + 1)/num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + "±" + str(std(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf']))+ "±" + str(std(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + "±" + str(std(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning']  + '±' + str(std(tiempos[thread]['binning'])))), end='\r')
         print("[T:" + str(thread) + "] metabat1 " + str(((i + 1) / num_ex) * 100) + "%" + " read: " + str(avg(tiempos[thread]['read'])) + "±" + str(std(tiempos[thread]['read'])) + " tnf: " + str(avg(tiempos[thread]['tnf'])) + "±" + str(std(tiempos[thread]['tnf'])) + " prob: " + str(avg(tiempos[thread]['prob'])) + "±" + str(std(tiempos[thread]['prob'])) + " binning: " + str(avg(tiempos[thread]['binning'])) + "±" + str(std(tiempos[thread]['binning'])), end='\r')
+        print("[T:{}]\tmetabat1 {:.1f}%\tread: {:.4f}±{:.4f}\ttnf: {:.4f}±{:.4f}\tprob: {:.4f}±{:.4f}\tbinning: {:.4f}±{:.4f}".format(
+            thread,
+            ((i + 1) / num_ex) * 100,
+            avg(tiempos[thread]['read']),
+            std(tiempos[thread]['read']),
+            avg(tiempos[thread]['tnf']),
+            std(tiempos[thread]['tnf']),
+            avg(tiempos[thread]['prob']),
+            std(tiempos[thread]['prob']),
+            avg(tiempos[thread]['binning']),
+            std(tiempos[thread]['binning'])
+        ), end='\r')
     
     tiempos[thread]['avg'] = {
         "read": avg(tiempos[thread]['read']),
