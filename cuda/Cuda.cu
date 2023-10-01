@@ -2045,6 +2045,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "Error opening file: " << inFile << std::endl;
             return 1;
         }
+        std::cout << "Reading file: " << inFile << std::endl;
         std::thread readerThreads[numThreads];
         for (int i = 0; i < numThreads; i++) {
             size_t _size;
