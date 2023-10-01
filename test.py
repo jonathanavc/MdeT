@@ -30,7 +30,7 @@ for thread in threads:
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
         print(type(valores[0]))
-        print(valores[0])
+        print(float(valores[0]))
         tiempos[thread]['read'] += float(valores[0])
         tiempos[thread]['tnf'] += float(valores[1])
         tiempos[thread]['prob'] += float(valores[2])
