@@ -2035,11 +2035,13 @@ int main(int argc, char const *argv[]) {
         fsize = ftell(fp);  // obtener el tamaño del archivo
         fclose(fp);
         size_t chunk = fsize / numThreads;
+        std::cout << "Reading file: " << inFile << std::endl;
         cudaError_t cudaStatus = cudaMallocHost((void **)&_mem, fsize);
         if (cudaStatus != cudaSuccess) {
             fprintf(stderr, "cudaMallocHost failed!");
             return 1;
         }
+        std::cout << "Reading file: " << inFile << std::endl;
         int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
         if (fpint == -1) {
             std::cout << "Error opening file: " << inFile << std::endl;
