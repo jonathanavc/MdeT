@@ -20,7 +20,8 @@ for thread in threads:
         p = subprocess.Popen(['./metabat1','-i ', archivo, '-o','out/out', '-t', str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-        print(valores)
+        print(out)
+        print(err)
 '''
 for bloq in cuda_bloqs:
     for thread in cuda_threads:
