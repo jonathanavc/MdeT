@@ -29,7 +29,7 @@ for thread in threads:
         p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-        type(valores[0])
+        print(type(valores[0]))
         print(valores[0])
         tiempos[thread]['read'] += float(valores[0])
         tiempos[thread]['tnf'] += float(valores[1])
