@@ -828,14 +828,6 @@ Distance cal_abd_corr(size_t r1, size_t r2) {
     return r;
 }
 
-void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
-    size_t readSz = 0;
-    while (readSz < _size) {
-        size_t _bytesres = _size - readSz;
-        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
-    }
-}
-
 bool loadENSFromFile(igraph_t &g, igraph_weight_vector_t &weights) {
     if (true) return false;  // TODO need to handle g.incs
 
@@ -1759,6 +1751,18 @@ void launch_tnf_prob_kernel(size_t max_prob_per_kernel, size_t prob_des, size_t 
     }
     getError("kernel");
     create_graph(total_prob, prob_des, minProb, _index);
+}
+
+void reader(int fpint, int id, size_t chunk, size_t _size, char *_mem) {
+    size_t readSz = 0;
+    while (readSz < _size) {
+        size_t _bytesres = _size - readSz;
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
+        if (readSz == 0) {
+            std::cerr << "Error reading file" << std::endl;
+            exit(1);
+        }
+    }
 }
 
 int main(int argc, char const *argv[]) {
