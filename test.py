@@ -17,7 +17,7 @@ cuda_bloqs = [32,64,128,256,512,1024,2048]
 for thread in threads:
     for i in range(0, num_ex):
         print("[T:"+str(thread)+']'+"metabat1 "+ str((i/num_ex) * 100) + "%", end='\r')
-        p = subprocess.Popen(['./metabat1','-i ' + archivo, '-o out/out', '-t ' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
         print(out)
