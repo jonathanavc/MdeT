@@ -18,7 +18,7 @@ def avg(arr):
     return sum(arr)/len(arr)
 
 def std(arr):
-    avg = avg(arr)
+    avg = sum(arr)/len(arr)
     return sum([(x-avg)**2 for x in arr])/len(arr)
 
 print("Metabat1")
