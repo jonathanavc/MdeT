@@ -2021,7 +2021,7 @@ int main(int argc, char const *argv[]) {
     // print_message("Advanced setting. using CPU threads %d,GPU block (per grid) %d, GPU threads(per block) %d\n", numThreads,
     // numBlocks, numThreads2);
 
-    // TIMERSTART(total);
+    TIMERSTART(total);
     nobs = 0;
     int nresv = 0;
     TIMERSTART(READ);
@@ -2446,7 +2446,7 @@ int main(int argc, char const *argv[]) {
     boost::numeric::ublas::matrix<size_t> resES(nobs, B, 0);
 
     ClassMap cls;
-    TIMERSTOP(binning);
+    TIMERSTART(binning);
     if (!loadBootFromFile(resES)) {
         for (int b = 0; b < B; ++b) {
             ContigVector _medoid_ids;
@@ -2897,6 +2897,6 @@ int main(int argc, char const *argv[]) {
     }
     cudaFreeHost(_mem);
     TIMERSTOP(binning);
-    // TIMERSTOP(total);
+    TIMERSTOP(total);
     return 0;
 }
