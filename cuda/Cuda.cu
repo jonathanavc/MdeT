@@ -2446,7 +2446,7 @@ int main(int argc, char const *argv[]) {
     boost::numeric::ublas::matrix<size_t> resES(nobs, B, 0);
 
     ClassMap cls;
-
+    TIMERSTOP(binning);
     if (!loadBootFromFile(resES)) {
         for (int b = 0; b < B; ++b) {
             ContigVector _medoid_ids;
@@ -2896,6 +2896,7 @@ int main(int argc, char const *argv[]) {
         }
     }
     cudaFreeHost(_mem);
+    TIMERSTOP(binning);
     // TIMERSTOP(total);
     return 0;
 }
