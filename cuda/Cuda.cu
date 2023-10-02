@@ -2009,12 +2009,12 @@ int main(int argc, char const *argv[]) {
         }
         boost::filesystem::create_directory(dir.parent_path());
     }
-
-    print_message(
-        "MetaBAT 1 CUDA (%s) using p1 %2.1f%%, p2 %2.1f%%, p3 %2.1f%%, minProb %2.1f%%, minBinned %2.0f%%, minCV %2.1f, "
-        "minContig %d, minContigByCorr %d, minCorr %2.0f%%, paired %d, and %d bootstrapping\n",
-        version.c_str(), p1 * 100, p2 * 100, p3 * 100, minProb * 100, minBinned * 100, minCV, minContig, minContigByCorr, minCorr,
-        pairFile.length() > 0, useEB ? B : 0);
+    if (verbose)
+        print_message(
+            "MetaBAT 1 CUDA (%s) using p1 %2.1f%%, p2 %2.1f%%, p3 %2.1f%%, minProb %2.1f%%, minBinned %2.0f%%, minCV %2.1f, "
+            "minContig %d, minContigByCorr %d, minCorr %2.0f%%, paired %d, and %d bootstrapping\n",
+            version.c_str(), p1 * 100, p2 * 100, p3 * 100, minProb * 100, minBinned * 100, minCV, minContig, minContigByCorr, minCorr,
+            pairFile.length() > 0, useEB ? B : 0);
 
     if (numThreads == 0) numThreads = std::thread::hardware_concurrency();  // obtener el numero de hilos maximo
     omp_set_num_threads(numThreads);
