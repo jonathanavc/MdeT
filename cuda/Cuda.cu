@@ -2070,7 +2070,6 @@ int main(int argc, char const *argv[]) {
         lCtgIdx.reserve(fsize % __min);
         gCtgIdx.reserve(fsize % __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
-            std::cout << contig_names.size() << std::endl;
             if (_mem[i] == fasta_delim) {
                 i++;
                 contig_name_i = i;  // guardar el inicio del nombre del contig
@@ -2099,10 +2098,8 @@ int main(int argc, char const *argv[]) {
         }
         seqs.shrink_to_fit();          // liberar memoria no usada
         contig_names.shrink_to_fit();  // liberar memoria no usada
-        // TIMERSTOP(read_file);
     }
     TIMERSTOP(READ);
-    //  std::cout << contig_names[0] << std::endl;
 
     nobs2 = ignored.size();
 
