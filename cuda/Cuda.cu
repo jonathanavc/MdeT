@@ -2064,11 +2064,11 @@ int main(int argc, char const *argv[]) {
         size_t contig_i;
         size_t contig_e;
         size_t contig_size;
-        seqs.reserve(fsize % __min);
-        ignored.reserve(fsize % __min);
-        contig_names.reserve(fsize % __min);
-        lCtgIdx.reserve(fsize % __min);
-        gCtgIdx.reserve(fsize % __min);
+        seqs.reserve(fsize / __min);
+        ignored.reserve(fsize / __min);
+        contig_names.reserve(fsize / __min);
+        lCtgIdx.reserve(fsize / __min);
+        gCtgIdx.reserve(fsize / __min);
         for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
             if (_mem[i] == fasta_delim) {
                 i++;
