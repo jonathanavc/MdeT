@@ -8,9 +8,9 @@ print("File: " + sys.argv[1])
 archivo = sys.argv[1]
 num_ex = 10
 threads = [1,2,4,9,18,36,72]
-cuda_streams = [1,2,4,6,8,10,12]
-cuda_threads = [16,32,64,128]
-cuda_bloqs = [32,64,128,256,512,1024,2048]
+cuda_streams = [1,4,8,12]
+cuda_threads = [16,32,64]
+cuda_bloqs = [128,256,512,1024,2048]
 
 tiempos = {}
 
