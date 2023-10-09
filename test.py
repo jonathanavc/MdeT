@@ -90,14 +90,14 @@ for stream in cuda_streams:
                 'binning': []
             }
             for i in range(0, num_ex):
-                p = subprocess.Popen(['./metabat1','-i' + archivo, '-o'+'out/out', '-t' + str(thread)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                p = subprocess.Popen(['./metabatcuda','-i' + archivo, '-o'+'out/out', '--cs' + str(stream),'--ct' + str(cthread), '--cb'+ str(cbloq)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
                 out, err = p.communicate()
                 valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
                 tiempos[stream][cthread][cbloq]['read'].append(float(valores[0]))
                 tiempos[stream][cthread][cbloq]['tnf'].append(float(valores[1]))
                 tiempos[stream][cthread][cbloq]['prob'].append(float(valores[2]))
                 tiempos[stream][cthread][cbloq]['binning'].append(float(valores[4]))
-                print("[cs:{};ct:{};cb:{}] Metabat1 {:.0f}% Read: {:.4f}±{:.4f} Tnf: {:.4f}±{:.4f} Prob: {:.4f}±{:.4f} Binning: {:.4f}±{:.4f}".format(
+                print("[cs:{};ct:{};cb:{}] MetabatCuda {:.0f}% Read: {:.4f}±{:.4f} Tnf: {:.4f}±{:.4f} Prob: {:.4f}±{:.4f} Binning: {:.4f}±{:.4f}".format(
                     stream,cthread,cbloq,
                     ((i + 1) / num_ex) * 100,
                     avg(tiempos[stream][cthread][cbloq]['read']),
