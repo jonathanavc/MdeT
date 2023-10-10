@@ -73,16 +73,12 @@ for stream in cuda_streams:
     tiempos[stream]["prob"] = ""
     tiempos[stream]["binning"] = ""
     for cthread in cuda_threads:
-        tiempos[stream]["read"] += str(cthread) + " "
-        tiempos[stream]["tnf"] += str(cthread) + " "
-        tiempos[stream]["prob"] += str(cthread) + " "
-        tiempos[stream]["binning"] += str(cthread) + " "
         tiempos[stream][cthread] = {}
         for cbloq in cuda_bloqs:
-            tiempos[stream]["read"] += str(cbloq) + " "
-            tiempos[stream]["tnf"] += str(cbloq) + " "
-            tiempos[stream]["prob"] += str(cbloq) + " "
-            tiempos[stream]["binning"] += str(cbloq) + " "
+            tiempos[stream]["read"] += str(cthread) + " " + str(cbloq) + " "
+            tiempos[stream]["tnf"] += str(cthread) + " " + str(cbloq) + " "
+            tiempos[stream]["prob"] += str(cthread) + " " + str(cbloq) + " "
+            tiempos[stream]["binning"] += str(cthread) + " " + str(cbloq) + " "
             tiempos[stream][cthread][cbloq] = {
                 'read': [],
                 'tnf': [],
