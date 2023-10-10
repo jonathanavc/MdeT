@@ -2426,9 +2426,11 @@ int main(int argc, char const *argv[]) {
             progress.track(min(max_prob_per_kernel, total_prob - prob_des));
             verbose_message("Building a tnf graph: %s\r", progress.getProgress());
         }
-        cudaFree(tnf_prob_d);
+        for (int i = 0; i < 2; i++) {
+            cudaFree(tnf_prob_d[i]);
+            cudaFreeHost(tnf_prob[i]);
+        }
         cudaFree(seqs_d_size_d);
-        cudaFreeHost(tnf_prob);
         seqs_h_index_i.clear();
         saveDistanceToFile(saveDistanceFile, requiredMinP, minContig);
     }
