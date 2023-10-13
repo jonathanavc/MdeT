@@ -1699,6 +1699,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
+    std::ofstream archivo("grafo.txt", std::ios::app);
     size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
     size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
 #pragma omp parallel for
@@ -1717,7 +1718,10 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
                 // std::cout << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
                 if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                    { boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); }
+                    { 
+                        archivo << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
+                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); 
+                    }
                     // boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprobt[omp_get_thread_num()]);
                 }
                 prob_index++;
