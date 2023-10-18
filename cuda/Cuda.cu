@@ -190,11 +190,11 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     }
 }
 
-__device__ short get_tn(const char *contig, const size_t index) {
+__device__ short get_tn(const char *contig) {
     unsigned char N;
     short tn = 0;
     for (short i = 0; i < 4; i++) {
-        N = BN[contig[index + i]];
+        N = BN[contig[i]];
         if (N & 4) return 256;
         tn = (tn << 2) | N;
     }
@@ -216,7 +216,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
         const char *contig = seqs_d + seqs_d_index[contig_index];
         for (size_t j = 0; j < contig_size - 3; ++j) {
-            short tn = get_tn(contig, j);
+            short tn = get_tn(contig + j);
             if (tn & 256) continue;
             TNF_temp[TNmap_d[tn]]++;
         }
@@ -1716,9 +1716,9 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
                                               tnf_prob[_index][prob_index % max_prob_per_kernel]);
                 if (passed && s >= requiredMinP) {
 #pragma omp critical(ADD_EDGE_1)
-                    { 
-                        //archivo << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
-                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob); 
+                    {
+                        // archivo << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
+                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob);
                     }
                 }
                 prob_index++;
