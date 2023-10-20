@@ -190,7 +190,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ 
     }
 }
 
-__device__ short get_tn(const char *contig) {
+__device__ short get_tn(char *__restrict__ contig) {
     unsigned char N;
     short tn = 0;
     for (short i = 0; i < 4; i++) {
@@ -205,12 +205,41 @@ __device__ const char *get_contig_d(int contig_index, const char *seqs_d, const 
     return seqs_d + seqs_d_index[contig_index];
 }
 
+__device__ void next_contig(char *__restrict__ contig, char c) {
+    for (int i = 0; i < 3; i++) {
+        contig[i] = contig[i + 1];
+    }
+    contig[3] = c;
+}
+
 __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs_d, const size_t *__restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-
+    // char local_contig[4];
     size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
     for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
+        char contig_temp[4] = {0};
+        float TNF_temp[136] = {0};
+        const size_t tnf_index = contig_index * 136;
+        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
+        const char *contig = seqs_d + seqs_d_index[contig_index];
+        if (contig_size < 4) continue;
+        for (size_t j = 0; j < 3; j++) next_contig(contig_temp, contig[j]);
+        for (size_t j = 3; j < contig_size; ++j) {
+            next_contig(contig_temp, contig[j]);
+            short tn = get_tn(contig_temp);
+            if (tn & 256) continue;
+            TNF_temp[TNmap_d[tn]]++;
+        }
+        double rsum = 0;
+        for (int c = 0; c < 136; ++c) {
+            rsum += TNF_temp[c] * TNF_temp[c];
+        }
+        rsum = sqrt(rsum);
+        for (int c = 0; c < 136; ++c) {
+            TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
+        }
+        /*
         float TNF_temp[136] = {0};
         const size_t tnf_index = contig_index * 136;
         size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
@@ -228,6 +257,7 @@ __global__ void get_TNF(float *__restrict__ TNF_d, const char *__restrict__ seqs
         for (int c = 0; c < 136; ++c) {
             TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
         }
+        */
     }
 }
 
