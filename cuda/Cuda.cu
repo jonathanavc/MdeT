@@ -98,10 +98,12 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
 //__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+__device__ __constant__ double floor_prob = 0.1;
+__device__ __constant__ double floor_preProb = 2.1972245773362195;
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
-    const double floor_prob = 0.1;
-    const double floor_preProb = log((1.0 / floor_prob) - 1.0);
+    //const double floor_prob = 0.1;
+    //const double floor_preProb = log((1.0 / floor_prob) - 1.0);
 
     double d = 0.0;
     float tn1, tn2, _diff;
