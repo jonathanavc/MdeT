@@ -96,17 +96,16 @@ __device__ __constant__ const double _c2[19] = {39406.5712626297,  -77863.174114
                                           -21887.8400068324, 1751.6803621934,   5158.3764225203, -290.1765894829,  -724.0348081819,
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
-                                          
+
 __device__ __constant__ const double floor_prob = 0.1;
 __device__ __constant__ const double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float * TNF2) {
     //const double floor_prob = 0.1;
     //const double floor_preProb = log((1.0 / floor_prob) - 1.0);
 
     double d = 0.0;
     float tn1, tn2, _diff;
-
     for (size_t i = 0; i < 136; ++i) {
         tn1 = TNF1[i];
         tn2 = TNF2[i];
@@ -115,6 +114,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         //d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
     }
     d = sqrt(d);
+
     double b, c;
     double ctg1 = min((double)r1, (double)500000);
     double ctg2 = min((double)r2, (double)500000);
@@ -164,7 +164,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     return prob;
 }
 
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *__restrict__ TNF, size_t *__restrict__ seqs_d_size, size_t _des,
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, float * TNF, size_t * seqs_d_size, size_t _des,
                              const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
