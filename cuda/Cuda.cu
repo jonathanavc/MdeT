@@ -101,9 +101,10 @@ __device__ __constant__ double floor_preProb = 2.1972245773362195642164351738756
 
 __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1, float *__restrict__ TNF2) {
     double d = 0.0;
-    float tn1, tn2;
+    float _diff;
     for (size_t i = 0; i < 136; ++i) {
-        d += pow((double)(TNF1[i] - TNF2[i]), 2);
+        _diff = TNF1[i] - TNF2[i];
+        d += _diff * _diff;
         //tn1 = TNF1[i];
         //tn2 = TNF2[i];
         //d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
