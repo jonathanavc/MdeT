@@ -1748,7 +1748,7 @@ void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int
 #pragma omp critical(ADD_EDGE_1)
                     {
                         // archivo << contigs[r1] << " " << contigs[r2] << " " << s << std::endl;
-                        //boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob);
+                        boost::add_edge(contigs[r1], contigs[r2], Weight(s), gprob);
                     }
                 }
                 prob_index++;
