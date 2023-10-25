@@ -103,7 +103,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
     double d = 0.0;
     float tn1, tn2;
     for (size_t i = 0; i < 136; ++i) {
-        d += pow(TNF1[i] - TNF2[i], 2);
+        d += pow((double)(TNF1[i] - TNF2[i]), 2);
         //tn1 = TNF1[i];
         //tn2 = TNF2[i];
         //d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
