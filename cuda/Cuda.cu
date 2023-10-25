@@ -107,7 +107,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *__restrict__ TNF1,
         tn2 = TNF2[i];
         d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
     }
-    d = sqrt(d);
+    d = sqrtf(d);
     double b, c;
     double ctg1 = min(r1, (size_t)500000);
     double ctg2 = min(r2, (size_t)500000);
@@ -1731,7 +1731,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
     size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
     size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-#pragma omp parallel for
+#pragma omp parallel for 
     for (int i = 0; i < numThreads; i++) {
         size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
         size_t prob_index = prob_des + _prob_per_thread * i;
