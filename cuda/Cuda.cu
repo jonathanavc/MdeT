@@ -158,8 +158,10 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF
         c = _c2[0] + _c2[1] * lw[0] + _c2[2] * lw[1] + _c2[3] * lw[2] + _c2[4] * lw[3] + _c2[5] * lw[4] + _c2[6] * lw[5] +
             _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
-        prob = 1.0 / (1 + exp(-(b + c * d)));
-        prob = prob < floor_prob ? floor_prob : prob;
+        preProb = -(b + c * d);
+        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
+        //prob = 1.0 / (1 + exp(-(b + c * d)));
+        //prob = prob < floor_prob ? floor_prob : prob;
     }
     return prob;
 }
