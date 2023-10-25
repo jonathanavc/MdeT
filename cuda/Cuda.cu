@@ -2427,7 +2427,7 @@ int main(int argc, char const *argv[]) {
     if (requiredMinP > .75)  // allow every mode exploration without reforming graph.
         requiredMinP = .75;
 
-    max_gpu_mem = min(max_gpu_mem, (size_t)200000000);
+    max_gpu_mem = min(max_gpu_mem, (size_t)500000000);
 
     TIMERSTART(probabilisticgraph);
     if (!loadDistanceFromFile(saveDistanceFile, requiredMinP, minContig)) {
