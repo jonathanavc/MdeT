@@ -1751,7 +1751,7 @@ int main(int ac, char* av[]) {
     TIMERSTOP(TNF_CAL);
     TIMERSTART(get_cutoff);
     {
-        size_t *seqs_sizes_d, seqs_sizes_h;
+        size_t *seqs_sizes_d, *seqs_sizes_h;
         // create seqs_sizes_h
         {
             cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
