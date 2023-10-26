@@ -123,6 +123,8 @@ static boost::numeric::ublas::matrix<float> TNF;
 
 static float* TNF_data;
 static float* TNF_d;
+std::vector<size_t> seqs_h_index_i;
+std::vector<size_t> seqs_h_index_e;
 
 typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float>> MatrixRowType;
 typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float>> MatrixColumnType;
@@ -1565,9 +1567,6 @@ int main(int ac, char* av[]) {
     // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
     {
         ProgressTracker progress(nobs);
-
-        vector<size_t> seqs_h_index_i;
-        vector<size_t> seqs_h_index_e;
 
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
