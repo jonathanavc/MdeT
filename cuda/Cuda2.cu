@@ -30,6 +30,7 @@
 #include <sys/sysinfo.h>
 #endif
 
+#include "../extra/metrictime2.hpp"
 #include "ProgressTracker.h"
 #include "cuckoohash_map.hh"
 #include "ranker.h"
@@ -1581,6 +1582,7 @@ int main(int ac, char* av[]) {
     cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
 
+    TIMERSTART(TNF_CAL);
     // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
     {
         ProgressTracker progress(nobs);
@@ -1622,6 +1624,7 @@ int main(int ac, char* av[]) {
     }
     cudaFreeHost(TNF_data);
     cudaFree(TNF_d);
+    TIMERSTOP(TNF_CAL);
     /*
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
