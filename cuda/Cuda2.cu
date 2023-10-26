@@ -1500,7 +1500,7 @@ int main(int ac, char* av[]) {
     }
     cudaFreeHost(TNF_data);
     cudaFree(TNF_d);
-
+/*
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
 #else
@@ -1536,6 +1536,7 @@ int main(int ac, char* av[]) {
             }
         }
     }
+*/
     verbose_message("Finished TNF calculation.                                  \n");
     /*
 
