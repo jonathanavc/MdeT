@@ -207,6 +207,15 @@ __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs
     }
 }
 
+void getError(std::string s = "") {
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        if (s != "") std::cerr << s << "|";
+        std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
+        exit(1);
+    }
+}
+
 void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaStream_t streams[n_STREAMS];
     cudaMalloc((void**)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
@@ -1079,8 +1088,11 @@ int main(int ac, char* av[]) {
         "noBinOut", po::value<bool>(&noBinOut)->zero_tokens(),
         "No bin output. Usually combined with --saveCls to check only contig memberships")(
         "seed", po::value<unsigned long long>(&seed)->default_value(0), "For exact reproducibility. (0: use random seed)")(
-        "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")("verbose,v", po::value<bool>(&verbose)->zero_tokens(),
-                                                                           "Verbose output");
+        "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")(
+        "verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output")("ct", po::value<int>(&numThreads2)->default_value(16),
+                                                                                 "Number of cuda threads")(
+        "cb", po::value<int>(&numBlocks)->default_value(256), "Number of cuda blocks")(
+        "cs", po::value<int>(&n_STREAMS)->default_value(1), "Number of cuda streams");
 
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(desc).positional({}).run(), vm);
