@@ -121,8 +121,8 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 static boost::numeric::ublas::matrix<float> TNF;
 
-typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> > MatrixRowType;
-typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float> > MatrixColumnType;
+typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float>> MatrixRowType;
+typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float>> MatrixColumnType;
 
 static size_t nABD = 0;
 static const size_t nTNF = 136;
@@ -131,6 +131,106 @@ static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
+
+__device__ __constant__ unsigned char TNmap_d[256] = {
+    2,   21,  31,  115, 101, 119, 67,  50, 135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
+    8,   114, 5,   54,  107, 120, 72,  41, 44,  26,  27,  23,  71,  53,  12,  81,  31,  127, 30,  110, 3,   80,  132, 123, 71,  102,
+    79,  1,   35,  124, 29,  4,   67,  34, 91,  17,  48,  52,  9,   77,  127, 117, 76,  93,  34,  65,  6,   73,  92,  68,  28,  94,
+    114, 113, 121, 36,  80,  10,  103, 99, 52,  87,  129, 14,  78,  113, 98,  19,  120, 97,  15,  56,  26,  131, 57,  46,  102, 51,
+    122, 60,  115, 117, 42,  62,  70,  10, 7,   130, 53,  51,  133, 20,  124, 134, 89,  86,  50,  65,  104, 95,  83,  87,  49,  111,
+    12,  122, 105, 0,   29,  89,  33,  84, 135, 6,   43,  85,  16,  129, 55,  82,  30,  42,  112, 39,  91,  104, 43,  25,  116, 28,
+    75,  118, 5,   98,  32,  109, 72,  15, 100, 59,  132, 7,   49,  125, 2,   9,   55,  18,  47,  121, 100, 45,  27,  57,  63,  64,
+    79,  133, 105, 58,  101, 76,  112, 74, 106, 103, 125, 108, 81,  60,  58,  24,  4,   86,  84,  13,  126, 73,  25,  66,  22,  14,
+    18,  128, 110, 62,  74,  61,  17,  95, 85,  66,  88,  94,  118, 40,  54,  19,  109, 90,  41,  56,  45,  11,  123, 130, 111, 108,
+    21,  77,  82,  128, 96,  36,  59,  11, 23,  46,  64,  37,  1,   20,  0,   24,  119, 93,  39,  61,  38,  99};
+
+__device__ __constant__ unsigned char BN[256] = {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+
+__device__ short get_tn(char* __restrict__ contig) {
+    unsigned char N;
+    short tn = 0;
+    for (short i = 0; i < 4; i++) {
+        N = BN[contig[i]];
+        if (N & 4) return 256;
+        tn = (tn << 2) | N;
+    }
+    return tn;
+}
+
+__device__ void next_contig(char* __restrict__ contig, char c) {
+    for (int i = 0; i < 3; i++) {
+        contig[i] = contig[i + 1];
+    }
+    contig[3] = c;
+}
+
+__global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const size_t* __restrict__ seqs_d_index,
+                        const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
+    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
+    // char local_contig[4];
+    size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
+    for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
+        char contig_temp[4] = {0};
+        float TNF_temp[136] = {0};
+        const size_t tnf_index = contig_index * 136;
+        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
+        const char* contig = seqs_d + seqs_d_index[contig_index];
+        if (contig_size < 4) continue;
+        for (size_t j = 0; j < 3; j++) next_contig(contig_temp, contig[j]);
+        for (size_t j = 3; j < contig_size; ++j) {
+            next_contig(contig_temp, contig[j]);
+            short tn = get_tn(contig_temp);
+            if (tn & 256) continue;
+            TNF_temp[TNmap_d[tn]]++;
+        }
+        double rsum = 0;
+        for (int c = 0; c < 136; ++c) {
+            rsum += TNF_temp[c] * TNF_temp[c];
+        }
+        rsum = sqrt(rsum);
+        for (int c = 0; c < 136; ++c) {
+            TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
+        }
+    }
+}
+
+void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
+    cudaStream_t streams[n_STREAMS];
+    cudaMalloc((void**)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
+    cudaMalloc((void**)&seqs_d_index, 2 * cobs * sizeof(size_t));
+    size_t contig_per_kernel = cobs / n_STREAMS;
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamCreate(&streams[i]);
+        size_t contig_to_process = contig_per_kernel;
+        size_t _des = contig_per_kernel * i;
+        size_t TNF_des = _des * 136;
+        if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
+        size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[gCtgIdx[contigs[_first]]][0] + seqs_h_index_i[_des],
+                        seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
+        cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
+                        streams[i]);
+        cudaMemcpyAsync(seqs_d_index + cobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
+                        cudaMemcpyHostToDevice, streams[i]);
+        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
+                                                           contig_to_process, contigs_per_thread, cobs);
+        cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
+                        contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+    }
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
+    }
+    getError("kernel");
+    cudaFree(seqs_d);
+    cudaFree(seqs_d_index);
+}
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char* _mem) {
     size_t readSz = 0;
@@ -171,7 +271,7 @@ class Graph {
     size_t n;
     std::vector<size_t> from;
     std::vector<size_t> to;
-    std::vector<std::vector<size_t> > incs;  // incidence list which has edge id instead of node id (compared to adjacent list)
+    std::vector<std::vector<size_t>> incs;  // incidence list which has edge id instead of node id (compared to adjacent list)
     std::vector<double> sTNF;
     std::vector<double> sSCR;  // composite score (weight) of sTNF and sABD
     ContigSet connected_nodes;
@@ -308,7 +408,7 @@ int label_propagation(Graph& g, std::vector<size_t>& membership, std::vector<siz
         cerr << "sSCR must be non-negative" << endl;
         exit(1);
     }
-    std::unordered_map<size_t, std::unordered_set<size_t> > visited;
+    std::unordered_map<size_t, std::unordered_set<size_t>> visited;
     std::unordered_set<size_t> blacklist;
     size_t nLeftMin = INT_MAX;
     size_t attempt = 0;
@@ -597,7 +697,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
     reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
-        std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double> >, CompareEdge> > edges(TILE);
+        std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
@@ -1455,6 +1555,9 @@ int main(int ac, char* av[]) {
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
     size_t max_gpu_mem = 4000000000;  // 4gb
+
+    float* TNF_data;
+    float* TNF_d;
 
     cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
