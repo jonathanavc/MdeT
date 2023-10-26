@@ -123,6 +123,8 @@ static boost::numeric::ublas::matrix<float> TNF;
 
 static float* TNF_data;
 static float* TNF_d;
+static char* seqs_d;
+static size_t* seqs_d_index;
 std::vector<size_t> seqs_h_index_i;
 std::vector<size_t> seqs_h_index_e;
 
@@ -217,7 +219,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
         size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[first][0] + seqs_h_index_i[_des],
+        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], &seqs[_first][0] + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
