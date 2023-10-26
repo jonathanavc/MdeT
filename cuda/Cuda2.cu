@@ -192,7 +192,7 @@ __global__ void get_connected_nodes(float* TNF, unsigned char* connected_nodes, 
     {
         size_t discriminante = 1 + 8 * tnf_dist_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
-        r2 = prob_index - r1 * (r1 - 1) / 2;
+        r2 = tnf_dist_index - r1 * (r1 - 1) / 2;
     }
     float* TNF_r2 = TNF + r2 * 136;
     float* TNF_r1 = TNF + r1 * 136;
