@@ -1883,7 +1883,6 @@ int main(int ac, char* av[]) {
         }
     */
     verbose_message("Finished TNF calculation.                                  \n");
-    /*
 
     ClassMap cls;
     do {
@@ -2292,6 +2291,5 @@ int main(int ac, char* av[]) {
     output_bins(cls);
 
     verbose_message("Finished\n");
-    */
     return 0;
 }
