@@ -159,6 +159,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF
             _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
+        // de metabat2, será correcto? SÍ xd
         prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
         //prob = 1.0 / (1 + exp(-(b + c * d)));
         //prob = prob < floor_prob ? floor_prob : prob;
@@ -170,7 +171,7 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float * TNF, size_t 
                              const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
-    //float _TNF1[136];
+    float _TNF1[136];
     //float _TNF2[136];
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
@@ -182,14 +183,14 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float * TNF, size_t 
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
     if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
-        /*
+        
         for (int i = 0; i < 136; i++) {
             _TNF1[i] = TNF_r1[i];
         }
-        */
+        
         while (r2 < r1) {
             if (tnf_dist_index == _limit2) break;
-            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], TNF_r1, TNF_r2);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF1, TNF_r2);
             tnf_dist_index++;
             TNF_r2 += 136;
             r2++;
