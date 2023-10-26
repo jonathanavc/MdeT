@@ -1807,10 +1807,18 @@ int main(int ac, char* av[]) {
         TIMERSTOP(get_connected_nodes);
         TIMERSTART(get_connected_nodes2);
         {
+            cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
             size_t contigs_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             get_connected_nodes2<<<numBlocks, numThreads2>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, contigs_per_thread);
+            cudaMemcpy(connected_nodes_h2, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         }
         TIMERSTOP(get_connected_nodes2);
+        for (int i = 0; i < nobs; i++) {
+            if (connected_nodes_h[i] != connected_nodes_h2[i]) {
+                printf("ERROR: %d %d %d\n", i, connected_nodes_h[i], connected_nodes_h2[i]);
+                break;
+            }
+        }
         cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
         cudaFreeHost(seqs_sizes_h);
