@@ -289,7 +289,7 @@ __global__ void get_connected_nodes(float* TNF, double* seqs_size, unsigned char
     }
 }
 
-__global__ void get_connected_nodes2(float* TNF, size_t* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
+__global__ void get_connected_nodes2(float* TNF, double* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
                                      size_t contig_per_thread) {
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t _limit = min(contig_idx + contig_per_thread, nobs);
@@ -1778,7 +1778,7 @@ int main(int ac, char* av[]) {
         double* seqs_sizes_d;
         unsigned char *connected_nodes_d, *connected_nodes_h2, *connected_nodes_h3;
         {
-            cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
+            cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(double));
             cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
             cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
             // cudaMallocHost((void**)&connected_nodes_h2, nobs * sizeof(unsigned char));
@@ -1846,7 +1846,7 @@ int main(int ac, char* av[]) {
 
         cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
-        cudaFreeHost(seqs_sizes_h);
+        /// cudaFreeHost(seqs_sizes_h);
         // cudaFreeHost(connected_nodes_h);
     }
     TIMERSTOP(get_cutoff);
