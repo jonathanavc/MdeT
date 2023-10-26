@@ -803,11 +803,11 @@ void output_bins(ClassMap& cls) {
                     char os_buffer[buf_size];
                     os.rdbuf()->pubsetbuf(os_buffer, buf_size);
                     for (auto it2 = cluster.begin(); it2 != cluster.end(); ++it2) {
-                        std::string& label = (*it2 < (int)nobs) ? contig_names[*it2] : small_contig_names[*it2 - nobs];
+                        std::string_view& label = (*it2 < (int)nobs) ? contig_names[*it2] : small_contig_names[*it2 - nobs];
                         if (onlyLabel) {
                             os << label << line_delim;
                         } else {
-                            std::string& seq = (*it2 < (int)nobs) ? seqs[*it2] : small_seqs[*it2 - nobs];
+                            std::string_view& seq = (*it2 < (int)nobs) ? seqs[*it2] : small_seqs[*it2 - nobs];
                             printFasta(os, label, seq);
                             bases += seq.size();
                         }
@@ -874,11 +874,11 @@ void output_bins(ClassMap& cls) {
 
                     for (size_t i = 0; i < clsMap.size(); ++i) {
                         if (clsMap[i] == 0) {
-                            std::string& label = ((i < nobs) ? contig_names[i] : small_contig_names[i - nobs]);
+                            std::string_view& label = ((i < nobs) ? contig_names[i] : small_contig_names[i - nobs]);
                             if (onlyLabel) {
                                 os << label << line_delim;
                             } else {
-                                std::string& seq = (i < nobs) ? seqs[i] : small_seqs[i - nobs];
+                                std::string_view& seq = (i < nobs) ? seqs[i] : small_seqs[i - nobs];
                                 printFasta(os, label, seq);
                             }
                         }
