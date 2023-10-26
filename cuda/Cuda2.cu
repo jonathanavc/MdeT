@@ -1576,7 +1576,7 @@ int main(int ac, char* av[]) {
         TNF.clear();
         size_t cobs = 0;  // current obs
         size_t _first = 0;
-        for (size_t i = 0; i < ncontigs; i++) {
+        for (size_t i = 0; i < nobs; i++) {
             if (seqs[i].data() - seqs[_first].data() + seqs[i].size() > max_gpu_mem) {
                 launch_tnf_kernel(cobs, _first, i - cobs);
                 seqs_h_index_i.clear();
@@ -1591,7 +1591,7 @@ int main(int ac, char* av[]) {
             cobs++;
         }
         if (cobs != 0) {
-            launch_tnf_kernel(cobs, _first, ncontigs - cobs);
+            launch_tnf_kernel(cobs, _first, nobs - cobs);
             progress.track(cobs);
             verbose_message("Calculating TNF %s\r", progress.getProgress());
             seqs_h_index_i.clear();
