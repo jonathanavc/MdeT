@@ -1578,11 +1578,11 @@ int main(int ac, char* av[]) {
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
     size_t max_gpu_mem = 4000000000;  // 4gb
+    TIMERSTART(TNF_CAL);
 
     cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
 
-    TIMERSTART(TNF_CAL);
     // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
     {
         ProgressTracker progress(nobs);
