@@ -1815,6 +1815,7 @@ int main(int ac, char* av[]) {
         }
         TIMERSTOP(get_connected_nodes2);
 
+        TIMERSTART(get_connected_nodes3);
         for (size_t i = 0; i < nobs; i++) {
             connected_nodes_h3[i] = 0;
         }
@@ -1825,6 +1826,7 @@ int main(int ac, char* av[]) {
                 }
             }
         }
+        TIMERSTOP(get_connected_nodes3);
 
         for (int i = 0; i < nobs; i++) {
             if (connected_nodes_h[i] != connected_nodes_h2[i] || connected_nodes_h[i] != connected_nodes_h3[i]) {
