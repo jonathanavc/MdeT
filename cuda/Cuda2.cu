@@ -1807,7 +1807,7 @@ int main(int ac, char* av[]) {
         TIMERSTOP(get_connected_nodes);
         TIMERSTART(get_connected_nodes2);
         {
-            contigs_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+            size_t contigs_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             get_connected_nodes2<<<numBlocks, numThreads2>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, contigs_per_thread);
         }
         TIMERSTOP(get_connected_nodes2);
