@@ -1771,13 +1771,14 @@ int main(int ac, char* av[]) {
     TIMERSTART(get_cutoff);
     {
         size_t *seqs_sizes_d, *seqs_sizes_h;
-        unsigned char *connected_nodes_d, *connected_nodes_h, *connected_nodes_h2;
+        unsigned char *connected_nodes_d, *connected_nodes_h, *connected_nodes_h2, *connected_nodes_h3;
         {
             cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
             cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
             cudaMallocHost((void**)&seqs_sizes_h, nobs * sizeof(size_t));
             cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
             cudaMallocHost((void**)&connected_nodes_h2, nobs * sizeof(unsigned char));
+            cudaMallocHost((void**)&connected_nodes_h3, nobs * sizeof(unsigned char));
             for (size_t i = 0; i < nobs; i++) {
                 seqs_sizes_h[i] = seqs[i].size();
             }
@@ -1813,12 +1814,25 @@ int main(int ac, char* av[]) {
             cudaMemcpy(connected_nodes_h2, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         }
         TIMERSTOP(get_connected_nodes2);
+
+        for (size_t i = 0; i < nobs; i++) {
+            connected_nodes_h3[i] = 0;
+        }
+        for (size_t i = 0; i < nobs; i++) {
+            for (size_t j = 0; j < nobs; j++) {
+                if (cal_tnf_dist(i, j) >= 0.999) {
+                    connected_nodes_h3[i] = 1;
+                }
+            }
+        }
+
         for (int i = 0; i < nobs; i++) {
-            if (connected_nodes_h[i] != connected_nodes_h2[i]) {
-                printf("ERROR: %d %d %d\n", i, connected_nodes_h[i], connected_nodes_h2[i]);
+            if (connected_nodes_h[i] != connected_nodes_h2[i] || connected_nodes_h[i] != connected_nodes_h3[i]) {
+                printf("ERROR: %d %d %d %d\n", i, connected_nodes_h[i], connected_nodes_h2[i], connected_nodes_h3[i]);
                 break;
             }
         }
+
         cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
         cudaFreeHost(seqs_sizes_h);
