@@ -1762,14 +1762,17 @@ int main(int ac, char* av[]) {
             cudaMemcpy(seqs_sizes_d, seqs_sizes_h, nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         }
 
-        unsigned char* connected_nodes_d;
+        unsigned char *connected_nodes_d, *connected_nodes_h;
         cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
+        cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
         cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
-        unsigned char* connected_nodes_h = (unsigned char*)malloc(nobs * sizeof(unsigned char));
         size_t prob_per_thread = ((nobs * (nobs - 1) / 2) + numBlocks * numThreads2) / numBlocks * numThreads2;
         get_connected_nodes<<<numBlocks, numThreads2, 0>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, prob_per_thread);
         cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+        cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
+        cudaFreeHost(seqs_sizes_h);
+        cudaFreeHost(connected_nodes_h);
     }
     TIMERSTOP(get_cutoff);
     cudaFree(TNF_d);
