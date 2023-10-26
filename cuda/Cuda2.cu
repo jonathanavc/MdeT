@@ -1622,9 +1622,10 @@ int main(int ac, char* av[]) {
         }
         // saveTNFToFile(saveTNFFile, minContig);
     }
+    TIMERSTOP(TNF_CAL);
     cudaFreeHost(TNF_data);
     cudaFree(TNF_d);
-    TIMERSTOP(TNF_CAL);
+    
     /*
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
