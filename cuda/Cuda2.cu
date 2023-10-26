@@ -288,6 +288,25 @@ __global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char
     }
 }
 
+__global__ void get_connected_nodes2(float* TNF, size_t* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
+                                     size_t contig_per_thread) {
+    size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t _limit = min(contig_idx + contig_per_thread, nobs);
+    if (contig_idx >= _limit) return;
+    float _TNF1[136];
+    for (int i = 0; i < 136; i++) {
+        _TNF1[i] = TNF[contig_idx * 136 + i];
+    }
+    for (size_t i = contig_idx; i < _limit; i++) {
+        for (size_t j = 0; j < nobs; j++) {
+            if (cal_tnf_dist_d(seqs_size[i], seqs_size[j], _TNF1, TNF + j * 136) >= cutoff) {
+                connected_nodes[i] = 1;
+                break;
+            }
+        }
+    }
+}
+
 __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
