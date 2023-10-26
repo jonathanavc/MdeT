@@ -1490,53 +1490,50 @@ int main(int ac, char* av[]) {
         }
         for (size_t i = 0; i < nobs; i++) {
             for (int j = 0; j < 136; j++) {
-                if (TNF_data[i * 136 + j] != TNF_data[i * 136 + j]) {
-                    std::cout << "ERROR:" << contigs[i] << " " << j << std::endl;
-                }
-                TNF(contigs[i], j) = TNF_data[i * 136 + j];
+                TNF(i, j) = TNF_data[i * 136 + j];
             }
         }
-        saveTNFToFile(saveTNFFile, minContig);
+        // saveTNFToFile(saveTNFFile, minContig);
     }
     cudaFreeHost(TNF_data);
     cudaFree(TNF_d);
-/*
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
-#else
-#endif
-    for (size_t r = 0; r < nobs; ++r) {
-        string& s = seqs[r];
-        char tn[5] = {'\0'};
-        const char* seq = s.c_str();
+    /*
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
+    #else
+    #endif
+        for (size_t r = 0; r < nobs; ++r) {
+            string& s = seqs[r];
+            char tn[5] = {'\0'};
+            const char* seq = s.c_str();
 
-        for (size_t i = 0; i < s.length() - 3; ++i) {
-            int tnNum = tnToNumber(seq + i);
-            int tnIdx = TNLookup[tnNum];
+            for (size_t i = 0; i < s.length() - 3; ++i) {
+                int tnNum = tnToNumber(seq + i);
+                int tnIdx = TNLookup[tnNum];
 
-            if (tnIdx < nTNF) {
-                ++TNF(r, tnIdx);
+                if (tnIdx < nTNF) {
+                    ++TNF(r, tnIdx);
+                }
+            }
+
+            // normalize to unit size (L2 norm)
+            Distance rsum = 0;
+            for (size_t c = 0; c < TNF.size2(); ++c) {
+                rsum += TNF(r, c) * TNF(r, c);
+            }
+            rsum = SQRT(rsum);
+            for (size_t c = 0; c < TNF.size2(); ++c) {
+                TNF(r, c) /= rsum;
+            }
+
+            if (verbose) {
+                progress.track();
+                if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
+                    verbose_message("Calculating TNF %s\r", progress.getProgress());
+                }
             }
         }
-
-        // normalize to unit size (L2 norm)
-        Distance rsum = 0;
-        for (size_t c = 0; c < TNF.size2(); ++c) {
-            rsum += TNF(r, c) * TNF(r, c);
-        }
-        rsum = SQRT(rsum);
-        for (size_t c = 0; c < TNF.size2(); ++c) {
-            TNF(r, c) /= rsum;
-        }
-
-        if (verbose) {
-            progress.track();
-            if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
-                verbose_message("Calculating TNF %s\r", progress.getProgress());
-            }
-        }
-    }
-*/
+    */
     verbose_message("Finished TNF calculation.                                  \n");
     /*
 
