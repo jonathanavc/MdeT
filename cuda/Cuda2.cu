@@ -1,4 +1,13 @@
+#include <cuda_fp16.h>
+#include <cuda_runtime.h>
+#include <fcntl.h>
+#include <immintrin.h>
+
 #include <sys/time.h>
+
+#include <thread>
+#include <chrono>
+#include <omp.h>
 
 #include <algorithm>
 #include <cstdarg>
