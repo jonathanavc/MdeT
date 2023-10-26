@@ -251,12 +251,12 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2)
 }
 
 __global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
-                                    size_t prob_per_thread) {
+                                    size_t prob_per_thread, size_t _des, size_t limit) {
     // const double cutoff = 999. / 1000.;
     size_t r1;
     size_t r2;
     float _TNF1[136];
-    size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * prob_per_thread;
+    size_t tnf_dist_index = _des + (threadIdx.x + blockIdx.x * blockDim.x) * prob_per_thread;
     {
         size_t discriminante = 1 + 8 * tnf_dist_index;
         r1 = (1 + sqrt((double)discriminante)) / 2;
@@ -264,7 +264,7 @@ __global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char
     }
     float* TNF_r2 = TNF + r2 * 136;
     float* TNF_r1 = TNF + r1 * 136;
-    size_t _limit2 = min(tnf_dist_index + prob_per_thread, ((nobs * (nobs - 1)) / 2));
+    size_t _limit2 = min(tnf_dist_index + prob_per_thread, limit);
     if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
         for (int i = 0; i < 136; i++) {
@@ -1752,26 +1752,39 @@ int main(int ac, char* av[]) {
     TIMERSTART(get_cutoff);
     {
         size_t *seqs_sizes_d, *seqs_sizes_h;
-        // create seqs_sizes_h
+        unsigned char *connected_nodes_d, *connected_nodes_h;
         {
             cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
+            cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
             cudaMallocHost((void**)&seqs_sizes_h, nobs * sizeof(size_t));
+            cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
             for (size_t i = 0; i < nobs; i++) {
                 seqs_sizes_h[i] = seqs[i].size();
             }
+            cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
             cudaMemcpy(seqs_sizes_d, seqs_sizes_h, nobs * sizeof(size_t), cudaMemcpyHostToDevice);
         }
-
-        unsigned char *connected_nodes_d, *connected_nodes_h;
-        cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
-        cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
-        cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
-        size_t prob_per_thread = ((nobs * (nobs - 1) / 2) + numBlocks * numThreads2) / numBlocks * numThreads2;
         TIMERSTART(get_connected_nodes);
-        get_connected_nodes<<<numBlocks, numThreads2, 0>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, prob_per_thread);
-        cudaDeviceSynchronize();
-        TIMERSTOP(get_connected_nodes);
+        {
+            cudaStream_t streams[n_STREAMS];
+            size_t total_prob = (nobs * (nobs - 1)) / 2;
+            size_t prob_per_kernel = (total_prob_kernel + n_STREAMS - 1) / n_STREAMS;
+            for (int i = 0; i < n_STREAMS; i++) {
+                cudaStreamCreate(&streams[i]);
+                size_t prob_per_thread = (prob_per_kernel + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+                get_connected_nodes<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs,
+                                                                               prob_per_thread, prob_per_kernel * i,
+                                                                               min(total_prob, prob_per_kernel * (i + 1)));
+            }
+            for (int i = 0; i < n_STREAMS; i++) {
+                cudaStreamSynchronize(streams[i]);
+                cudaStreamDestroy(streams[i]);
+            }
+
+            // get_connected_nodes<<<numBlocks, numThreads2, 0>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, prob_per_thread);
+        }
         cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+        TIMERSTOP(get_connected_nodes);
         cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
         cudaFreeHost(seqs_sizes_h);
