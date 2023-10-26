@@ -1171,7 +1171,7 @@ void output_bins(ClassMap& cls) {
     }      // omp parallel
 }
 
-Distance cal_abd_corr(size_t r1, size_t r2, bool is_small) {
+Distance cal_abd_corr(size_t r1, size_t r2, bool is_small = false) {
     size_t i, ii;
     double sum_xsq = 0.0;
     double sum_ysq = 0.0;
