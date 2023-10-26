@@ -117,6 +117,8 @@ static size_t nABD = 0;
 static const size_t nTNF = 136;
 static unsigned long long seed = 0;
 
+static std::chrono::steady_clock::time_point t1, t2;
+
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
 
 static void print_message(const char* format, ...) {
@@ -129,8 +131,9 @@ static void print_message(const char* format, ...) {
 
 static void verbose_message(const char* format, ...) {
     if (verbose) {
-        gettimeofday(&t2, NULL);
-        int elapsed = (int)(((t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0) / 1000.0);  // seconds
+        t2 = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::duration duration = t2 - t1;
+        int elapsed = (int)std::chrono::duration_cast<std::chrono::seconds>(duration).count();  // seconds
         printf("[%02d:%02d:%02d] ", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
         va_list argptr;
         va_start(argptr, format);
@@ -971,7 +974,7 @@ int main(int ac, char* av[]) {
         return vm.count("help") ? 0 : 1;
     }
 
-    if (verbose) gettimeofday(&t1, NULL);
+    if (verbose) t1 = std::chrono::steady_clock::now();
 
     if (seed == 0) seed = time(0);
     srand(seed);
