@@ -131,6 +131,7 @@ static char* seqs_d;
 static size_t* seqs_d_index;
 std::vector<size_t> seqs_h_index_i;
 std::vector<size_t> seqs_h_index_e;
+static unsigned char* connected_nodes_h;
 
 typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float>> MatrixRowType;
 typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float>> MatrixColumnType;
@@ -186,7 +187,7 @@ __device__ __constant__ double floor_preProb = 2.1972245773362195642164351738756
 
 __device__ __constant__ double cutoff = 0.999;
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2) {
+__device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
     for (size_t i = 0; i < 136; ++i) {
@@ -199,11 +200,11 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2)
     d = sqrt(d);
 
     double b, c;
-    double ctg1 = min((double)r1, (double)500000);
-    double ctg2 = min((double)r2, (double)500000);
+    // double ctg1 = min((double)r1, (double)500000);
+    // double ctg2 = min((double)r2, (double)500000);
     double lw[19];
-    lw[0] = log10(min(ctg1, ctg2));
-    lw[1] = log10(max(ctg1, ctg2));
+    lw[0] = log10(min(r1, r2));
+    lw[1] = log10(max(r1, r2));
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
@@ -250,7 +251,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
+__global__ void get_connected_nodes(float* TNF, double* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
                                     size_t prob_per_thread, size_t _des, size_t limit) {
     // const double cutoff = 999. / 1000.;
     size_t r1;
@@ -918,7 +919,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::vector<size_t> idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
-
+    /*
     Similarity* matrix = (Similarity*)malloc(_nobs * nobs * sizeof(Similarity));
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
@@ -927,6 +928,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             matrix[i * nobs + j] = s;
         }
     }
+    */
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
@@ -935,7 +937,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-
+        /*
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
             size_t kk = nobs;
@@ -950,11 +952,13 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                 }
             }
         }
+        */
         // cov = (double) connected_nodes.size() / _nobs;
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
-            if (connected_nodes[i] == 1) counton++;
+            if (connected_nodes_h[idx[i]] == 1) counton++;
+            // if (connected_nodes[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
 
@@ -979,9 +983,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             p -= rand() % 3 + 9;  // choose from 9,10,11
     }
 
-    free(matrix);
-    // verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n", (double)
-    // p / 10., connected_nodes.size(), _nobs, cov * 100);
+    // free(matrix);
+    //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
+    //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     return p;
 }
 
@@ -1771,21 +1775,18 @@ int main(int ac, char* av[]) {
     TIMERSTOP(TNF_CAL);
     TIMERSTART(get_cutoff);
     {
-        size_t *seqs_sizes_d, *seqs_sizes_h;
-        unsigned char *connected_nodes_d, *connected_nodes_h, *connected_nodes_h2, *connected_nodes_h3;
+        double* seqs_sizes_d;
+        unsigned char *connected_nodes_d, *connected_nodes_h2, *connected_nodes_h3;
         {
             cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
             cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
-            cudaMallocHost((void**)&seqs_sizes_h, nobs * sizeof(size_t));
             cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
-            cudaMallocHost((void**)&connected_nodes_h2, nobs * sizeof(unsigned char));
-            cudaMallocHost((void**)&connected_nodes_h3, nobs * sizeof(unsigned char));
-            for (size_t i = 0; i < nobs; i++) {
-                seqs_sizes_h[i] = seqs[i].size();
-            }
+            // cudaMallocHost((void**)&connected_nodes_h2, nobs * sizeof(unsigned char));
+            // cudaMallocHost((void**)&connected_nodes_h3, nobs * sizeof(unsigned char));
             cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
-            cudaMemcpy(seqs_sizes_d, seqs_sizes_h, nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+            cudaMemcpy(seqs_sizes_d, logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
         }
+        /*
         TIMERSTART(get_connected_nodes);
         {
             cudaStream_t streams[n_STREAMS];
@@ -1805,17 +1806,20 @@ int main(int ac, char* av[]) {
 
             // get_connected_nodes<<<numBlocks, numThreads2, 0>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, prob_per_thread);
         }
+
         cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         TIMERSTOP(get_connected_nodes);
+        */
         TIMERSTART(get_connected_nodes2);
         {
             cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
             size_t contigs_per_thread = (nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
             get_connected_nodes2<<<numBlocks, numThreads2>>>(TNF_d, seqs_sizes_d, connected_nodes_d, nobs, contigs_per_thread);
-            cudaMemcpy(connected_nodes_h2, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+            cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         }
         TIMERSTOP(get_connected_nodes2);
 
+        /*
         TIMERSTART(get_connected_nodes3);
         for (size_t i = 0; i < nobs; i++) {
             connected_nodes_h3[i] = 0;
@@ -1829,18 +1833,21 @@ int main(int ac, char* av[]) {
             }
         }
         TIMERSTOP(get_connected_nodes3);
+        */
 
+        /*
         for (int i = 0; i < nobs; i++) {
             if (connected_nodes_h[i] != connected_nodes_h2[i] || connected_nodes_h[i] != connected_nodes_h3[i]) {
                 printf("ERROR: %d %d %d %d\n", i, connected_nodes_h[i], connected_nodes_h2[i], connected_nodes_h3[i]);
                 break;
             }
         }
+        */
 
         cudaFree(seqs_sizes_d);
         cudaFree(connected_nodes_d);
         cudaFreeHost(seqs_sizes_h);
-        cudaFreeHost(connected_nodes_h);
+        // cudaFreeHost(connected_nodes_h);
     }
     TIMERSTOP(get_cutoff);
     cudaFree(TNF_d);
