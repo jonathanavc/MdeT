@@ -921,7 +921,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::vector<size_t> idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
-    /*
+    
     Similarity* matrix = (Similarity*)malloc(_nobs * nobs * sizeof(Similarity));
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
@@ -930,7 +930,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             matrix[i * nobs + j] = s;
         }
     }
-    */
+    
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
@@ -939,7 +939,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-        /*
+
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
             size_t kk = nobs;
@@ -954,11 +954,15 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                 }
             }
         }
-        */
+
         // cov = (double) connected_nodes.size() / _nobs;
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
+            if (connected_nodes_h[idx[i]] != connected_nodes[i]) {
+                printf("Error: %d %d\n", connected_nodes_h[idx[i]], connected_nodes[i]);
+                return 0;
+            }
             if (connected_nodes_h[idx[i]] == 1) counton++;
             // if (connected_nodes[i] == 1) counton++;
         }
