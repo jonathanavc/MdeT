@@ -121,6 +121,9 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 static boost::numeric::ublas::matrix<float> TNF;
 
+static float* TNF_data;
+static float* TNF_d;
+
 typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float>> MatrixRowType;
 typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float>> MatrixColumnType;
 
@@ -1555,9 +1558,6 @@ int main(int ac, char* av[]) {
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
     size_t max_gpu_mem = 4000000000;  // 4gb
-
-    float* TNF_data;
-    float* TNF_d;
 
     cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
