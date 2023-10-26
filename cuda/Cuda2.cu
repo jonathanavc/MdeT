@@ -1468,7 +1468,7 @@ int main(int ac, char* av[]) {
         size_t cobs = 0;  // current obs
         size_t _first = 0;
         for (size_t i = 0; i < ncontigs; i++) {
-            if (seqs[contigs[i]].data() - seqs[contigs[_first]].data() + seqs[contigs[i]].size() > max_gpu_mem) {
+            if (seqs[i].data() - seqs[_first].data() + seqs[i].size() > max_gpu_mem) {
                 launch_tnf_kernel(cobs, _first, i - cobs);
                 seqs_h_index_i.clear();
                 seqs_h_index_e.clear();
@@ -1477,8 +1477,8 @@ int main(int ac, char* av[]) {
                 _first = i;
                 cobs = 0;
             }
-            seqs_h_index_i.emplace_back(seqs[contigs[i]].data() - seqs[contigs[_first]].data());
-            seqs_h_index_e.emplace_back(seqs[contigs[i]].data() - seqs[contigs[_first]].data() + seqs[contigs[i]].size());
+            seqs_h_index_i.emplace_back(seqs[i].data() - seqs[_first].data());
+            seqs_h_index_e.emplace_back(seqs[i].data() - seqs[_first].data() + seqs[i].size());
             cobs++;
         }
         if (cobs != 0) {
