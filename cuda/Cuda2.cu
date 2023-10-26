@@ -62,8 +62,8 @@ typedef double Similarity;
 
 typedef boost::math::normal_distribution<Distance> Normal;
 
-static const std::string version = VERSION;
-static const std::string DATE = BUILD_TIMESTAMP;
+static std::string version = "Metabat 2 cuda 0.1";
+static std::string DATE = "2023-09-25";
 static bool verbose = false;
 static bool debug = false;
 static bool noBinOut = false;
@@ -114,6 +114,7 @@ typedef boost::numeric::ublas::matrix_row<boost::numeric::ublas::matrix<float> >
 typedef boost::numeric::ublas::matrix_column<boost::numeric::ublas::matrix<float> > MatrixColumnType;
 
 static size_t nABD = 0;
+static const size_t nTNF = 136;
 static unsigned long long seed = 0;
 
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
