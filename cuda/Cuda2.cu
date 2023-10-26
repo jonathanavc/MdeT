@@ -92,10 +92,10 @@ static const char tab_delim = '\t';
 static const char fasta_delim = '>';
 static const std::size_t buf_size = 1024 * 1024;
 
-static std::vector<std::string> contig_names;
-static std::vector<std::string> small_contig_names;
-static std::vector<std::string> seqs;
-static std::vector<std::string> small_seqs;
+static std::vector<std::string_view> contig_names;
+static std::vector<std::string_view> small_contig_names;
+static std::vector<std::string_view> seqs;
+static std::vector<std::string_view> small_seqs;
 static std::vector<Distance> logSizes;
 
 typedef std::vector<int> ContigVector;
@@ -1029,15 +1029,7 @@ int main(int ac, char* av[]) {
     omp_set_num_threads(numThreads);
     verbose_message("Executing with %d threads\n", numThreads);
 
-    // initialize the TN data structures
-    for (size_t i = 0; i < nTNF; ++i) {
-        TNmap[TN[i]] = i;
-    }
-
-    for (size_t i = 0; i < 16; ++i) {
-        TNPmap.insert(TNP[i]);
-    }
-
+    /*
     TNLookup.resize(257);
     TNLookup[256] = nTNF;  // any non-base in the kmer
     char tnfSeq[5] = {0, 0, 0, 0, 0};
@@ -1081,11 +1073,12 @@ int main(int ac, char* av[]) {
             }
         }
     }
+    */
 
     nobs = 0, nobs1 = 0;
 
-    std::unordered_map<std::string, size_t> contigs;
-    std::unordered_map<std::string, size_t> small_contigs;
+    std::unordered_map<std::string_view, size_t> contigs;
+    std::unordered_map<std::string_view, size_t> small_contigs;
 
     const int nNonFeat = cvExt ? 1 : 3;  // number of non features
     bool hasABD = abdFile.length() > 0;
@@ -1140,8 +1133,9 @@ int main(int ac, char* av[]) {
         verbose_message("Parsing assembly file\n");
 
         // TODO refactor into read assembly method
-        gzFile f = gzopen(inFile.c_str(), "r");
-        if (f == NULL) {
+        // gzFile f = gzopen(inFile.c_str(), "r");
+        FILE* fp = fopen(inFile.c_str(), "r");
+        if (fp == NULL) {
             cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
             return 1;
         } else {
@@ -1162,34 +1156,73 @@ int main(int ac, char* av[]) {
                 os->rdbuf()->pubsetbuf(os_buffer, buf_size);
                 if (verbose) verbose_message("Outputting contigs that are too short to %s\n", filteredFile_cls.c_str());
             }
-
-            kseq_t* kseq = kseq_init(f);
-            int64_t len;
-            while ((len = kseq_read(kseq)) > 0) {
-                if (kseq->name.l > 0 && (!hasABD || inDepth.find(kseq->name.s) != inDepth.end())) {
-                    char* s = kseq->seq.s;
-                    // toupper is no longer necessary to enumerate TNF
-                    if (len >= (int)minContig) {
-                        contigs[kseq->name.s] = nobs++;
-                        contig_names.push_back(kseq->name.s);
-                        seqs.push_back(kseq->seq.s);
-                    } else if (len >= (int)1000) {
-                        small_contigs[kseq->name.s] = nobs1++;
-                        small_contig_names.push_back(kseq->name.s);
-                        small_seqs.push_back(kseq->seq.s);
+            fseek(fp, 0L, SEEK_END);
+            fsize = ftell(fp);  // obtener el tamaño del archivo
+            fclose(fp);
+            size_t chunk = fsize / numThreads;
+            cudaError_t cudaStatus = cudaMallocHost((void**)&_mem, fsize);
+            if (cudaStatus != cudaSuccess) {
+                fprintf(stderr, "cudaMallocHost failed!");
+                return 1;
+            }
+            int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
+            if (fpint == -1) {
+                std::cout << "Error opening file: " << inFile << std::endl;
+                return 1;
+            }
+            std::thread readerThreads[numThreads];
+            for (int i = 0; i < numThreads; i++) {
+                size_t _size;
+                if (i != numThreads - 1)
+                    _size = chunk;
+                else
+                    _size = chunk + (fsize % numThreads);
+                readerThreads[i] = std::thread(reader, fpint, i, chunk, _size, _mem);
+            }
+            for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
+                readerThreads[i].join();
+            }
+            close(fpint);
+            size_t contig_name_i;
+            size_t contig_i;
+            contigs.reserve(fsize / 1000);
+            contig_names.reserve(fsize / 1000);
+            seqs.reserve(fsize / 1000);
+            small_contigs.reserve(fsize / 1000);
+            small_contig_names.reserve(fsize / 1000);
+            small_seqs.reserve(fsize / 1000);
+            for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
+                if (_mem[i] == fasta_delim) {
+                    i++;
+                    contig_name_i = i;  // guardar el inicio del nombre del contig
+                    while (_mem[i] != line_delim) i++;
+                    std::string_view name(_mem + contig_name_i, i - contig_name_i);
+                    i++;
+                    contig_i = i;  // guardar el inicio del contig
+                    while (i < fsize && _mem[i] != line_delim) i++;
+                    std::string_view seq(_mem + contig_i, i - contig_i);
+                    if (contig_size >= (int)minContig) {
+                        contigs[name] = nobs++;
+                        contig_names.push_back(name);
+                        seqs.push_back(seq);
+                    } else if (seq.length() >= (int)1000) {
+                        small_contigs[name] = nobs1++;
+                        small_contig_names.push_back(name);
+                        small_seqs.push_back(seq);
                     } else if (os) {
-                        // output the filtered contigs
                         if (onlyLabel) {
-                            *os << kseq->name.s << line_delim;
+                            *os << name << line_delim;
                         } else {
-                            printFasta(*os, kseq->name.s, kseq->seq.s);
+                            printFasta(*os, name, seq);
                         }
                     }
                 }
             }
-            kseq_destroy(kseq);
-            kseq = NULL;
-            gzclose(f);
+            contig_names.shrink_to_fit();        // liberar memoria no usada
+            seqs.shrink_to_fit();                // liberar memoria no usada
+            small_contig_names.shrink_to_fit();  // liberar memoria no usada
+            small_seqs.shrink_to_fit();          // liberar memoria no usada
+
             if (os) {
                 os->close();
                 if (!*os) {
@@ -1206,7 +1239,7 @@ int main(int ac, char* av[]) {
         return 1;
     }
     verbose_message("Number of large contigs >= %d are %d. \n", minContig, nobs);
-
+    /*
     if (hasABD) {
         ABD.resize(nobs, nABD);
         ABD_VAR.resize(nobs, nABD);
@@ -1627,7 +1660,8 @@ int main(int ac, char* av[]) {
                     // cout << "g2.sSCR.back(): " << g2.sSCR.back() << endl;
                     label_propagation(g2, mems, node_order);
                     verbose_message(
-                        "Building SCR Graph and Binning (%d vertices and %d edges) [P = %2.2f%%; %.1fGb / %.1fGb]                     "
+                        "Building SCR Graph and Binning (%d vertices and %d edges) [P = %2.2f%%; %.1fGb / %.1fGb]                 "
+                        "    "
                         "      \n",
                         g2.connected_nodes.size(), g2.getEdgeCount(), p_schedule2[which_p] * 100, getUsedPhysMem(),
                         getTotalPhysMem() / 1024 / 1024);
@@ -1844,7 +1878,8 @@ int main(int ac, char* av[]) {
                                     (double)added_sum / binned_size * 100, added_sum, minContig, minClsSize);
                 } else {
                     verbose_message(
-                        "[Info] Additional binning of lost contigs was ignored since it was too excessive [%2.2f%% (%lld bases) of "
+                        "[Info] Additional binning of lost contigs was ignored since it was too excessive [%2.2f%% (%lld bases) "
+                        "of "
                         "large (>=%d) contigs is > %2.0f%%].\n",
                         (double)added_sum / binned_size * 100, added_sum, minContig, .10 * 100);
                 }
@@ -1866,7 +1901,8 @@ int main(int ac, char* av[]) {
                     }
                 } else {
                     verbose_message(
-                        "[Info] Additional binning of small contigs was ignored since it was too excessive [%2.2f%% (%lld bases) of "
+                        "[Info] Additional binning of small contigs was ignored since it was too excessive [%2.2f%% (%lld bases) "
+                        "of "
                         "small (<%d) contigs is > %2.0f%%].\n",
                         (double)added_sum / totalSize1 * 100, added_sum, minContig, .10 * 100);
                 }
@@ -1886,5 +1922,6 @@ int main(int ac, char* av[]) {
     output_bins(cls);
 
     verbose_message("Finished\n");
+    */
     return 0;
 }
