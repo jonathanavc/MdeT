@@ -94,6 +94,9 @@ static bool saveCls = false;
 static bool outUnbinned = false;
 static size_t minSample = 3;
 static unsigned long long totalSize = 0, totalSize1 = 0;
+static int numBlocks = 512;
+static int numThreads2 = 16;
+static int n_STREAMS = 2;
 
 static size_t maxEdges = 200;
 static const char line_delim = '\n';
