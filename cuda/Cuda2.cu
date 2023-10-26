@@ -295,14 +295,16 @@ __global__ void get_connected_nodes2(float* TNF, double* seqs_size, unsigned cha
     size_t _limit = min(contig_idx + contig_per_thread, nobs);
     if (contig_idx >= _limit) return;
     float _TNF1[136];
-    for (int i = 0; i < 136; i++) {
-        _TNF1[i] = TNF[contig_idx * 136 + i];
-    }
     for (size_t i = contig_idx; i < _limit; i++) {
+        for (int j = 0; j < 136; j++) {
+            _TNF1[j] = TNF[i * 136 + j];
+        }
         for (size_t j = 0; j < nobs; j++) {
             if (i == j) continue;
+            if (connected_nodes[i] & 1) break;
             if (cal_tnf_dist_d(seqs_size[i], seqs_size[j], _TNF1, TNF + j * 136) >= cutoff) {
                 connected_nodes[i] = 1;
+                connected_nodes[j] = 1;
                 break;
             }
         }
