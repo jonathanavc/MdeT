@@ -2,10 +2,10 @@
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <immintrin.h>
-##include <omp.h>
+#include <omp.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 #include <algorithm>
 #include <chrono>
@@ -204,7 +204,7 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
         return os;
     }
     os << fasta_delim << label << line_delim;
-    const char* _seq = seq.c_str();
+    const char* _seq = seq.begin();
     const int maxWidth = 60;
     for (size_t s = 0; s < len; s += maxWidth) {
         int bytes = s + maxWidth < len ? maxWidth : len - s;
