@@ -961,7 +961,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         for (size_t i = 0; i < _nobs; i++) {
             if (connected_nodes_h[idx[i]] != connected_nodes[i]) {
                 printf("Error: %d %d\n", connected_nodes_h[idx[i]], connected_nodes[i]);
-                break;
+                continue;
             }
             if (connected_nodes_h[idx[i]] == 1) counton++;
             // if (connected_nodes[i] == 1) counton++;
