@@ -183,7 +183,7 @@ __device__ void next_contig(char* __restrict__ contig, char c) {
     contig[3] = c;
 }
 
-__global__ get_connected_nodes(float* TNF, unsigned char* connected_nodes, size_t nobs, size_t prob_per_thread) {
+__global__ void get_connected_nodes(float* TNF, unsigned char* connected_nodes, size_t nobs, size_t prob_per_thread) {
     const double cutoff = 999. / 1000.;
     size_t r1;
     size_t r2;
