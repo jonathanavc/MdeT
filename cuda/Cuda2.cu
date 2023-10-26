@@ -1454,19 +1454,22 @@ int main(int ac, char* av[]) {
 
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
-    TNF.resize(nobs, nTNF);
-    TNF.clear();
-
     size_t max_gpu_mem = 4000000000;  // 4gb
 
     cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
-    seqs_h_index_i.reserve(nobs);
-    seqs_h_index_e.reserve(nobs);
-    //if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+
+    // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
     {
         ProgressTracker progress(nobs);
-        TNF.resize(nobs, 136);
+
+        vector<size_t> seqs_h_index_i;
+        vector<size_t> seqs_h_index_e;
+
+        seqs_h_index_i.reserve(nobs);
+        seqs_h_index_e.reserve(nobs);
+
+        TNF.resize(nobs, nTNF);
         TNF.clear();
         size_t cobs = 0;  // current obs
         size_t _first = 0;
