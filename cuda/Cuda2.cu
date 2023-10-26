@@ -1768,7 +1768,7 @@ int main(int ac, char* av[]) {
         {
             cudaStream_t streams[n_STREAMS];
             size_t total_prob = (nobs * (nobs - 1)) / 2;
-            size_t prob_per_kernel = (total_prob_kernel + n_STREAMS - 1) / n_STREAMS;
+            size_t prob_per_kernel = (total_prob + n_STREAMS - 1) / n_STREAMS;
             for (int i = 0; i < n_STREAMS; i++) {
                 cudaStreamCreate(&streams[i]);
                 size_t prob_per_thread = (prob_per_kernel + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
