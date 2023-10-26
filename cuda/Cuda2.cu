@@ -271,12 +271,12 @@ __global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char
             _TNF1[i] = TNF_r1[i];
         }
         while (r2 < r1) {
+            if (connected_nodes[r1] & 1) break;
             if (tnf_dist_index == _limit2) break;
             if (cal_tnf_dist_d(seqs_size[r1], seqs_size[r2], _TNF1, TNF_r2) >= cutoff) {
-                // connected_nodes[r1] = 1;
-                // connected_nodes[r2] = 1;
+                connected_nodes[r1] = 1;
+                connected_nodes[r2] = 1;
             }
-            // tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF1, TNF_r2);
             tnf_dist_index++;
             TNF_r2 += 136;
             r2++;
