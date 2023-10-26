@@ -101,6 +101,8 @@ static const char tab_delim = '\t';
 static const char fasta_delim = '>';
 static const std::size_t buf_size = 1024 * 1024;
 
+static char * _mem;
+static size_t fsize = 0;
 static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> small_contig_names;
 static std::vector<std::string_view> seqs;
