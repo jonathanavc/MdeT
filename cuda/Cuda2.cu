@@ -2,7 +2,9 @@
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <immintrin.h>
-#include <omp.h>
+##include <omp.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/time.h>
 
 #include <algorithm>
