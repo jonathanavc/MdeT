@@ -2,14 +2,11 @@
 #include <cuda_runtime.h>
 #include <fcntl.h>
 #include <immintrin.h>
-
+#include <omp.h>
 #include <sys/time.h>
 
-#include <thread>
-#include <chrono>
-#include <omp.h>
-
 #include <algorithm>
+#include <chrono>
 #include <cstdarg>
 #include <fstream>
 #include <functional>
@@ -19,6 +16,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -101,7 +99,7 @@ static const char tab_delim = '\t';
 static const char fasta_delim = '>';
 static const std::size_t buf_size = 1024 * 1024;
 
-static char * _mem;
+static char* _mem;
 static size_t fsize = 0;
 static std::vector<std::string_view> contig_names;
 static std::vector<std::string_view> small_contig_names;
@@ -131,6 +129,18 @@ static unsigned long long seed = 0;
 static std::chrono::steady_clock::time_point t1, t2;
 
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
+
+void reader(int fpint, int id, size_t chunk, size_t _size, char* _mem) {
+    size_t readSz = 0;
+    while (readSz < _size) {
+        size_t _bytesres = _size - readSz;
+        readSz += pread(fpint, _mem + (id * chunk) + readSz, _bytesres, (id * chunk) + readSz);
+        if (readSz == 0) {
+            std::cerr << "Error reading file" << std::endl;
+            exit(1);
+        }
+    }
+}
 
 static void print_message(const char* format, ...) {
     va_list argptr;
