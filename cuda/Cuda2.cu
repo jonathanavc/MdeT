@@ -908,7 +908,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     g.from.shrink_to_fit();
 }
 
-size_t gen_tnf_graph_sample(double coverage, bool full) {
+size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     size_t _nobs = full ? nobs : std::min(nobs, (size_t)2500);
 
     // cuckoohash_map<int, bool> connected_nodes;
