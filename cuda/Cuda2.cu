@@ -174,7 +174,7 @@ static void trim_fasta_label(std::string& label) {
     if (pos != std::string::npos) label = label.substr(0, pos);
 }
 
-std::ostream& printFasta(std::ostream& os, string label, string seq) {
+std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_view seq) {
     int64_t len = seq.size();
     if (len == 0) {
         cerr << "Warning attempt to print an empty fasta!" << endl;
