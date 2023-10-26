@@ -77,33 +77,30 @@ __device__ __constant__ unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-__device__ __constant__ const double _b1[18] = {46349.1624324381,  -76092.3748553155, -639.918334183,  53873.3933743949, -156.6547554844,
+__device__ __constant__ double _b1[18] = {46349.1624324381,  -76092.3748553155, -639.918334183,  53873.3933743949, -156.6547554844,
                                           -21263.6010657275, 64.7719132839,     5003.2646455284, -8.5014386744,    -700.5825500292,
                                           0.3968284526,      54.037542743,      -1.7713972342,   474.0850141891,   -23.966597785,
                                           0.7800219061,      -0.0138723693,     0.0001027543};
 
-__device__ __constant__ const double _c1[18] = {-443565.465710869, 718862.10804858, 5114.1630934534,   -501588.206183097, 784.4442123743,
+__device__ __constant__ double _c1[18] = {-443565.465710869, 718862.10804858, 5114.1630934534,   -501588.206183097, 784.4442123743,
                                           194712.394138513,  -377.9645994741, -45088.7863182741, 50.5960513287,     6220.3310639927,
                                           -2.3670776453,     -473.269785487,  15.3213264134,     -3282.8510348085,  164.0438603974,
                                           -5.2778800755,     0.0929379305,    -0.0006826817};
 
-__device__ __constant__ const double _b2[17] = {6770.9351457442, -5933.7589419767, -2976.2879986855, 3279.7524685865, 1602.7544794819,
+__device__ __constant__ double _b2[17] = {6770.9351457442, -5933.7589419767, -2976.2879986855, 3279.7524685865, 1602.7544794819,
                                           -967.2906583423, -462.0149190219,  159.8317289682,   74.4884405822,   -14.0267151808,
                                           -6.3644917671,   0.5108811613,     0.2252455343,     0.965040193,     -0.0546309127,
                                           0.0012917084,    -1.14383e-05};
 
-__device__ __constant__ const double _c2[19] = {39406.5712626297,  -77863.1741143294, 9586.8761567725, 55360.1701572325, -5825.2491611377,
+__device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 9586.8761567725, 55360.1701572325, -5825.2491611377,
                                           -21887.8400068324, 1751.6803621934,   5158.3764225203, -290.1765894829,  -724.0348081819,
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
-__device__ __constant__ const double floor_prob = 0.1;
-__device__ __constant__ const double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+__device__ __constant__ double floor_prob = 0.1;
+__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
-__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF2) {
-    //const double floor_prob = 0.1;
-    //const double floor_preProb = log((1.0 / floor_prob) - 1.0);
-
+__device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF1, float *TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
     for (size_t i = 0; i < 136; ++i) {
@@ -111,8 +108,8 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF
         tn2 = TNF2[i];
         _diff = tn1 - tn2;
         d += _diff * _diff;
-        //d += (tn1 - tn2) * (tn1 - tn2);  // euclidean distance
     }
+
     d = sqrt(d);
 
     double b, c;
@@ -149,7 +146,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
     double preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
+    prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
 
     if (prob >= floor_prob) {
         b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] +
@@ -160,19 +157,19 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float * TNF1, float * TNF
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
         // de metabat2, será correcto? SÍ xd
-        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
-        //prob = 1.0 / (1 + exp(-(b + c * d)));
-        //prob = prob < floor_prob ? floor_prob : prob;
+        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : 0.1;
+        // prob = 1.0 / (1 + exp(-(b + c * d)));
+        // prob = prob < floor_prob ? floor_prob : prob;
     }
     return prob;
 }
 
-__global__ void get_tnf_prob(double *__restrict__ tnf_dist, float * TNF, size_t * seqs_d_size, size_t _des,
+__global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *TNF, size_t *seqs_d_size, size_t _des,
                              const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
     float _TNF1[136];
-    //float _TNF2[136];
+    // float _TNF2[136];
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
     size_t discriminante = 1 + 8 * prob_index;
@@ -183,11 +180,10 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float * TNF, size_t 
     size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
     if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
-        
         for (int i = 0; i < 136; i++) {
             _TNF1[i] = TNF_r1[i];
         }
-        
+
         while (r2 < r1) {
             if (tnf_dist_index == _limit2) break;
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF1, TNF_r2);
@@ -1743,7 +1739,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 void create_graph(size_t total_prob, size_t prob_des, Distance requiredMinP, int _index) {
     size_t _total = min(total_prob - prob_des, max_prob_per_kernel);
     size_t _prob_per_thread = (total_prob + numThreads - 1) / numThreads;
-#pragma omp parallel for 
+#pragma omp parallel for
     for (int i = 0; i < numThreads; i++) {
         size_t _limit = min(prob_des + _prob_per_thread * (i + 1), prob_des + _total);
         size_t prob_index = prob_des + _prob_per_thread * i;
