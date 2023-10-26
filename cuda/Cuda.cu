@@ -183,7 +183,6 @@ __global__ void get_tnf_prob(double *__restrict__ tnf_dist, float *TNF, size_t *
         for (int i = 0; i < 136; i++) {
             _TNF1[i] = TNF_r1[i];
         }
-
         while (r2 < r1) {
             if (tnf_dist_index == _limit2) break;
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d(seqs_d_size[r1], seqs_d_size[r2], _TNF1, TNF_r2);
