@@ -301,7 +301,7 @@ __global__ void get_connected_nodes2(float* TNF, double* seqs_size, unsigned cha
         }
         for (size_t j = 0; j < nobs; j++) {
             if (i == j) continue;
-            if (connected_nodes[i] & 1) break;
+            // if (connected_nodes[i] & 1) break;
             if (cal_tnf_dist_d(seqs_size[i], seqs_size[j], _TNF1, TNF + j * 136) >= cutoff) {
                 connected_nodes[i] = 1;
                 connected_nodes[j] = 1;
