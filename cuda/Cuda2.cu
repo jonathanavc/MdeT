@@ -299,6 +299,7 @@ __global__ void get_connected_nodes2(float* TNF, size_t* seqs_size, unsigned cha
     }
     for (size_t i = contig_idx; i < _limit; i++) {
         for (size_t j = 0; j < nobs; j++) {
+            if (i == j) continue;
             if (cal_tnf_dist_d(seqs_size[i], seqs_size[j], _TNF1, TNF + j * 136) >= cutoff) {
                 connected_nodes[i] = 1;
                 break;
@@ -1821,6 +1822,7 @@ int main(int ac, char* av[]) {
         }
         for (size_t i = 0; i < nobs; i++) {
             for (size_t j = 0; j < nobs; j++) {
+                if (i == j) continue;
                 if (cal_tnf_dist(i, j) >= 0.999) {
                     connected_nodes_h3[i] = 1;
                 }
