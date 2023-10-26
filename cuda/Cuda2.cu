@@ -1055,52 +1055,6 @@ int main(int ac, char* av[]) {
     omp_set_num_threads(numThreads);
     verbose_message("Executing with %d threads\n", numThreads);
 
-    /*
-    TNLookup.resize(257);
-    TNLookup[256] = nTNF;  // any non-base in the kmer
-    char tnfSeq[5] = {0, 0, 0, 0, 0};
-    for (int i0 = 0; i0 < 4; i0++) {
-        tnfSeq[0] = bases[i0];
-        for (int i1 = 0; i1 < 4; i1++) {
-            tnfSeq[1] = bases[i1];
-            for (int i2 = 0; i2 < 4; i2++) {
-                tnfSeq[2] = bases[i2];
-                for (int i3 = 0; i3 < 4; i3++) {
-                    tnfSeq[3] = bases[i3];
-                    char tn[5] = {0, 0, 0, 0, 0};
-                    memcpy(tn, tnfSeq, 4);
-                    int tnNumber = tnToNumber(tnfSeq);
-                    assert(tnNumber <= 255);
-
-                    auto it = TNmap.find(tn);
-                    if (it != TNmap.end()) {
-                        TNLookup[tnNumber] = it->second;
-                        continue;
-                    }
-
-                    // reverse complement
-                    std::reverse(tn, tn + 4);
-                    if (!revComp(tn, 4)) {
-                        cout << "Unknown nucleotide letter found: " << tn << endl;
-                        continue;
-                    }
-                    if (TNPmap.find(tn) == TNPmap.end()) {  // if it is palindromic, then skip
-                        it = TNmap.find(tn);
-                        if (it != TNmap.end()) {
-                            TNLookup[tnNumber] = it->second;
-                        } else {
-                            cout << "Unknown TNF " << tn << endl;
-                            continue;
-                        }
-                    } else {
-                        TNLookup[tnNumber] = nTNF;  // skip
-                    }
-                }
-            }
-        }
-    }
-    */
-
     nobs = 0, nobs1 = 0;
 
     std::unordered_map<std::string_view, size_t> contigs;
@@ -1158,8 +1112,6 @@ int main(int ac, char* av[]) {
 
         verbose_message("Parsing assembly file\n");
 
-        // TODO refactor into read assembly method
-        // gzFile f = gzopen(inFile.c_str(), "r");
         FILE* fp = fopen(inFile.c_str(), "r");
         if (fp == NULL) {
             cerr << "[Error!] can't open the sequence fasta file " << inFile << endl;
@@ -1488,8 +1440,10 @@ int main(int ac, char* av[]) {
         }
     }
 
+
     verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
                     1000, minContig);
+    */
 
     // prepare logsizes
     logSizes.resize(nobs);
@@ -1502,7 +1456,50 @@ int main(int ac, char* av[]) {
 
     TNF.resize(nobs, nTNF);
     TNF.clear();
-    ProgressTracker progress(nobs);
+
+    cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
+    cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
+    seqs_h_index_i.reserve(nobs);
+    seqs_h_index_e.reserve(nobs);
+    if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
+        ProgressTracker progress(nobs);
+        TNF.resize(nobs, 136);
+        TNF.clear();
+        size_t cobs = 0;  // current obs
+        size_t _first = 0;
+        for (size_t i = 0; i < ncontigs; i++) {
+            if (seqs[contigs[i]].data() - seqs[contigs[_first]].data() + seqs[contigs[i]].size() > max_gpu_mem) {
+                launch_tnf_kernel(cobs, _first, i - cobs);
+                seqs_h_index_i.clear();
+                seqs_h_index_e.clear();
+                progress.track(cobs);
+                verbose_message("Calculating TNF %s\r", progress.getProgress());
+                _first = i;
+                cobs = 0;
+            }
+            seqs_h_index_i.emplace_back(seqs[contigs[i]].data() - seqs[contigs[_first]].data());
+            seqs_h_index_e.emplace_back(seqs[contigs[i]].data() - seqs[contigs[_first]].data() + seqs[contigs[i]].size());
+            cobs++;
+        }
+        if (cobs != 0) {
+            launch_tnf_kernel(cobs, _first, ncontigs - cobs);
+            progress.track(cobs);
+            verbose_message("Calculating TNF %s\r", progress.getProgress());
+            seqs_h_index_i.clear();
+            seqs_h_index_e.clear();
+        }
+        for (size_t i = 0; i < nobs; i++) {
+            for (int j = 0; j < 136; j++) {
+                if (TNF_data[i * 136 + j] != TNF_data[i * 136 + j]) {
+                    std::cout << "ERROR:" << contigs[i] << " " << j << std::endl;
+                }
+                TNF(contigs[i], j) = TNF_data[i * 136 + j];
+            }
+        }
+        saveTNFToFile(saveTNFFile, minContig);
+    }
+    cudaFreeHost(TNF_data);
+    cudaFree(TNF_d);
 
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
@@ -1540,6 +1537,7 @@ int main(int ac, char* av[]) {
         }
     }
     verbose_message("Finished TNF calculation.                                  \n");
+    /*
 
     ClassMap cls;
     do {
