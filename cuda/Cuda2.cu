@@ -252,7 +252,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2)
 
 __global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char* connected_nodes, size_t nobs,
                                     size_t prob_per_thread) {
-    const double cutoff = 999. / 1000.;
+    // const double cutoff = 999. / 1000.;
     size_t r1;
     size_t r2;
     float _TNF1[136];
@@ -1751,12 +1751,23 @@ int main(int ac, char* av[]) {
     TIMERSTOP(TNF_CAL);
     TIMERSTART(get_cutoff);
     {
+        size_t *seqs_sizes_d, seqs_sizes_h;
+        // create seqs_sizes_h
+        {
+            cudaMalloc((void**)&seqs_sizes_d, nobs * sizeof(size_t));
+            cudaMallocHost((void**)&seqs_sizes_h, nobs * sizeof(size_t));
+            for (size_t i = 0; i < nobs; i++) {
+                seqs_sizes_h[i] = seqs[i].size();
+            }
+            cudaMemcpy(seqs_sizes_d, seqs_sizes_h, nobs * sizeof(size_t), cudaMemcpyHostToDevice);
+        }
+
         unsigned char* connected_nodes_d;
         cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
         cudaMemset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
         unsigned char* connected_nodes_h = (unsigned char*)malloc(nobs * sizeof(unsigned char));
         size_t prob_per_thread = ((nobs * (nobs - 1) / 2) + numBlocks * numThreads2) / numBlocks * numThreads2;
-        get_connected_nodes < < < numBlocks, numThreads2 >>>> (TNF_d, connected_nodes_d, nobs, prob_per_thread);
+        get_connected_nodes < < < numBlocks, numThreads2, 0 >>>> (TNF_d, seqs_sizes_d, connected_nodes_d, nobs, prob_per_thread);
         cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         cudaFree(connected_nodes_d);
     }
