@@ -46,6 +46,9 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
+using std::cerr;
+using std::cout;
+using std::endl;
 namespace po = boost::program_options;
 
 typedef double Distance;
