@@ -250,7 +250,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char* connected_nodes, size_t nobs,
+__global__ void get_connected_nodes(float* TNF, size_t* seqs_size, unsigned char* __restrict__ connected_nodes, size_t nobs,
                                     size_t prob_per_thread) {
     // const double cutoff = 999. / 1000.;
     size_t r1;
