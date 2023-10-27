@@ -483,8 +483,12 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
-        size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_max_prob_sample<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs, prob_per_thread);
+        threads = 32;
+        blocks = (_nobs + threads - 1) / threads;
+        size_t prob_per_thread = (_nobs + (threads * blocks) - 1) / (threads * blocks);
+        // size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        // get_tnf_max_prob_sample<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs, prob_per_thread);
+        get_tnf_max_prob_sample<<<blocks, threads>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs, prob_per_thread);
         cudaMemcpyAsync(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     }
     cudaFree(contigs_d);
