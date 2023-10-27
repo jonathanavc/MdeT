@@ -1025,7 +1025,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
         getError("malloc");
         size_t contigs_per_thread = (nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
-        get_connected_nodes<<<numBlocks, numThreads2>>>(TNF, contig_log, connected_nodes_d, nobs, contigs_per_thread, cutoff);
+        get_connected_nodes<<<numBlocks, numThreads2>>>(TNF_d, contig_log, connected_nodes_d, nobs, contigs_per_thread, cutoff);
         cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(double), cudaMemcpyDeviceToHost);
         cudaFree(connected_nodes_d);
         getError("free");
