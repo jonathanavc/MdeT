@@ -183,13 +183,11 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -21887.8400068324, 1751.6803621934,   5158.3764225203, -290.1765894829,  -724.0348081819,
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
-//__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
 __device__ __constant__ double cutoff = 0.999;
 
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
-    const Distance floor_prob = 0.1;
-    const Distance floor_preProb = LOG((1.0 / floor_prob) - 1.0);
     double d = 0.0;
     float tn1, tn2, _diff;
     for (size_t i = 0; i < 136; ++i) {
@@ -989,17 +987,19 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
 
-#pragma omp parallel for
-    for (size_t j = 0; j < nobs; ++j) {
-        for (size_t i = 0; i < _nobs; ++i) {
-            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
-            if (s != s2) {
-                printf("i = %d, j = %d, s = %f, s2 = %f\n", i, j, s, s2);
+    /*
+    #pragma omp parallel for
+        for (size_t j = 0; j < nobs; ++j) {
+            for (size_t i = 0; i < _nobs; ++i) {
+                Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+                Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
+                if (s != s2) {
+                    printf("i = %d, j = %d, s = %f, s2 = %f\n", i, j, s, s2);
+                }
+                matrix[i * nobs + j] = s;
             }
-            matrix[i * nobs + j] = s;
         }
-    }
+    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1015,7 +1015,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             size_t kk = nobs;
             if (connected_nodes[i]) kk = _nobs;
             for (size_t j = i + 1; j < kk; ++j) {
-                Similarity s = matrix[i * nobs + j];
+                Similarity s = matrix_h[i * nobs + j];
                 if (s >= cutoff) {
                     connected_nodes[i] = 1;
                     if (j < _nobs) {
