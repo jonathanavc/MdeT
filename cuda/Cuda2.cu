@@ -397,7 +397,6 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
         cudaStream_t streams[n_STREAMS];
-        size_t threads = numThreads2;
         size_t bloqs = (_nobs + (threads * n_STREAMS) - 1) / (threads * n_STREAMS);
         size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
