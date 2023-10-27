@@ -519,21 +519,22 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
             cudaStreamCreate(&streams[i]);
             get_tnf_max_prob_sample<<<numBlocks, numThreads2, 0, streams[i]>>>(
                 max_dist_d, TNF_d, contig_log, contigs_d, nobs, contig_per_kernel * i, min((contig_per_kernel * (i + 1)), _nobs), 1);
-            // cudaMemcpyAsync(max_dist_h + contig_per_kernel * i, max_dist_d + contig_per_kernel * i, min(contig_per_kernel,
-            // contig_per_kernel * (i + 1) - _nobs) * sizeof(double), cudaMemcpyDeviceToHost);
+            cudaMemcpyAsync(max_dist_h + contig_per_kernel * i, max_dist_d + contig_per_kernel * i,
+                            min(contig_per_kernel, contig_per_kernel * (i + 1) - _nobs) * sizeof(double), cudaMemcpyDeviceToHost,
+                            streams[i]);
         }
         for (size_t i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
-        cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     }
     /*
     if (0) {
         double* _memtest = (double*)malloc(_nobs * sizeof(double));
         size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_max_prob_sample_test<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs,
-    prob_per_thread); cudaMemcpyAsync(_memtest, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost); cudaDeviceSynchronize();
+    prob_per_thread); cudaMemcpy(_memtest, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost); cudaDeviceSynchronize();
         for (int i = 0; i < _nobs; i++) {
             if (_memtest[i] != max_dist_h[i]) {
                 printf("Error in kernel %d %f %f\n", i, _memtest[i], max_dist_h[i]);
