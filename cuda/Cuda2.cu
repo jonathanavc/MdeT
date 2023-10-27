@@ -200,11 +200,10 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     d = sqrt(d);
 
     double b, c;
-    // double ctg1 = min((double)r1, (double)500000);
-    // double ctg2 = min((double)r2, (double)500000);
+
     double lw[19];
-    lw[0] = log10(min(r1, r2));
-    lw[1] = log10(max(r1, r2));
+    lw[0] = min(r1, r2);
+    lw[1] = max(r1, r2);
     lw[2] = lw[0] * lw[0];
     lw[4] = lw[2] * lw[0];
     lw[6] = lw[4] * lw[0];
