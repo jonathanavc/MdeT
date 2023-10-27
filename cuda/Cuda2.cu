@@ -185,8 +185,6 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 __device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
-__device__ __constant__ double cutoff = 0.999;
-
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
@@ -336,6 +334,25 @@ __global__ void get_tnf_prob_sample(double* tnf_dist, float* TNF, double* size_l
         }
         r2 = 0;
         r1++;
+    }
+}
+
+__global__ void get_connected_nodes(float* TNF, size_t* size_log, unsigned char* __restrict__ connected_nodes, size_t nobs,
+                                    size_t contig_per_thread, double cutoff) {
+    size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t _limit = min(contig_idx + contig_per_thread, nobs);
+    if (contig_idx >= _limit) return;
+    float _TNF1[136];
+    for (int i = 0; i < 136; i++) {
+        _TNF1[i] = TNF[contig_idx * 136 + i];
+    }
+    for (size_t i = contig_idx; i < _limit; i++) {
+        for (size_t j = 0; j < nobs; j++) {
+            if (cal_tnf_dist_d(size_log[i], size_log[j], _TNF1, TNF + j * 136) >= cutoff) {
+                connected_nodes[i] = 1;
+                break;
+            }
+        }
     }
 }
 
@@ -1002,8 +1019,16 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
     for (; p > 700;) {
         round++;
-
         double cutoff = (double)p / 1000.;
+        double *connected_nodes_d, *connected_nodes_h;
+        cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(double));
+        cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(double));
+        getError("malloc");
+        size_t contigs_per_thread = (nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
+        get_connected_nodes<<<numBlocks, numThreads2>>>(TNF, contig_log, connected_nodes_d, nobs, contigs_per_thread, cutoff);
+        cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaFree(connected_nodes_d);
+        getError("free");
 
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
@@ -1024,20 +1049,26 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
+            if (connected_nodes[i] != connected_nodes_h[idx[i]]) {
+                printf("Error: connected_nodes[%d] = %d, connected_nodes_h[%d] = %d\n", i, connected_nodes[i], idx[i],
+                       connected_nodes_h[idx[i]]);
+            }
             if (connected_nodes[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
 
-        if (cov >= coverage) {
+        cuda
+
+            if (cov >= coverage) {
             // previous cov is closer to coverage then choose prev p instead current p
             if (cov - coverage > coverage - pcov) {
                 p = pp;
                 cov = pcov;
             }
             break;
-        } else
-            verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
-                            (double)p / 10., counton, _nobs, cov * 100, round);
+        }
+        else verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
+                             (double)p / 10., counton, _nobs, cov * 100, round);
         pp = p;
         pcov = cov;
 
@@ -1047,6 +1078,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             p -= rand() % 3 + 3;  // choose from 3,4,5
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
+        cudaFreeHost(connected_nodes_h);
     }
 
     // free(matrix);
