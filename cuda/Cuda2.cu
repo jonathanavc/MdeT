@@ -1034,8 +1034,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             p -= rand() % 3 + 3;  // choose from 3,4,5
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
-
-        cudaFreeHost(connected_nodes_h);
     }
 
     // free(matrix);
@@ -1043,7 +1041,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     // cudaFreeHost(matrix);
     cudaFreeHost(matrix_h);
-    cudaFree(matrix_d);
     return p;
 }
 
