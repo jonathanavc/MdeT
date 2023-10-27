@@ -337,7 +337,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
     }
 }
 
-__global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char* connected_nodes, size_t* contigs, size_t nobs,
+__global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char* connected_nodes, size_t nobs,
                                     size_t contig_per_thread, double _cutoff) {
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t _limit = min(contig_idx + contig_per_thread, nobs);
