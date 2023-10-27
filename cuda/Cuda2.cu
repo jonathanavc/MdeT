@@ -337,18 +337,14 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
     }
 }
 
-__global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char* connected_nodes, size_t nobs,
-                                    size_t contig_per_thread, double _cutoff) {
-    size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t _limit = min(contig_idx + contig_per_thread, nobs);
-    if (contig_idx >= _limit) return;
-    float TNF1[136];
-    for (size_t i = contig_idx; i < _limit; i++) {
-        for (int j = 0; j < 136; j++) {
-            TNF1[j] = TNF[i * 136 + j];
-        }
+__global__ get_connected_nodes(double* tnf_dist, unsigned char* connected_nodes, size_t _nobs, size_t nobs, double cutoff,
+                               size_t contig_per_thread) {
+    size_t ctIdx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t _limit = min(ctIdx + contig_per_thread, _nobs);
+    if (ctIdx >= _limit) return;
+    for (size_t i = ctIdx; i < _limit; i++) {
         for (size_t j = 0; j < nobs; j++) {
-            if (1. - cal_tnf_dist_d(size_log[i], size_log[j], TNF1, TNF + j * 136) >= _cutoff) {
+            if (tnf_dist[i * nobs + j] >= cutoff) {
                 connected_nodes[i] = 1;
                 break;
             }
@@ -1025,10 +1021,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         unsigned char *connected_nodes_d, *connected_nodes_h;
         cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
         cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
+        memset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
         getError("malloc");
-        size_t contigs_per_thread = (nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
-        get_connected_nodes<<<numBlocks, numThreads2>>>(TNF_d, contig_log, connected_nodes_d, nobs, contigs_per_thread, cutoff);
-        cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+        size_t contigs_per_thread = (_nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
+        get_connected_nodes<<<numBlocks, numThreads2>>>(matrix_d, connected_nodes_d, _nobs, nobs, cutoff, contigs_per_thread);
+        cudaMemcpy(connected_nodes_h, connected_nodes_d, _nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
         cudaFree(connected_nodes_d);
         getError("free");
 
