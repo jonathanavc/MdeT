@@ -1035,15 +1035,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     */
 
     double *max_nobs_d, *max_nobs_h;
-
-    TIMERSTART(2);
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     getError("malloc");
-    // memset(max_nobs_h, 0, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     cudaFree(max_nobs_d);
-    TIMERSTOP(2);
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1948,6 +1944,7 @@ int main(int ac, char* av[]) {
         {
             Graph g(nobs);
 
+            TIMERSTART(GRAPH_SAMPLE)
             // 1. sampling graph to find minp
             if (pTNF < 1.) {
                 if (nobs <= 25000) {
@@ -1969,6 +1966,7 @@ int main(int ac, char* av[]) {
             } else {
                 pTNF *= 10;
             }
+            TIMERSTOP(GRAPH_SAMPLE)
             verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.2f]                                             \n",
                             pTNF / 10.);
 
