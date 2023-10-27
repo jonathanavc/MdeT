@@ -367,8 +367,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
-        size_t threads = numThreads2;
-        size_t bloqs = (contig_to_process + threads - 1) / threads;
+        size_t bloqs = (contig_to_process + numThreads2 - 1) / numThreads2;
         size_t contigs_per_thread = 1;
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], seqs[_first].data() + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
@@ -376,8 +375,8 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         streams[i]);
         cudaMemcpyAsync(seqs_d_index + cobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                         cudaMemcpyHostToDevice, streams[i]);
-        get_TNF<<<bloqs, threads, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
-                                                   contigs_per_thread, cobs);
+        get_TNF<<<bloqs, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
+                                                       contig_to_process, contigs_per_thread, cobs);
         cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
@@ -397,7 +396,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
         cudaStream_t streams[n_STREAMS];
-        size_t bloqs = (_nobs + (threads * n_STREAMS) - 1) / (threads * n_STREAMS);
+        size_t bloqs = (_nobs + (numThreads2 * n_STREAMS) - 1) / (numThreads2 * n_STREAMS);
         size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
