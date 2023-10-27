@@ -315,11 +315,13 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
                                         const size_t contig_per_thread) {
     // size_t r1;
     // size_t r2;
+
     float TNF1[136];
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min(contig_idx + contig_per_thread, _nobs);
     if (contig_idx >= limit) return;
     while (contig_idx != limit) {
+        max_dist[contig_idx] = 0;
         for (int i = 0; i < 136; i++) {
             TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
         }
@@ -482,7 +484,6 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    // cudaStream_t streams[n_STREAMS];
     {
         size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_max_prob_sample<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs, prob_per_thread);
@@ -1112,7 +1113,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     // cudaFreeHost(matrix);
     cudaFreeHost(max_nobs_h);
-    //cudaFreeHost(matrix_h);
+    // cudaFreeHost(matrix_h);
     return p;
 }
 
