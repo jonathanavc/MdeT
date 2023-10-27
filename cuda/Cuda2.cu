@@ -185,8 +185,6 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 __device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
-__device__ __constant__ double cutoff = 0.999;
-
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
