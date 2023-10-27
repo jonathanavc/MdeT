@@ -329,7 +329,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
         while (r2 < nobs) {
             if (tnf_dist_index == _limit2) break;
             tnf_dist[tnf_dist_index] =
-                cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF + contigs[r1] * 136, TNF + contigs[r2] * 136);
+                1. - cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF + contigs[r1] * 136, TNF + contigs[r2] * 136);
             // tnf_dist[tnf_dist_index] = contigs[r2];
             tnf_dist_index++;
             r2++;
@@ -980,26 +980,20 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     double *matrix_d, *matrix_h;
     Similarity* matrix;
     cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
-    cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
+    // cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
     getError("malloc");
 
-    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
+    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix, _nobs);
 
-    /*
-    #pragma omp parallel for
-        for (size_t j = 0; j < nobs; ++j) {
-            for (size_t i = 0; i < _nobs; ++i) {
-                Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-                Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
-                if (s != s2) {
-                    printf("i = %d, j = %d, s = %f, s2 = %f\n", i, j, s, s2);
-                }
-                matrix[i * nobs + j] = s;
-            }
+#pragma omp parallel for
+    for (size_t j = 0; j < nobs; ++j) {
+        for (size_t i = 0; i < _nobs; ++i) {
+            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+            matrix[i * nobs + j] = s;
         }
-    */
+    }
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1058,7 +1052,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     cudaFreeHost(matrix);
-    cudaFreeHost(matrix_h);
+    // cudaFreeHost(matrix_h);
     cudaFree(matrix_d);
     return p;
 }
