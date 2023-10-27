@@ -950,7 +950,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             (size_t)10);
     } catch (...) {
     }
-    pint("TILE: %d\n", TILE);
+    pintf("TILE: %d\n", TILE);
 
 // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
 // reduction(merge_double: sTNF)
