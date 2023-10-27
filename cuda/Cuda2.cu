@@ -1049,10 +1049,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
+            /*
             if (connected_nodes[i] != connected_nodes_h[idx[i]]) {
                 printf("Error: connected_nodes[%d] = %d, connected_nodes_h[%d] = %d\n", i, connected_nodes[i], idx[i],
                        connected_nodes_h[idx[i]]);
             }
+            */
             if (connected_nodes[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
