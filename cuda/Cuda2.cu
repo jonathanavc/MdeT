@@ -978,14 +978,14 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     random_unique(idx.begin(), idx.end(), _nobs);
 
     double *matrix_d, *matrix_h;
-    Similarity* matrix;
-    cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
-    // cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
+    // Similarity* matrix;
+    // cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
+    cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
     getError("malloc");
 
-    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix, _nobs);
+    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
     /*
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
@@ -1052,8 +1052,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     // free(matrix);
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
-    cudaFreeHost(matrix);
-    // cudaFreeHost(matrix_h);
+    // cudaFreeHost(matrix);
+    cudaFreeHost(matrix_h);
     cudaFree(matrix_d);
     return p;
 }
