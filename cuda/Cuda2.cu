@@ -95,9 +95,7 @@ static bool saveCls = false;
 static bool outUnbinned = false;
 static size_t minSample = 3;
 static unsigned long long totalSize = 0, totalSize1 = 0;
-static int numBlocks = 512;
 static int numThreads2 = 16;
-static int n_STREAMS = 2;
 
 static size_t maxEdges = 200;
 static const char line_delim = '\n';
@@ -358,7 +356,7 @@ void getError(std::string s = "") {
 }
 
 void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
-    n_Streams = ((cobs + 9999) / 10000);
+    size_t n_Streams = ((cobs + 9999) / 10000);
     cudaStream_t streams[n_STREAMS];
     cudaMalloc((void**)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void**)&seqs_d_index, 2 * cobs * sizeof(size_t));
@@ -393,7 +391,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
-    n_Streams = ((_nobs + 9999) / 10000);
+    size_t n_Streams = ((_nobs + 9999) / 10000);
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
