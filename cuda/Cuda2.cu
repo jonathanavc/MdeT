@@ -337,21 +337,6 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
     }
 }
 
-__global__ void get_connected_nodes(double* tnf_dist, unsigned char* connected_nodes, size_t _nobs, size_t nobs, double cutoff,
-                                    size_t contig_per_thread) {
-    size_t ctIdx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t _limit = min(ctIdx + contig_per_thread, _nobs);
-    if (ctIdx >= _limit) return;
-    for (size_t i = ctIdx; i < _limit; i++) {
-        for (size_t j = 0; j < nobs; j++) {
-            if (tnf_dist[i * nobs + j] >= cutoff) {
-                connected_nodes[i] = 1;
-                break;
-            }
-        }
-    }
-}
-
 __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
@@ -991,23 +976,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     random_unique(idx.begin(), idx.end(), _nobs);
 
     double *matrix_d, *matrix_h;
-    // Similarity* matrix;
-    // cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
     getError("malloc");
 
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
-    /*
-#pragma omp parallel for
-    for (size_t j = 0; j < nobs; ++j) {
-        for (size_t i = 0; i < _nobs; ++i) {
-            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            matrix[i * nobs + j] = s;
-        }
-    }
-    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1017,17 +991,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-
-        unsigned char *connected_nodes_d, *connected_nodes_h;
-        cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
-        cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
-        memset(connected_nodes_d, 0, nobs * sizeof(unsigned char));
-        getError("malloc");
-        size_t contigs_per_thread = (_nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
-        get_connected_nodes<<<numBlocks, numThreads2>>>(matrix_d, connected_nodes_d, _nobs, nobs, cutoff, contigs_per_thread);
-        cudaMemcpy(connected_nodes_h, connected_nodes_d, _nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-        cudaFree(connected_nodes_d);
-        getError("free");
 
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
@@ -1048,10 +1011,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
-            if (connected_nodes[i] != connected_nodes_h[i]) {
-                cerr << "connected_nodes[i] != connected_nodes_h[i]" << endl;
-                exit(1);
-            }
             if (connected_nodes[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
