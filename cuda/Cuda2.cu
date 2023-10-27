@@ -251,39 +251,32 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2) {
-    const double floor_prob = 0.1;
-    const double floor_preProb = log((1.0 / floor_prob) - 1.0);
-
-    double d = 0.0, _diff;
-    float tn1, tn2;
-    for (size_t i = 0; i < 136; ++i) {
-        // d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);
-        tn1 = TNF1[i];
-        tn2 = TNF2[i];
-        _diff = tn1 - tn2;
-        d += _diff * _diff;
+__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2) {
+    // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0);
+    const Distance floor_prob = 0.1;
+    const Distance floor_preProb = LOG((1.0 / floor_prob) - 1.0);
+    Distance d = 0;
+    for (size_t i = 0; i < nTNF; ++i) {
+        d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
     }
-
-    d = sqrt(d);
-
-    double b, c;  // parameters
-    double ctg1 = r1;
-    double ctg2 = r2;
-    double lw11 = min(ctg1, ctg2);
-    double lw21 = max(ctg1, ctg2);
-    double lw12 = lw11 * lw11;
-    double lw13 = lw12 * lw11;
-    double lw14 = lw13 * lw11;
-    double lw15 = lw14 * lw11;
-    double lw16 = lw15 * lw11;
-    double lw17 = lw16 * lw11;
-    double lw22 = lw21 * lw21;
-    double lw23 = lw22 * lw21;
-    double lw24 = lw23 * lw21;
-    double lw25 = lw24 * lw21;
-    double lw26 = lw25 * lw21;
-    double prob;
+    d = SQRT(d);
+    Distance b, c;  // parameters
+    Distance ctg1 = r1;
+    Distance ctg2 = r2;
+    Distance lw11 = std::min(ctg1, ctg2);
+    Distance lw21 = std::max(ctg1, ctg2);
+    Distance lw12 = lw11 * lw11;
+    Distance lw13 = lw12 * lw11;
+    Distance lw14 = lw13 * lw11;
+    Distance lw15 = lw14 * lw11;
+    Distance lw16 = lw15 * lw11;
+    Distance lw17 = lw16 * lw11;
+    Distance lw22 = lw21 * lw21;
+    Distance lw23 = lw22 * lw21;
+    Distance lw24 = lw23 * lw21;
+    Distance lw25 = lw24 * lw21;
+    Distance lw26 = lw25 * lw21;
+    Distance prob;
     b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
         -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
         0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
@@ -292,8 +285,13 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
         194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
         -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
-    double preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
+
+    // logistic model
+    //  prob = 1.0 / (1 + EXP(-(b + c * d)));
+    //  if (prob >= .1)  //second logistic model
+    Distance preProb = -(b + c * d);
+    // preProb <= LOG(9.0) yields prob > 0.1, so use second logistic model
+    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + EXP(preProb));
 
     if (prob >= floor_prob) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -305,7 +303,10 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
             -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
             449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
             0.0001235384 * lw15 * lw25;
-        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
+        // prob = 1.0 / (1 + EXP(-(b + c * d)));
+        //  prob = prob < .1 ? .1 : prob;
+        preProb = -(b + c * d);  // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0) to calculate, otherwise use the floor
+        prob = preProb <= floor_preProb ? 1.0 / (1 + EXP(preProb)) : floor_prob;
     }
 
     return prob;
