@@ -986,7 +986,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     getError("malloc");
 
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix, _nobs);
-
+    /*
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
@@ -994,6 +994,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             matrix[i * nobs + j] = s;
         }
     }
+    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
