@@ -123,7 +123,7 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 static boost::numeric::ublas::matrix<float> TNF;
 
-// static float* TNF_data;
+static float* TNF_data;
 static float* TNF_d;
 static char* seqs_d;
 static size_t* seqs_d_index;
@@ -376,7 +376,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<bloqs, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                        contig_to_process, contigs_per_thread, cobs);
-        cudaMemcpyAsync(TNF.data().begin() + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
+        cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
@@ -1777,7 +1777,7 @@ int main(int ac, char* av[]) {
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
 
-    // cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
+    cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
 
     // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
@@ -1812,16 +1812,15 @@ int main(int ac, char* av[]) {
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
-        /*
+#pragma omp parallel for
         for (size_t i = 0; i < nobs; i++) {
             for (int j = 0; j < 136; j++) {
                 TNF(i, j) = TNF_data[i * 136 + j];
             }
         }
-        */
         // saveTNFToFile(saveTNFFile, minContig);
     }
-    // cudaFreeHost(TNF_data);
+    cudaFreeHost(TNF_data);
     TIMERSTOP(TNF_CAL);
 
     /*
