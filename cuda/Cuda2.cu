@@ -916,8 +916,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     random_unique(idx.begin(), idx.end(), _nobs);
 
     double* matrix_d;
-    Similarity* matrix = (Similarity*)cudaMallocHost(_nobs * nobs * sizeof(Similarity));
-    cudaMalloc(&matrix_d, _nobs * nobs * sizeof(Similarity));
+    Similarity* matrix;
+    cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
+    cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
