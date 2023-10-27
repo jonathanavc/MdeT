@@ -991,7 +991,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
             Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            if (matrix_h[i * nobs + j] != s) {
+            if (1. - matrix_h[i * nobs + j] != s) {
                 printf("i = %d, j = %d, s = %f, matrix_h = %f\n", i, j, s, matrix_h[i * nobs + j]);
             }
             matrix[i * nobs + j] = s;
