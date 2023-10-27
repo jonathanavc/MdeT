@@ -527,7 +527,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
-        cudaMemcpyAsync(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
+        //cudaMemcpyAsync(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     }
     /*
     if (0) {
