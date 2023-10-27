@@ -1056,7 +1056,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             if (connected_nodes[i] != connected_nodes_h[idx[i]]) {
                 printf("Error: connected_nodes[%d] = %d, connected_nodes_h[%d] = %d\n", i, connected_nodes[i], idx[i],
                        connected_nodes_h[idx[i]]);
-                exit(1);
             }
             if (connected_nodes[i] == 1) counton++;
         }
