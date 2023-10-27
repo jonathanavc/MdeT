@@ -1296,9 +1296,7 @@ int main(int ac, char* av[]) {
         "seed", po::value<unsigned long long>(&seed)->default_value(0), "For exact reproducibility. (0: use random seed)")(
         "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")(
         "verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output")("ct", po::value<int>(&numThreads2)->default_value(16),
-                                                                                 "Number of cuda threads")(
-        "cb", po::value<int>(&numBlocks)->default_value(256), "Number of cuda blocks")(
-        "cs", po::value<int>(&n_STREAMS)->default_value(1), "Number of cuda streams");
+                                                                                 "Number of cuda threads");
 
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(desc).positional({}).run(), vm);
