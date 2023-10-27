@@ -292,7 +292,6 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
             if (tnf_dist_index == _limit2) break;
             tnf_dist[tnf_dist_index] =
                 1. - cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
-            // tnf_dist[tnf_dist_index] = contigs[r2];
             tnf_dist_index++;
             r2++;
         }
@@ -973,13 +972,14 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-
+        /*
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
             if (max_nobs_h[i] >= cutoff) {
                 connected_nodes[i] = 1;
             }
         }
+        */
         /*
         #pragma omp parallel for
                 for (size_t i = 0; i < _nobs; ++i) {
@@ -999,16 +999,17 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
         // cov = (double) connected_nodes.size() / _nobs;
         int counton = 0;
-        /*
+        
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
             if (max_nobs_h[i] >= cutoff) counton++;
         }
-        */
+        /*
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
             if (connected_nodes[i] == 1) counton++;
         }
+        */
         cov = (double)counton / _nobs;
 
         if (cov >= coverage) {
