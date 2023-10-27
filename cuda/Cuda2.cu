@@ -1053,6 +1053,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
+            if (connected_nodes[i] != connected_nodes_h[idx[i]]) {
+                printf("Error: connected_nodes[%d] = %d, connected_nodes_h[%d] = %d\n", i, connected_nodes[i], idx[i],
+                       connected_nodes_h[idx[i]]);
+                exit(1);
+            }
             if (connected_nodes[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
@@ -1076,7 +1081,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             p -= rand() % 3 + 3;  // choose from 3,4,5
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
-        
+
         cudaFreeHost(connected_nodes_h);
     }
 
