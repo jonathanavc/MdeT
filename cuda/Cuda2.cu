@@ -976,6 +976,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
     double *matrix_d, *matrix_h;
     Similarity* matrix;
+    cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
@@ -1053,6 +1054,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     cudaFreeHost(matrix);
     cudaFreeHost(matrix_h);
+    cudaFree(matrix_d);
     return p;
 }
 
