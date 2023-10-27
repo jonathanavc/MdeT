@@ -338,7 +338,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
 }
 
 __global__ void get_connected_nodes(double* tnf_dist, unsigned char* connected_nodes, size_t _nobs, size_t nobs, double cutoff,
-                               size_t contig_per_thread) {
+                                    size_t contig_per_thread) {
     size_t ctIdx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t _limit = min(ctIdx + contig_per_thread, _nobs);
     if (ctIdx >= _limit) return;
@@ -1048,9 +1048,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
-            if (connected_nodes[i] != connected_nodes_h[idx[i]]) {
+            if (connected_nodes[i] != connected_nodes_h[i]) {
                 printf("Error: connected_nodes[%d] = %d, connected_nodes_h[%d] = %d\n", i, connected_nodes[i], idx[i],
-                       connected_nodes_h[idx[i]]);
+                       connected_nodes_h[i]);
             }
             if (connected_nodes[i] == 1) counton++;
         }
