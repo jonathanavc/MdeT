@@ -1055,7 +1055,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                        connected_nodes_h[idx[i]]);
             }
             */
-            if (connected_nodes[i] == 1) counton++;
+            if (connected_nodes_h[i] == 1) counton++;
         }
         cov = (double)counton / _nobs;
 
