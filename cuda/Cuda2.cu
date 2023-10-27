@@ -456,15 +456,17 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
-        size_t contigs_per_thread = (contig_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
+        size_t threads = 32;
+        size_t bloqs = (contig_to_process + threads - 1) / threads;
+        size_t contigs_per_thread = 1;
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], seqs[_first].data() + seqs_h_index_i[_des],
                         seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
         cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
                         streams[i]);
         cudaMemcpyAsync(seqs_d_index + cobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
                         cudaMemcpyHostToDevice, streams[i]);
-        get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
-                                                           contig_to_process, contigs_per_thread, cobs);
+        get_TNF<<<bloqs, threads, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des, contig_to_process,
+                                                   contigs_per_thread, cobs);
         cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
