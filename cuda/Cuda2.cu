@@ -366,10 +366,10 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void launch_tnf_prob_sample_kernel(std::vector<size_t> _contigs, double* matrix_d) {
+void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d) {
     size_t* contigs_d;
-    cudaMalloc((void**)&contigs_d, _contigs.size() * sizeof(size_t));
-    cudaMemcpy(contigs_d, _contigs.data(), _contigs.size() * sizeof(size_t), cudaMemcpyHostToDevice);
+    cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
+    cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = _contigs.size() * nobs;
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
@@ -919,6 +919,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     Similarity* matrix;
     cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
+
+    getError("malloc");
 
     launch_tnf_prob_sample_kernel(idx, matrix_d);
 
