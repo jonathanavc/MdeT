@@ -251,7 +251,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-Distance cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2) {
+__device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2) {
     const double floor_prob = 0.1;
     const double floor_preProb = log((1.0 / floor_prob) - 1.0);
 
