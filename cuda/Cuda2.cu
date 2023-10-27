@@ -251,11 +251,11 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, size_t* seqs_d_size, size_t* contigs,
-                                    size_t nobs, size_t _des, const size_t contig_per_thread, const size_t limit) {
+__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, size_t* seqs_d_size, size_t* contigs, size_t nobs,
+                                    size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
-    float _TNF1[136];
+    float TNF1[136];
     size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t prob_index = _des + tnf_dist_index;
     r1 = prob_index / nobs;
@@ -264,7 +264,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, s
     if (tnf_dist_index >= _limit2) return;
     while (tnf_dist_index != _limit2) {
         for (int i = 0; i < 136; i++) {
-            _TNF1[i] = TNF[contigs[r1] * 136 + i];
+            TNF1[i] = TNF[contigs[r1] * 136 + i];
         }
         while (r2 < nobs) {
             if (tnf_dist_index == _limit2) break;
@@ -368,7 +368,9 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void launch_tnf_prob_sample_kernel(std::vector<size_t> _contigs, double* matrix_d) {
-    size_t * contigs_d;
+    size_t* contigs_d;
+    cudaMalloc((void**)&contigs_d, _contigs.size() * sizeof(size_t));
+    cudaMemcpy(contigs_d, _contigs.data(), _contigs.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     cudaStream_t streams[n_STREAMS];
     size_t total_prob_kernel = _contigs.size() * nobs;
     size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
@@ -378,9 +380,9 @@ void launch_tnf_prob_sample_kernel(std::vector<size_t> _contigs, double* matrix_
         if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
 
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_prob<<<numBlocks, numThreads2, 0, streams[i]>>>(matrix_d + prob_per_kernel * i, TNF_d, contig_log,
-                                                                prob_per_kernel * i, prob_per_thread,
-                                                                prob_per_kernel * i + prob_to_process);
+        get_tnf_prob_sample<<<numBlocks, numThreads2, 0, streams[i]>>>(matrix_d + prob_per_kernel * i, TNF_d, contig_log, contigs_d,
+                                                                       nobs prob_per_kernel * i, prob_per_thread,
+                                                                       prob_per_kernel * i + prob_to_process);
         cudaMemcpyAsync(matrix_d + prob_per_kernel * i, matrix_d + prob_per_kernel * i, prob_to_process * sizeof(double),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
@@ -388,6 +390,7 @@ void launch_tnf_prob_sample_kernel(std::vector<size_t> _contigs, double* matrix_
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
+    cudaFree(contigs_d);
     getError("kernel");
 }
 
