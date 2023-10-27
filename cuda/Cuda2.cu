@@ -313,8 +313,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
 
 __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _nobs,
                                         const size_t contig_per_thread) {
-    size_t r1;
-    size_t r2;
+    //size_t r1;
+    //size_t r2;
     float TNF1[136];
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min(contig_idx + contig_per_thread, _nobs);
@@ -1021,14 +1021,18 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
     getError("malloc");
 
+    TIMERSTART(1);
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
+    TIMERSTOP(1);
 
     double *max_nobs_d, *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     getError("malloc");
 
+    TIMERSTART(2);
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
+    TIMERSTOP(2);
 
     /*
 #pragma omp parallel for
