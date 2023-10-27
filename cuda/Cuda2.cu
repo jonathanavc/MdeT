@@ -263,8 +263,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
     Distance b, c;  // parameters
     Distance ctg1 = r1;
     Distance ctg2 = r2;
-    Distance lw11 = std::min(ctg1, ctg2);
-    Distance lw21 = std::max(ctg1, ctg2);
+    Distance lw11 = min(ctg1, ctg2);
+    Distance lw21 = max(ctg1, ctg2);
     Distance lw12 = lw11 * lw11;
     Distance lw13 = lw12 * lw11;
     Distance lw14 = lw13 * lw11;
