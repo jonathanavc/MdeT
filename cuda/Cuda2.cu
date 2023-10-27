@@ -311,6 +311,37 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
     return prob;
 }
 
+__global__ void get_max_tnf_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
+                                        const size_t contig_per_thread, const size_t limit) {
+    size_t r1;
+    size_t r2;
+    float TNF1[136];
+    size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t prob_index = _des + tnf_dist_index;
+    r1 = prob_index / nobs;
+    r2 = prob_index % nobs;
+    size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
+    if (tnf_dist_index >= _limit2) return;
+    while (tnf_dist_index != _limit2) {
+        for (int i = 0; i < 136; i++) {
+            TNF1[i] = TNF[contigs[r1] * 136 + i];
+        }
+        while (r2 < nobs) {
+            if (tnf_dist_index == _limit2) break;
+            double actual_dist = 1. - cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
+            atomicMax(&max_dist[r1], actual_dist);
+            atomicMax(&max_dist[r2], actual_dist);
+            // tnf_dist[tnf_dist_index] =
+            //     1. - cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
+            //  tnf_dist[tnf_dist_index] = contigs[r2];
+            tnf_dist_index++;
+            r2++;
+        }
+        r2 = 0;
+        r1++;
+    }
+}
+
 __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
