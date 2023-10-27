@@ -293,7 +293,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
         -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
         164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
     double preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + EXP(preProb));
+    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
 
     if (prob >= floor_prob) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -305,7 +305,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
             -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
             449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
             0.0001235384 * lw15 * lw25;
-        prob = preProb <= floor_preProb ? 1.0 / (1 + EXP(preProb)) : floor_prob;
+        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
     }
 
     return prob;
