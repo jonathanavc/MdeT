@@ -465,14 +465,13 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<numBlocks, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                            contig_to_process, contigs_per_thread, cobs);
-         cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
-                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+        cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
+                        contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
         cudaStreamDestroy(streams[i]);
     }
-    // cudaMemcpy(TNF_data + 136 * global_des, TNF_d + 136 * global_des, cobs * 136 * sizeof(float), cudaMemcpyDeviceToHost);
     getError("kernel");
     cudaFree(seqs_d);
     cudaFree(seqs_d_index);
@@ -1062,8 +1061,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     size_t _nobs = full ? nobs : std::min(nobs, (size_t)2500);
 
     // cuckoohash_map<int, bool> connected_nodes;
-    std::vector<unsigned char> connected_nodes;
-    connected_nodes.resize(_nobs);
+    // std::vector<unsigned char> connected_nodes;
+    // connected_nodes.resize(_nobs);
 
     std::vector<size_t> idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
@@ -1105,12 +1104,14 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
         double cutoff = (double)p / 1000.;
 
+        /*
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
             if (max_nobs_h[i] >= cutoff) {
                 connected_nodes[i] = 1;
             }
         }
+        */
         /*
         #pragma omp parallel for
                 for (size_t i = 0; i < _nobs; ++i) {
@@ -1132,8 +1133,14 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         int counton = 0;
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
+            if (max_nobs_h[i] >= cutoff) counton++;
+        }
+        /*
+#pragma omp parallel for reduction(+ : counton)
+        for (size_t i = 0; i < _nobs; i++) {
             if (connected_nodes[i] == 1) counton++;
         }
+        */
         cov = (double)counton / _nobs;
 
         if (cov >= coverage) {
