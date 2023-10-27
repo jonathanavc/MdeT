@@ -988,11 +988,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
-            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
-            if (s != s2) {
-                printf("s != s2: %f != %f\n", s, s2);
-            }
+            // Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+            Similarity s = 1. - matrix_h[i * nobs + j];  // similarity scores from the virtually shuffled matrix
             matrix[i * nobs + j] = s;
         }
     }
