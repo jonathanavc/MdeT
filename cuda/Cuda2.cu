@@ -358,6 +358,7 @@ void getError(std::string s = "") {
 }
 
 void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
+    n_Streams = ((cobs + 9999) / 10000);
     cudaStream_t streams[n_STREAMS];
     cudaMalloc((void**)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
     cudaMalloc((void**)&seqs_d_index, 2 * cobs * sizeof(size_t));
@@ -392,6 +393,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
 }
 
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
+    n_Streams = ((_nobs + 9999) / 10000);
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
@@ -999,7 +1001,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
         // cov = (double) connected_nodes.size() / _nobs;
         int counton = 0;
-        
+
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
             if (max_nobs_h[i] >= cutoff) counton++;
