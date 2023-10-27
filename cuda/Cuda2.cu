@@ -535,6 +535,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         cudaMemcpyAsync(_memtest, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
         for (int i = 0; i < _nobs; i++) {
             if (_memtest[i] != max_dist_h[i]) {
+                printf("Error in kernel %d %f %f\n", i, _memtest[i], max_dist_h[i]);
                 std::cerr << "Error in kernel" << std::endl;
                 exit(1);
             }
