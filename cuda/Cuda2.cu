@@ -1024,7 +1024,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     }
     */
 
-    /*
     double *matrix_d, *matrix_h;
     TIMERSTART(1);
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
@@ -1033,7 +1032,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
     cudaFree(matrix_d);
     TIMERSTOP(1);
-    */
 
     double *max_nobs_d, *max_nobs_h;
 
@@ -1113,7 +1111,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     // cudaFreeHost(matrix);
     cudaFreeHost(max_nobs_h);
-    //cudaFreeHost(matrix_h);
+    cudaFreeHost(matrix_h);
     return p;
 }
 
