@@ -265,7 +265,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
     }
 
     d = sqrt(d);
-    
+
     double b, c;  // parameters
     double ctg1 = r1;
     double ctg2 = r2;
@@ -976,7 +976,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
     double *matrix_d, *matrix_h;
     Similarity* matrix;
-    cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
@@ -987,8 +986,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
-            // Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            Similarity s = 1. - matrix_h[i * nobs + j];  // similarity scores from the virtually shuffled matrix
+            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+            Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
+            if (s != s2) {
+                printf("i = %d, j = %d, s = %f, s2 = %f\n", i, j, s, s2);
+            }
             matrix[i * nobs + j] = s;
         }
     }
@@ -1049,6 +1051,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     // free(matrix);
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
+    cudaFreeHost(matrix);
+    cudaFreeHost(matrix_h);
     return p;
 }
 
