@@ -342,13 +342,13 @@ __global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char*
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t _limit = min(contig_idx + contig_per_thread, nobs);
     if (contig_idx >= _limit) return;
-    float _TNF1[136];
-    for (int i = 0; i < 136; i++) {
-        _TNF1[i] = TNF[contig_idx * 136 + i];
-    }
+    float TNF1[136];
     for (size_t i = contig_idx; i < _limit; i++) {
+        for (int j = 0; j < 136; j++) {
+            TNF1[j] = TNF[i * 136 + j];
+        }
         for (size_t j = 0; j < nobs; j++) {
-            if (cal_tnf_dist_d(size_log[i], size_log[j], _TNF1, TNF + j * 136) >= cutoff) {
+            if (cal_tnf_dist_d(size_log[i], size_log[j], TNF1, TNF + j * 136) >= cutoff) {
                 connected_nodes[i] = 1;
                 break;
             }
