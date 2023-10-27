@@ -265,8 +265,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
     }
 
     d = sqrt(d);
-
-    d = SQRT(d);
+    
     double b, c;  // parameters
     double ctg1 = r1;
     double ctg2 = r2;
