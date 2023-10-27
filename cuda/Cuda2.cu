@@ -319,7 +319,6 @@ __device__ void next_contig(char* __restrict__ contig, char c) {
 __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const size_t* __restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    // char local_contig[4];
     size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
     for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
         char contig_temp[4] = {0};
@@ -377,7 +376,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<bloqs, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                        contig_to_process, contigs_per_thread, cobs);
-        cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
+        cudaMemcpyAsync(TNF.data() + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
