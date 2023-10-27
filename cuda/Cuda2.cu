@@ -1892,6 +1892,7 @@ int main(int ac, char* av[]) {
         {
             Graph g(nobs);
 
+            TIMERSTART(sampling_graph);
             // 1. sampling graph to find minp
             if (pTNF < 1.) {
                 if (nobs <= 25000) {
@@ -1916,8 +1917,12 @@ int main(int ac, char* av[]) {
             verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.2f]                                             \n",
                             pTNF / 10.);
 
+            TIMERSTOP(sampling_graph);
+
+            TIMERSTART(gen_graph);
             // 2. build tnf graph
             gen_tnf_graph(g, pTNF / 1000.);
+            TIMERSTOP(gen_graph);
 
             size_t nEdges = g.sTNF.size();
 
