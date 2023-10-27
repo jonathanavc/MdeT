@@ -183,7 +183,8 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -21887.8400068324, 1751.6803621934,   5158.3764225203, -290.1765894829,  -724.0348081819,
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
-__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+//__device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
+__device__ __constant__ double floor_preProb = 2.19722457733621956;
 
 __device__ __constant__ double cutoff = 0.999;
 
@@ -242,10 +243,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
             _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
-        // de metabat2, será correcto? SÍ xd
         prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : 0.1;
-        // prob = 1.0 / (1 + exp(-(b + c * d)));
-        // prob = prob < floor_prob ? floor_prob : prob;
     }
     return prob;
 }
@@ -311,8 +309,8 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
     return prob;
 }
 
-__global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _nobs,
-                                        const size_t contig_per_thread) {
+__global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
+                                        size_t _nobs, const size_t contig_per_thread) {
     float TNF1[136];
     size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min(contig_idx + contig_per_thread, _nobs);
