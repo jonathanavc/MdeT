@@ -258,10 +258,13 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
     double d = 0.0;
     float tn1, tn2, _diff;
     for (size_t i = 0; i < 136; ++i) {
+        d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);
+        /*
         tn1 = TNF1[i];
         tn2 = TNF2[i];
         _diff = tn1 - tn2;
         d += _diff * _diff;
+        */
     }
 
     d = sqrt(d);
