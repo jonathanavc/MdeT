@@ -348,7 +348,7 @@ __global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char*
             TNF1[j] = TNF[i * 136 + j];
         }
         for (size_t j = 0; j < nobs; j++) {
-            if (cal_tnf_dist_d(size_log[i], size_log[j], TNF1, TNF + j * 136) <= _cutoff) {
+            if (1.0 - cal_tnf_dist_d(size_log[i], size_log[j], TNF1, TNF + j * 136) >= _cutoff) {
                 connected_nodes[i] = 1;
                 break;
             }
