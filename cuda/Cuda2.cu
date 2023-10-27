@@ -920,10 +920,16 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
+    launch_tnf_prob_sample_kernel(idx, matrix_d);
+
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
             Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+            Similarity s2 = 1. - matrix_d[i * nobs + j];       // similarity scores from the virtually shuffled matrix
+            if (s != s2) {
+                printf("s != s2: %f != %f\n", s, s2);
+            }
             matrix[i * nobs + j] = s;
         }
     }
