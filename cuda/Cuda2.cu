@@ -331,7 +331,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
         while (r2 < nobs) {
             if (tnf_dist_index == _limit2) break;
             tnf_dist[tnf_dist_index] = cal_tnf_dist_d2(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
-            tnf_dist[tnf_dist_index] = contigs[r1];
+            tnf_dist[tnf_dist_index] = contigs[r2];
             tnf_dist_index++;
             r2++;
         }
@@ -992,7 +992,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
             Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            if (matrix_h[i * nobs + j] != idx[i]) {
+            if (matrix_h[i * nobs + j] != idx[j]) {
                 cerr << "matrix_h[i * nobs + j] != idx[i]" << endl;
                 exit(1);
             }
