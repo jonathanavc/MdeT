@@ -123,7 +123,7 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 static boost::numeric::ublas::matrix<float> TNF;
 
-static float* TNF_data;
+//static float* TNF_data;
 static float* TNF_d;
 static char* seqs_d;
 static size_t* seqs_d_index;
@@ -1777,7 +1777,7 @@ int main(int ac, char* av[]) {
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
 
-    cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
+    //cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
 
     // if (!loadTNFFromFile(saveTNFFile, minContig)) {  // calcular TNF en paralelo en GPU de no estar guardado
@@ -1812,14 +1812,16 @@ int main(int ac, char* av[]) {
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
+        /*
         for (size_t i = 0; i < nobs; i++) {
             for (int j = 0; j < 136; j++) {
                 TNF(i, j) = TNF_data[i * 136 + j];
             }
         }
+        */
         // saveTNFToFile(saveTNFFile, minContig);
     }
-    cudaFreeHost(TNF_data);
+    //cudaFreeHost(TNF_data);
     TIMERSTOP(TNF_CAL);
 
     /*
