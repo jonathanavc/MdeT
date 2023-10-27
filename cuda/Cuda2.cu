@@ -1611,7 +1611,7 @@ int main(int ac, char* av[]) {
         return 1;
     }
     verbose_message("Number of large contigs >= %d are %d. \n", minContig, nobs);
-    /*
+
     if (hasABD) {
         ABD.resize(nobs, nABD);
         ABD_VAR.resize(nobs, nABD);
@@ -1833,11 +1833,8 @@ int main(int ac, char* av[]) {
             small_ABD.resize(nobs1, nABD, true);
         }
     }
-
-
     verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
                     1000, minContig);
-    */
 
     // prepare logsizes
     logSizes.resize(nobs);
