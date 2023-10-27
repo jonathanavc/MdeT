@@ -339,6 +339,25 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
     }
 }
 
+__global__ void get_connected_nodes(float* TNF, double* size_log, unsigned char* connected_nodes, size_t nobs,
+                                    size_t contig_per_thread, double cutoff) {
+    size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
+    size_t _limit = min(contig_idx + contig_per_thread, nobs);
+    if (contig_idx >= _limit) return;
+    float _TNF1[136];
+    for (int i = 0; i < 136; i++) {
+        _TNF1[i] = TNF[contig_idx * 136 + i];
+    }
+    for (size_t i = contig_idx; i < _limit; i++) {
+        for (size_t j = 0; j < nobs; j++) {
+            if (cal_tnf_dist_d(size_log[i], size_log[j], _TNF1, TNF + j * 136) >= cutoff) {
+                connected_nodes[i] = 1;
+                break;
+            }
+        }
+    }
+}
+
 __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
@@ -1005,6 +1024,16 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
         double cutoff = (double)p / 1000.;
 
+        unsigned char *connected_nodes_d, *connected_nodes_h;
+        cudaMalloc((void**)&connected_nodes_d, nobs * sizeof(unsigned char));
+        cudaMallocHost((void**)&connected_nodes_h, nobs * sizeof(unsigned char));
+        getError("malloc");
+        size_t contigs_per_thread = (nobs + (numBlocks * numThreads2) - 1) / (numBlocks * numThreads2);
+        get_connected_nodes<<<numBlocks, numThreads2>>>(TNF_d, contig_log, connected_nodes_d, nobs, contigs_per_thread, cutoff);
+        cudaMemcpy(connected_nodes_h, connected_nodes_d, nobs * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+        cudaFree(connected_nodes_d);
+        getError("free");
+
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
             size_t kk = nobs;
@@ -1047,6 +1076,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             p -= rand() % 3 + 3;  // choose from 3,4,5
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
+        
+        cudaFreeHost(connected_nodes_h);
     }
 
     // free(matrix);
