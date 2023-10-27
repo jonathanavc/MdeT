@@ -1057,18 +1057,16 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         }
         cov = (double)counton / _nobs;
 
-        cuda
-
-            if (cov >= coverage) {
+        if (cov >= coverage) {
             // previous cov is closer to coverage then choose prev p instead current p
             if (cov - coverage > coverage - pcov) {
                 p = pp;
                 cov = pcov;
             }
             break;
-        }
-        else verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
-                             (double)p / 10., counton, _nobs, cov * 100, round);
+        } else
+            verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
+                            (double)p / 10., counton, _nobs, cov * 100, round);
         pp = p;
         pcov = cov;
 
