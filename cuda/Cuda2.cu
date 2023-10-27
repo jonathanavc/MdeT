@@ -185,6 +185,8 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 __device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
+__device__ __constant__ double cutoff = 0.999;
+
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
@@ -976,12 +978,23 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     random_unique(idx.begin(), idx.end(), _nobs);
 
     double *matrix_d, *matrix_h;
+    // Similarity* matrix;
+    // cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(Similarity));
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
     getError("malloc");
 
     launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
+    /*
+#pragma omp parallel for
+    for (size_t j = 0; j < nobs; ++j) {
+        for (size_t i = 0; i < _nobs; ++i) {
+            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
+            matrix[i * nobs + j] = s;
+        }
+    }
+    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1041,6 +1054,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     // cudaFreeHost(matrix);
     cudaFreeHost(matrix_h);
+    cudaFree(matrix_d);
     return p;
 }
 
