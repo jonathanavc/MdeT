@@ -508,14 +508,15 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
         cudaStream_t streams[n_STREAMS];
-        size_t streams = n_STREAMS;
+        // size_t streams = n_STREAMS;
         size_t threads = 32;
-        size_t bloqs = (_nobs + (threads * streams) - 1) / (threads * streams);
-        size_t contig_per_kernel = (_nobs + streams - 1) / streams;
+        size_t bloqs = (_nobs + (threads * n_STREAMS) - 1) / (threads * n_STREAMS);
+        size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample2<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, contig_per_kernel * i,
-                                                                 min((contig_per_kernel * (i + 1)), _nobs), prob_per_thread);
+            get_tnf_max_prob_sample2<<<numBlocks, numThreads2, 0, stream[i]>>>(
+                max_dist_d, TNF_d, contig_log, contigs_d, nobs, contig_per_kernel * i, min((contig_per_kernel * (i + 1)), _nobs),
+                prob_per_thread);
         }
         for (size_t i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
