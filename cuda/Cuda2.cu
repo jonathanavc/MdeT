@@ -311,7 +311,7 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
     return prob;
 }
 
-__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
+__global__ void get_tnf_prob_sample(double* tnf_dist, float* TNF, double* size_log, size_t* __restrict__ contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
@@ -452,7 +452,7 @@ void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d, do
         cudaStreamDestroy(streams[i]);
     }
     cudaFree(contigs_d);
-    getError("kernel");
+    getError("kernels");
 }
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char* _mem) {
