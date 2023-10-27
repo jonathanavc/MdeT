@@ -1901,6 +1901,7 @@ int main(int ac, char* av[]) {
         // saveTNFToFile(saveTNFFile, minContig);
     }
     cudaFreeHost(TNF_data);
+    TIMERSTOP(TNF_CAL);
 
     /*
     #ifdef _OPENMP
