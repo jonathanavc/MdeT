@@ -381,7 +381,7 @@ void launch_tnf_prob_sample_kernel(std::vector<size_t> _contigs, double* matrix_
 
         size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_prob_sample<<<numBlocks, numThreads2, 0, streams[i]>>>(matrix_d + prob_per_kernel * i, TNF_d, contig_log, contigs_d,
-                                                                       nobs prob_per_kernel * i, prob_per_thread,
+                                                                       nobs, prob_per_kernel * i, prob_per_thread,
                                                                        prob_per_kernel * i + prob_to_process);
         cudaMemcpyAsync(matrix_d + prob_per_kernel * i, matrix_d + prob_per_kernel * i, prob_to_process * sizeof(double),
                         cudaMemcpyDeviceToHost, streams[i]);
