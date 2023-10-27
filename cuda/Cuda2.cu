@@ -251,7 +251,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, size_t* seqs_d_size, size_t* contigs, size_t nobs,
+__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
     size_t r2;
@@ -268,8 +268,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, s
         }
         while (r2 < nobs) {
             if (tnf_dist_index == _limit2) break;
-            tnf_dist[tnf_dist_index] =
-                cal_tnf_dist_d(seqs_d_size[contigs[r1]], seqs_d_size[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
+            tnf_dist[tnf_dist_index] = cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
             tnf_dist_index++;
             r2++;
         }
@@ -296,8 +295,8 @@ __device__ void next_contig(char* __restrict__ contig, char c) {
     contig[3] = c;
 }
 
-__global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const double* seqs_d_index, const size_t nobs,
-                        const size_t contigs_per_thread, const size_t seqs_d_index_size) {
+__global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const size_t* __restrict__ seqs_d_index,
+                        const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
     // char local_contig[4];
     size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
