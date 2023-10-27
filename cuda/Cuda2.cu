@@ -1845,6 +1845,8 @@ int main(int ac, char* av[]) {
     }
     cudaFreeHost(TNF_data);
 
+    TIMERSTOP(TNF_CAL);
+
     /*
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
