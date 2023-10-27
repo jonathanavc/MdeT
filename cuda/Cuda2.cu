@@ -322,16 +322,18 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
     if (contig_idx >= limit) return;
     while (contig_idx != limit) {
         max_dist[contig_idx] = 0;
+        local_max = 0;
         for (int i = 0; i < 136; i++) {
             TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
         }
         for (size_t i = 0; i < nobs; i++) {
             if (i == contig_idx) continue;
             double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
-            if (dist > max_dist[contig_idx]) {
-                max_dist[contig_idx] = dist;
+            if (dist > local_max) {
+                local_max = dist;
             }
         }
+        max_dist[contig_idx] = local_max;
         contig_idx++;
     }
 }
