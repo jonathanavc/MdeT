@@ -366,7 +366,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d, size_t _nobs) {
+void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d, double matrix_h, size_t _nobs) {
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
@@ -382,7 +382,7 @@ void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d, si
         get_tnf_prob_sample<<<numBlocks, numThreads2, 0, streams[i]>>>(matrix_d + prob_per_kernel * i, TNF_d, contig_log, contigs_d,
                                                                        nobs, prob_per_kernel * i, prob_per_thread,
                                                                        prob_per_kernel * i + prob_to_process);
-        cudaMemcpyAsync(matrix_d + prob_per_kernel * i, matrix_d + prob_per_kernel * i, prob_to_process * sizeof(double),
+        cudaMemcpyAsync(matrix_h + prob_per_kernel * i, matrix_d + prob_per_kernel * i, prob_to_process * sizeof(double),
                         cudaMemcpyDeviceToHost, streams[i]);
     }
     for (int i = 0; i < n_STREAMS; i++) {
@@ -915,20 +915,21 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
 
-    double* matrix_d;
+    double *matrix_d, matrix_h;
     Similarity* matrix;
     cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
+    cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
     cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
 
     getError("malloc");
 
-    launch_tnf_prob_sample_kernel(idx, matrix_d, _nobs);
+    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
 
 #pragma omp parallel for
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
             Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            Similarity s2 = 1. - matrix_d[i * nobs + j];       // similarity scores from the virtually shuffled matrix
+            Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
             if (s != s2) {
                 printf("s != s2: %f != %f\n", s, s2);
             }
