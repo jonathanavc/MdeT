@@ -1040,7 +1040,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     getError("malloc");
-    cudaMemset(max_nobs_h, 0, _nobs * sizeof(double));
     // memset(max_nobs_h, 0, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     cudaFree(max_nobs_d);
