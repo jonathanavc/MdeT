@@ -915,7 +915,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
 
-    double *matrix_d, matrix_h;
+    double *matrix_d, *matrix_h;
     Similarity* matrix;
     cudaMallocHost((void**)&matrix, _nobs * nobs * sizeof(double));
     cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
@@ -929,7 +929,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     for (size_t j = 0; j < nobs; ++j) {
         for (size_t i = 0; i < _nobs; ++i) {
             Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            Similarity s2 = 1. - matrix_h[i * nobs + j];       // similarity scores from the virtually shuffled matrix
+            Similarity s2 = 1. - matrix_h[i * nobs + j];    // similarity scores from the virtually shuffled matrix
             if (s != s2) {
                 printf("s != s2: %f != %f\n", s, s2);
             }
