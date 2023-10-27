@@ -311,10 +311,10 @@ __device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2
 }
 
 __global__ void get_tnf_max_prob_sample2(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
-                                         size_t _des, size_t limit, const size_t contig_per_thread) {
+                                         size_t _des, size_t _limit, const size_t contig_per_thread) {
     float TNF1[136];
     size_t contig_idx = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t limit = min(contig_idx + contig_per_thread, limit);
+    size_t limit = min(contig_idx + contig_per_thread, _limit);
     if (contig_idx >= limit) return;
     while (contig_idx != limit) {
         max_dist[contig_idx] = 0;
