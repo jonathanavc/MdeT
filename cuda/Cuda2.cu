@@ -249,67 +249,6 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__device__ double cal_tnf_dist_d2(size_t r1, size_t r2, float* TNF1, float* TNF2) {
-    // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0);
-    const Distance floor_prob = 0.1;
-    const Distance floor_preProb = LOG((1.0 / floor_prob) - 1.0);
-    Distance d = 0;
-    for (size_t i = 0; i < nTNF; ++i) {
-        d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);  // euclidean distance
-    }
-    d = SQRT(d);
-    Distance b, c;  // parameters
-    Distance ctg1 = r1;
-    Distance ctg2 = r2;
-    Distance lw11 = min(ctg1, ctg2);
-    Distance lw21 = max(ctg1, ctg2);
-    Distance lw12 = lw11 * lw11;
-    Distance lw13 = lw12 * lw11;
-    Distance lw14 = lw13 * lw11;
-    Distance lw15 = lw14 * lw11;
-    Distance lw16 = lw15 * lw11;
-    Distance lw17 = lw16 * lw11;
-    Distance lw22 = lw21 * lw21;
-    Distance lw23 = lw22 * lw21;
-    Distance lw24 = lw23 * lw21;
-    Distance lw25 = lw24 * lw21;
-    Distance lw26 = lw25 * lw21;
-    Distance prob;
-    b = 46349.1624324381 + -76092.3748553155 * lw11 + -639.918334183 * lw21 + 53873.3933743949 * lw12 + -156.6547554844 * lw22 +
-        -21263.6010657275 * lw13 + 64.7719132839 * lw23 + 5003.2646455284 * lw14 + -8.5014386744 * lw24 + -700.5825500292 * lw15 +
-        0.3968284526 * lw25 + 54.037542743 * lw16 + -1.7713972342 * lw17 + 474.0850141891 * lw11 * lw21 + -23.966597785 * lw12 * lw22 +
-        0.7800219061 * lw13 * lw23 + -0.0138723693 * lw14 * lw24 + 0.0001027543 * lw15 * lw25;
-    c = -443565.465710869 + 718862.10804858 * lw11 + 5114.1630934534 * lw21 + -501588.206183097 * lw12 + 784.4442123743 * lw22 +
-        194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
-        -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
-        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
-
-    // logistic model
-    //  prob = 1.0 / (1 + EXP(-(b + c * d)));
-    //  if (prob >= .1)  //second logistic model
-    Distance preProb = -(b + c * d);
-    // preProb <= LOG(9.0) yields prob > 0.1, so use second logistic model
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + EXP(preProb));
-
-    if (prob >= floor_prob) {  // second logistic model
-        b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
-            -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
-            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
-            -0.0546309127 * lw13 * lw23 + 0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
-        c = 39406.5712626297 + -77863.1741143294 * lw11 + 9586.8761567725 * lw21 + 55360.1701572325 * lw12 + -5825.2491611377 * lw22 +
-            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 +
-            -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
-            449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
-            0.0001235384 * lw15 * lw25;
-        // prob = 1.0 / (1 + EXP(-(b + c * d)));
-        //  prob = prob < .1 ? .1 : prob;
-        preProb = -(b + c * d);  // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0) to calculate, otherwise use the floor
-        prob = preProb <= floor_preProb ? 1.0 / (1 + EXP(preProb)) : floor_prob;
-    }
-
-    return prob;
-}
-
 __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                         size_t _des, size_t _limit, const size_t contig_per_thread) {
     float TNF1[136];
@@ -333,32 +272,6 @@ __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TN
         contig_idx++;
     }
 }
-
-/*
-__global__ void get_tnf_max_prob_sample_test(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
-                                             size_t _nobs, const size_t contig_per_thread) {
-    float TNF1[136];
-    size_t contig_idx = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t limit = min(contig_idx + contig_per_thread, _nobs);
-    if (contig_idx >= limit) return;
-    while (contig_idx != limit) {
-        max_dist[contig_idx] = 0;
-        double local_max = 0;
-        for (int i = 0; i < 136; i++) {
-            TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
-        }
-        for (size_t i = 0; i < nobs; i++) {
-            if (i == contig_idx) continue;
-            double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
-            if (dist > local_max) {
-                local_max = dist;
-            }
-        }
-        max_dist[contig_idx] = local_max;
-        contig_idx++;
-    }
-}
-*/
 
 __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
@@ -479,35 +392,6 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-/*
-void launch_tnf_prob_sample_kernel(std::vector<size_t> idx, double* matrix_d, double* matrix_h, size_t _nobs) {
-    size_t* contigs_d;
-    cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
-    cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    cudaStream_t streams[n_STREAMS];
-    size_t total_prob_kernel = _nobs * nobs;
-    size_t prob_per_kernel = total_prob_kernel / n_STREAMS;
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamCreate(&streams[i]);
-        size_t prob_to_process = prob_per_kernel;
-        if (i == n_STREAMS - 1) prob_to_process += (total_prob_kernel % n_STREAMS);
-
-        size_t prob_per_thread = (prob_to_process + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_prob_sample<<<numBlocks, numThreads2, 0, streams[i]>>>(matrix_d + prob_per_kernel * i, TNF_d, contig_log, contigs_d,
-                                                                       nobs, prob_per_kernel * i, prob_per_thread,
-                                                                       prob_per_kernel * i + prob_to_process);
-        cudaMemcpyAsync(matrix_h + prob_per_kernel * i, matrix_d + prob_per_kernel * i, prob_to_process * sizeof(double),
-                        cudaMemcpyDeviceToHost, streams[i]);
-    }
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    cudaFree(contigs_d);
-    getError("kernel");
-}
-*/
-
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
@@ -528,21 +412,6 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         }
         cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     }
-    /*
-    if (0) {
-        double* _memtest = (double*)malloc(_nobs * sizeof(double));
-        size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
-        get_tnf_max_prob_sample_test<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs,
-    prob_per_thread); cudaMemcpy(_memtest, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost); cudaDeviceSynchronize();
-        for (int i = 0; i < _nobs; i++) {
-            if (_memtest[i] != max_dist_h[i]) {
-                printf("Error in kernel %d %f %f\n", i, _memtest[i], max_dist_h[i]);
-                // std::cerr << "Error in kernel" << std::endl;
-                // exit(1);
-            }
-        }
-    }
-    */
     cudaFree(contigs_d);
     getError("kernel");
 }
