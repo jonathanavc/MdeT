@@ -1012,8 +1012,10 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         }
     }
     */
+    * /
 
-    size_t p = 999, pp = 1000;
+        size_t p = 999,
+               pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
 
@@ -1055,7 +1057,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                        connected_nodes_h[idx[i]]);
             }
             */
-            if (connected_nodes_h[i] == 1) counton++;
+            if (connected_nodes_h[idx[i]] == 1) counton++;
         }
         cov = (double)counton / _nobs;
 
