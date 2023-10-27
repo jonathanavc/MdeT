@@ -507,7 +507,6 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
-        /*
         cudaStream_t streams[n_STREAMS];
         size_t threads = 32;
         size_t bloqs = (_nobs + (threads * n_STREAMS) - 1) / (threads * n_STREAMS);
@@ -521,7 +520,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
             cudaStreamSynchronize(streams[i]);
             cudaStreamDestroy(streams[i]);
         }
-        */
+
         /*
         size_t prob_per_thread = (_nobs + (numThreads2 * numBlocks) - 1) / (numThreads2 * numBlocks);
         get_tnf_max_prob_sample<<<numBlocks, numThreads2>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs, prob_per_thread);
