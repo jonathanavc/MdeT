@@ -456,7 +456,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
         size_t _des = contig_per_kernel * i;
         size_t TNF_des = _des * 136;
         if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
-        size_t threads = 32;
+        size_t threads = numThreads2;
         size_t bloqs = (contig_to_process + threads - 1) / threads;
         size_t contigs_per_thread = 1;
         cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], seqs[_first].data() + seqs_h_index_i[_des],
@@ -514,7 +514,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
         cudaStream_t streams[n_STREAMS];
-        size_t threads = 32;
+        size_t threads = numThreads2;
         size_t bloqs = (_nobs + (threads * n_STREAMS) - 1) / (threads * n_STREAMS);
         size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
