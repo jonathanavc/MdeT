@@ -1112,9 +1112,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     // cudaFreeHost(matrix);
-    cudaFree(max_nobs_d);
-    //cudaFreeHost(matrix_h);
-    //cudaFree(matrix_d);
+    cudaFreeHost(max_nobs_h);
+    // cudaFreeHost(matrix_h);
+    // cudaFree(matrix_d);
     return p;
 }
 
