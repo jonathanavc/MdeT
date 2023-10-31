@@ -888,8 +888,17 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
     reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
+        {
+            double *graph_d, *graph_h;
+            cudaMalloc((void**)&graph_d, TILE * TILE * sizeof(double));
+            cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
+        }
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
+            get_tnf_graph<<<numThreads2, 1>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
+                                              min(TILE, (nobs - jj)), numThreads2);
+            cudaDeviceSynchronize();
+            cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
