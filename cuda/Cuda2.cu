@@ -893,10 +893,12 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
+            TIMERSTART(1);
             get_tnf_graph<<<numThreads2, 1>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
                                               min(TILE, (nobs - jj)), numThreads2);
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
+            TIMERSTOP(1);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
