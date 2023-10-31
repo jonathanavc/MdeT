@@ -468,8 +468,6 @@ class Graph {
     }
 };
 
-void gen_tnf_graph(Graph& g, Similarity cutoff);
-
 static void trim_fasta_label(std::string& label) {
     size_t pos = label.find_first_of(" \t");
     if (pos != std::string::npos) label = label.substr(0, pos);
@@ -1852,7 +1850,9 @@ int main(int ac, char* av[]) {
                             pTNF / 10.);
 
             // 2. build tnf graph
+            TIMERSTART(TNF_GRAPH);
             gen_tnf_graph(g, pTNF / 1000.);
+            TIMERSTOP(TNF_GRAPH);
 
             size_t nEdges = g.sTNF.size();
 
