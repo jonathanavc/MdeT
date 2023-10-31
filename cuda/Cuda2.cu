@@ -890,7 +890,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             {
                 size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, 1>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
+                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
                                                   min(TILE, (nobs - jj)), ii, jj);
                 cudaDeviceSynchronize();
                 cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
