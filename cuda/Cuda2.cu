@@ -247,9 +247,12 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
 
 __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
-    if (prob_index >= nc1 * nc2) return;
+    // if (prob_index >= nc1 * nc2) return;
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
+    if (r1 > nc1) {
+        return;
+    }
     graph[prob_index] =
         1. - cal_tnf_dist_d(contig_log[off1 + r1], contig_log[off2 + r2], TNF + (r1 + off1) * 136, TNF + (r2 + off2) * 136);
 }
