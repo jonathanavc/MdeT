@@ -245,6 +245,19 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
+__global__ void get_tnf_graph(double* graph, double* TNF1, double* TNF2, size_t nc1, size_t nc2, size_t nthreads) {
+    size_t contigs_per_thread = (nc1 + nthreads - 1) / nthreads;
+    size_t contig_index = (threadIdx.x + blockIdx.x * blockDim.x) * contigs_per_thread;
+    size_t limit = min(contig_index + contigs_per_thread, nc1);
+    if (contig_index >= limit) return;
+    while (contig_index != limit) {
+        for (size_t i = 0; i < nc2; i++) {
+            graph[contig_index * nc2 + i] = 1. - cal_tnf_dist_d(contig_log[contig_index], contig_log[i], TNF1, TNF2 + i * 136);
+        }
+        contig_index++;
+    }
+}
+
 __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                         size_t _des, size_t _limit, const size_t contig_per_thread) {
     float TNF1[136];
