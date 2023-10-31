@@ -907,7 +907,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     double sTNF2 = graph_h[(i - ii) * TILE + (j - jj)];
                     if (abs(sTNF - sTNF2) >= 0.00001) {
                         printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
-                        exit(1);
                     }
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                           (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
