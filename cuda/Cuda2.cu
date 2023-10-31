@@ -251,7 +251,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t r2 = prob_index % nc2;
     if (r1 >= nc1) return;
     graph[prob_index] =
-        1. - cal_tnf_dist_d(contig_log[off1 + r1], contig_log[off2 + r2], TNF + (r1 + off1) * 136, TNF2 + (r2 + off2) * 136);
+        1. - cal_tnf_dist_d(contig_log[off1 + r1], contig_log[off2 + r2], TNF + (r1 + off1) * 136, TNF + (r2 + off2) * 136);
 }
 
 __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
