@@ -900,6 +900,11 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = 1. - cal_tnf_dist(i, j);
+                    double sTNF2 = graph_h[(i - ii) * TILE + (j - jj)];
+                    if (abs(sTNF - sTNF2) >= 0.0001) {
+                        printf("sTNF: %f, sTNF2: %f\n", sTNF, sTNF2);
+                        exit(1);
+                    }
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                           (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
