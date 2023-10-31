@@ -250,6 +250,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
     if (r1 >= nc1) return;
+    if (r2 >= nc2) return;
     graph[prob_index] =
         1. - cal_tnf_dist_d(contig_log[off1 + r1], contig_log[off2 + r2], TNF + (r1 + off1) * 136, TNF + (r2 + off2) * 136);
 }
