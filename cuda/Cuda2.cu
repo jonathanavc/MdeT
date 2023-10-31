@@ -245,18 +245,13 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_tnf_graph(double* graph, float* TNF1, float* TNF2, double* contig_log, size_t nc1, size_t nc2, size_t nthreads) {
-    size_t contigs_per_thread = (nc1 + nthreads - 1) / nthreads;
-    size_t contig_index = (threadIdx.x + blockIdx.x * blockDim.x) * contigs_per_thread;
-    size_t limit = min(contig_index + contigs_per_thread, nc1);
-    if (contig_index >= limit) return;
-    while (contig_index != limit) {
-        for (size_t i = 0; i < nc2; i++) {
-            graph[contig_index * nc2 + i] =
-                1. - cal_tnf_dist_d(contig_log[contig_index], contig_log[i], TNF1 + contig_index * 136, TNF2 + i * 136);
-        }
-        contig_index++;
-    }
+__global__ void get_tnf_graph(double* graph, float* TNF1, float* TNF2, double* contig_log, size_t nc1, size_t nc2, size_t off1,
+                              size_t off2) {
+    size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
+    size_t r1 = prob_index / nc2;
+    size_t r2 = prob_index % nc2;
+    if (r1 >= nc1) return;
+    graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[off1 + r1], contig_log[off2 + r2], TNF1 + r1 * 136, TNF2 + r2 * 136);
 }
 
 __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
@@ -894,10 +889,14 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             TIMERSTART(1);
-            get_tnf_graph<<<numThreads2, 1>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
-                                              min(TILE, (nobs - jj)), numThreads2);
-            cudaDeviceSynchronize();
-            cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
+            {
+                size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
+                get_tnf_graph<<<numThreads2, 1>>>(graph_d, TNF_d + ii * nTNF, TNF_d + jj * nTNF, contig_log, min(TILE, (nobs - ii)),
+                                                  min(TILE, (nobs - jj)), ii, jj);
+                cudaDeviceSynchronize();
+                cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
+            }
+
             TIMERSTOP(1);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
