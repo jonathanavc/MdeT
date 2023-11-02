@@ -250,7 +250,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     // if (prob_index >= nc1 * nc2) return;
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
-    if (r1 > nc1) {
+    if (r1 >= nc1) {
         return;
     }
     graph[prob_index] =
@@ -899,6 +899,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 getError("GRAPH");
                 cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
             }
+            int cont = 0;
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
@@ -906,7 +907,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     double sTNF = 1. - cal_tnf_dist(i, j);
                     double sTNF2 = graph_h[(i - ii) * TILE + (j - jj)];
                     if (abs(sTNF - sTNF2) >= 0.00001) {
-                        printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
+                        // printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
+                        cont++;
                     }
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                           (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
@@ -915,6 +917,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
+            printf("%error: %f\n", ii, (double)cont / (TILE * TILE));
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
