@@ -901,36 +901,36 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
+            size_t matrix_y = min(TILE, (nobs - ii));
             {
                 size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii, jj);
                 cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
                 getError("GRAPH");
             }
-            // int cont = 0;
+            for (size_t i = 0; i < matrix_y; i++) {
+                for (size_t j = 0; i < matrix_x; i++) {
+                    if (ii + i == jj + j || !is_nz(ii + i, jj + j)) continue;
+                    double sTNF = graph_h[i * matrix_x + j];
+                    if (sTNF > cutoff &&
+                        (edges[i].size() < maxEdges || (edges[i].size() == maxEdges && sTNF > edges[i].top().second))) {
+                        if (edges[i].size() == maxEdges) edges[i].pop();
+                        edges[i].push(std::make_pair(jj + j, sTNF));
+                    }
+                }
+            }
+            /*
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[que_index * matrix_x + (j - jj)];
-                    /*
-                    double sTNF2 = 1. - cal_tnf_dist(i, j);
-                    if (abs(sTNF - sTNF2) >= 0.000000001) {
-                        // printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
-                        cont++;
-                    }
-                    */
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                           (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
                 }
-            }
-            /*
-            if (cont != 0) {
-                printf("ii: %d, jj: %d, j:%d, cont: %d, err:%f, \n", ii, jj, min(TILE, (nobs - jj)), cont,
-                       (double)cont / min(TILE, (nobs - ii) * min(TILE, (nobs - jj))));
             }
             */
         }
