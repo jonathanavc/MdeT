@@ -920,10 +920,12 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
+            /*
             if (cont != 0) {
                 printf("ii: %d, jj: %d, j:%d, cont: %d, err:%f, \n", ii, jj, min(TILE, (nobs - jj)), cont,
                        (double)cont / min(TILE, (nobs - ii) * min(TILE, (nobs - jj))));
             }
+            */
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
