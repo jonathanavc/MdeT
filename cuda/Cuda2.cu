@@ -917,7 +917,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
-            printf("%error: %f\n", ii, (double)cont / (TILE * TILE));
+            printf("error: %f\n", (double)cont / (TILE * TILE));
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
