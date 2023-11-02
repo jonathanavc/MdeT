@@ -221,7 +221,6 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
 
     double prob;
 
-    /*
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
         _b1[8] * lw[7] + _b1[9] * lw[8] + _b1[10] * lw[9] + _b1[11] * lw[10] + _b1[12] * lw[11] + _b1[13] * lw[12] + _b1[14] * lw[13] +
         _b1[15] * lw[14] + _b1[16] * lw[15] + _b1[17] * lw[16];
@@ -229,16 +228,8 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     c = _c1[0] + _c1[1] * lw[0] + _c1[2] * lw[1] + _c1[3] * lw[2] + _c1[4] * lw[3] + _c1[5] * lw[4] + _c1[6] * lw[5] + _c1[7] * lw[6] +
         _c1[8] * lw[7] + _c1[9] * lw[8] + _c1[10] * lw[9] + _c1[11] * lw[10] + _c1[12] * lw[11] + _c1[13] * lw[12] + _c1[14] * lw[13] +
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
-    */
 
-    b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
-        _b1[8] * lw[7] + _b1[9] * lw[8] + _b1[10] * lw[9] + _b1[11] * lw[10] + _b1[12] * lw[11] + _b1[13] * lw[12] + _b1[14] * lw[13] +
-        _b1[15] * lw[14] + _b1[16] * lw[15] + _b1[17] * lw[16] + _c1[0] + _c1[1] * lw[0] + _c1[2] * lw[1] + _c1[3] * lw[2] +
-        _c1[4] * lw[3] + _c1[5] * lw[4] + _c1[6] * lw[5] + _c1[7] * lw[6] + _c1[8] * lw[7] + _c1[9] * lw[8] + _c1[10] * lw[9] +
-        _c1[11] * lw[10] + _c1[12] * lw[11] + _c1[13] * lw[12] + _c1[14] * lw[13] + _c1[15] * lw[14] + _c1[16] * lw[15] +
-        _c1[17] * lw[16];
-    double preProb = -(b * d);
-    // double preProb = -(b + c * d);
+    double preProb = -(b + c * d);
     prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
 
     if (prob >= 0.1) {
