@@ -881,6 +881,12 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
     printf("TILE: %d\n", TILE);
 
+    int numstreams;
+    cudaStream_t streams[numstreams];
+    for (size_t i = 0; i < numstreams; i++) {
+        cudaStreamCreate(&streams[i])
+    }
+
 // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
 // reduction(merge_double: sTNF)
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
@@ -894,11 +900,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             {
                 size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), min(TILE, (nobs - jj)), ii,
-                                                      jj);
-                cudaDeviceSynchronize();
+                get_tnf_graph<<<numThreads2, bloqs, 0, streams[omp_get_thread_num() % numstreams]>>>(
+                    graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), min(TILE, (nobs - jj)), ii, jj);
+                cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost, numstreams);
                 getError("GRAPH");
-                cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
             }
             // int cont = 0;
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
@@ -945,6 +950,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                                 getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
             }
         }
+    }
+
+    for (size_t i = 0; i < numstreams; i++) {
+        cudaStreamDestroy(streams[i])
     }
 
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
