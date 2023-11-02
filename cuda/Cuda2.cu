@@ -918,7 +918,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 }
             }
             if (cont != 0) {
-                printf("ii: %d, jj: %d, cont: %d, err:%f", ii, jj, cont,
+                printf("ii: %d, jj: %d, cont: %d, err:%f\n", ii, jj, cont,
                        (double)cont / min(TILE, (nobs - ii) * min(TILE, (nobs - ii))));
             }
         }
