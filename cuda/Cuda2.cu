@@ -891,6 +891,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         for (size_t jj = 0; jj < nobs; jj += TILE) {
+            size_t i_to_process = min(TILE, (nobs - ii));
             {
                 size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), min(TILE, (nobs - jj)), ii,
@@ -918,7 +919,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 }
             }
             if (cont != 0) {
-                printf("ii: %d, jj: %d, cont: %d, err:%f\n", ii, jj, cont,
+                printf("ii: %d, jj: %d, j:%d, cont: %d, err:%f, \n", ii, jj, min(TILE, (nobs - jj), cont,
                        (double)cont / min(TILE, (nobs - ii) * min(TILE, (nobs - jj))));
             }
         }
