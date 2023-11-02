@@ -261,7 +261,6 @@ __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TN
     size_t limit = min(contig_idx + contig_per_thread, _limit);
     if (contig_idx >= limit) return;
     while (contig_idx != limit) {
-        // max_dist[contig_idx] = 0.0;
         double local_max = 0.0;
         for (int i = 0; i < 136; i++) {
             TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
