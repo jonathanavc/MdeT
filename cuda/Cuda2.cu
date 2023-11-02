@@ -911,7 +911,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
-                    double sTNF = graph_h[(i - ii) * matrix_x + (j - jj)];
+                    double sTNF = graph_h[que_index * matrix_x + (j - jj)];
                     /*
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
                     if (abs(sTNF - sTNF2) >= 0.000000001) {
@@ -951,6 +951,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                                 getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
             }
         }
+        cudaFree(graph_d);
+        cudaFreeHost(graph_h);
     }
 
     /*
