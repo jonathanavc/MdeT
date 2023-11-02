@@ -969,8 +969,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
     // clean up
-    cudaFree(TNF_d);
-    cudaFree(contig_log);
     // TNF.clear();
     // TNF.resize(0, 0, false);
     g.sTNF.shrink_to_fit();
@@ -2286,7 +2284,8 @@ int main(int ac, char* av[]) {
 
     verbose_message("Outputting bins\n");
     output_bins(cls);
-
     verbose_message("Finished\n");
+    cudaFree(TNF_d);
+    cudaFree(contig_log);
     return 0;
 }
