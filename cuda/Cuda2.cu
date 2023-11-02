@@ -913,7 +913,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[(i - ii) * matrix_x + (j - jj)];
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
-                    if (abs(sTNF - sTNF2) >= 0.00001) {
+                    if (abs(sTNF - sTNF2) >= 0.000000001) {
                         // printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
                         cont++;
                     }
