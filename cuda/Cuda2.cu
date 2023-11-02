@@ -123,7 +123,7 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 static boost::numeric::ublas::matrix<float> TNF;
 
-static float* TNF_data;
+// static float* TNF_data;
 static float* TNF_d;
 static char* seqs_d;
 static size_t* seqs_d_index;
@@ -386,8 +386,10 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
                         cudaMemcpyHostToDevice, streams[i]);
         get_TNF<<<bloqs, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
                                                        contig_to_process, contigs_per_thread, cobs);
+        /*
         cudaMemcpyAsync(TNF_data + 136 * global_des + TNF_des, TNF_d + 136 * global_des + TNF_des,
                         contig_to_process * 136 * sizeof(float), cudaMemcpyDeviceToHost, streams[i]);
+        */
     }
     for (int i = 0; i < n_STREAMS; i++) {
         cudaStreamSynchronize(streams[i]);
@@ -726,6 +728,7 @@ Distance cal_abd_dist(size_t r1, size_t r2, size_t i, bool& nz) {
     return std::min(std::max(d, 1e-6), 1. - 1e-6);
 }
 
+/*
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0);
     const Distance floor_prob = 0.1;
@@ -786,6 +789,7 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     return prob;
 }
+*/
 
 size_t countLines(const char* f) {
     size_t lines = 0;
@@ -965,8 +969,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
     // clean up
-    TNF.clear();
-    TNF.resize(0, 0, false);
+    cudaFree(TNF_d);
+    cudaFree(contig_log);
+    // TNF.clear();
+    // TNF.resize(0, 0, false);
     g.sTNF.shrink_to_fit();
     g.to.shrink_to_fit();
     g.from.shrink_to_fit();
@@ -1825,7 +1831,7 @@ int main(int ac, char* av[]) {
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
 
-    cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
+    // cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     {
         ProgressTracker progress(nobs);
@@ -1833,8 +1839,8 @@ int main(int ac, char* av[]) {
         seqs_h_index_i.reserve(nobs);
         seqs_h_index_e.reserve(nobs);
 
-        TNF.resize(nobs, nTNF);
-        TNF.clear();
+        // TNF.resize(nobs, nTNF);
+        // TNF.clear();
         size_t cobs = 0;  // current obs
         size_t _first = 0;
         for (size_t i = 0; i < nobs; i++) {
@@ -1858,14 +1864,16 @@ int main(int ac, char* av[]) {
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
+        /*
 #pragma omp parallel for
         for (size_t i = 0; i < nobs; i++) {
             for (int j = 0; j < 136; j++) {
                 TNF(i, j) = TNF_data[i * 136 + j];
             }
         }
+        */
     }
-    cudaFreeHost(TNF_data);
+    // cudaFreeHost(TNF_data);
     TIMERSTOP(TNF_CAL);
 
     verbose_message("Finished TNF calculation.                                  \n");
@@ -2280,7 +2288,5 @@ int main(int ac, char* av[]) {
     output_bins(cls);
 
     verbose_message("Finished\n");
-    cudaFree(contig_log);
-    cudaFree(TNF_d);
     return 0;
 }
