@@ -906,19 +906,17 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 cudaMemcpy(graph_h, graph_d, TILE * TILE * sizeof(double), cudaMemcpyDeviceToHost);
                 getError("GRAPH");
             }
-            // int cont = 0;
+            int cont = 0;
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[(i - ii) * matrix_x + (j - jj)];
-                    /*
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
                     if (abs(sTNF - sTNF2) >= 0.00001) {
                         // printf("i: %d, j: %d, sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
                         cont++;
                     }
-                    */
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                           (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
@@ -926,12 +924,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
-            /*
             if (cont != 0) {
                 printf("ii: %d, jj: %d, j:%d, cont: %d, err:%f, \n", ii, jj, min(TILE, (nobs - jj)), cont,
                        (double)cont / min(TILE, (nobs - ii) * min(TILE, (nobs - jj))));
             }
-            */
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
