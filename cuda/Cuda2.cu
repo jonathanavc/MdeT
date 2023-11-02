@@ -884,7 +884,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     int numstreams;
     cudaStream_t streams[numstreams];
     for (size_t i = 0; i < numstreams; i++) {
-        cudaStreamCreate(&streams[i])
+        cudaStreamCreate(&streams[i]);
     }
 
 // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
@@ -953,7 +953,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
 
     for (size_t i = 0; i < numstreams; i++) {
-        cudaStreamDestroy(streams[i])
+        cudaStreamDestroy(streams[i]);
     }
 
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
