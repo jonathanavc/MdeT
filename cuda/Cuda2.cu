@@ -195,7 +195,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
         d += _diff * _diff;
     }
 
-    d = sqrt(d);
+    d = sqrt((float)d);
 
     double b, c;
 
@@ -230,7 +230,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
     double preProb = -(b + c * d);
-    prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
+    prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp((float)preProb));
 
     if (prob >= 0.1) {
         b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] +
@@ -240,7 +240,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
             _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
-        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : 0.1;
+        prob = preProb <= floor_preProb ? 1.0 / (1 + exp((float)preProb)) : 0.1;
     }
     return prob;
 }
