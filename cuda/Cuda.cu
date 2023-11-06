@@ -148,7 +148,7 @@ __device__ double cal_tnf_dist_d(size_t r1, size_t r2, float *TNF1, float *TNF2)
     double preProb = -(b + c * d);
     prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
 
-    if (prob >= 0.1) {
+    if (prob == 0.1) {
         b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] +
             _b2[7] * lw[6] + _b2[8] * lw[7] + _b2[9] * lw[8] + _b2[10] * lw[9] + _b2[11] * lw[10] + _b2[12] * lw[18] +
             _b2[13] * lw[13] + _b2[14] * lw[14] + _b2[15] * lw[15] + _b2[16] * lw[16];
