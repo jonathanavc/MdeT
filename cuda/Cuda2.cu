@@ -2345,7 +2345,7 @@ int main(int ac, char* av[]) {
     verbose_message("Outputting bins\n");
     output_bins(cls);
     verbose_message("Finished\n");
-    cudaFreeeHost(_mem);
+    cudaFreeHost(_mem);
     cudaFree(TNF_d);
     cudaFree(contig_log);
     return 0;
