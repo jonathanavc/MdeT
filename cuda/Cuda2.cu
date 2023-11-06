@@ -274,9 +274,10 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
 }
 */
 
-__global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
-                                        size_t _des, size_t _limit, const size_t contig_per_thread) {
+__global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
+                                        size_t _limit, const size_t contig_per_thread) {
     float TNF1[136];
+    float* TNF2;
     size_t contig_idx = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min(contig_idx + contig_per_thread, _limit);
     if (contig_idx >= limit) return;
@@ -297,6 +298,7 @@ __global__ void get_tnf_max_prob_sample(double* __restrict__ max_dist, float* TN
     }
 }
 
+/*
 __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
     size_t r1;
@@ -323,6 +325,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
         r1++;
     }
 }
+*/
 
 __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
