@@ -287,7 +287,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
     // preProb <= LOG(9.0) yields prob > 0.1, so use second logistic model
     prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
 
-    if (prob >= floor_prob) {  // second logistic model
+    if (prob >= 0.1) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
             -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
             -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
