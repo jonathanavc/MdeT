@@ -900,7 +900,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMalloc((void**)&graph_d, TILE * TILE * sizeof(double));
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
-        for (size_t jj = ii; jj < nobs; jj += TILE) {
+        for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
             size_t matrix_y = min(TILE, (nobs - ii));
             // async porfa
