@@ -257,8 +257,8 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
 
     d = sqrt(d);
     double b, c;  // parameters
-    double lw11 = std::min(r1, r2);
-    double lw21 = std::max(r1, r2);
+    double lw11 = min(r1, r2);
+    double lw21 = max(r1, r2);
     double lw12 = lw11 * lw11;
     double lw13 = lw12 * lw11;
     double lw14 = lw13 * lw11;
