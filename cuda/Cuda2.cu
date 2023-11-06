@@ -921,8 +921,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             // async porfa
             // TIMERSTART(1);
             {
-                size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii, jj);
+                // size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                // get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii, jj);
                 get_tnf_graph2<<<numThreads2, matrix_y, 136 * 4>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii,
                                                                    jj);
 
