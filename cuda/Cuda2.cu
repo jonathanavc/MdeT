@@ -901,12 +901,16 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
             size_t matrix_y = min(TILE, (nobs - ii));
+            // async porfa
+            TIMERSTART(1);
             {
                 size_t bloqs = ((TILE * TILE) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii, jj);
                 cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
                 getError("GRAPH");
             }
+            TIMERSTOP(1);
+            TIMERSTART(2);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
@@ -919,6 +923,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
+            TIMERSTOP(2);
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
