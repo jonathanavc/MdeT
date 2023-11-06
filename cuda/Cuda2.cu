@@ -299,18 +299,25 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
 
 __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                          size_t limit) {
-    extern __shared__ double shared_max[];
+    __shared__ double shared_max[blockDim.x];
+    __shared__ float shared_TNF[136];
     size_t contig_idx = _des + blockIdx.x;
+    size_t dim_per_thread = (136 + blockDim.x - 1) / blockDim.x;
+    for (size_t i = dim_per_thread * threadIdx.x; i < min(dim_per_thread * threadIdx.x + dim_per_thread, (size_t)136); i++) {
+        shared_TNF[i] = TNF[contigs[contig_idx] * 136 + i];
+    }
     if (contig_idx >= limit) return;
     double local_max = 0.0;
+    /*
     float TNF1[136];
     for (int i = 0; i < 136; i++) {
-        TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
+        TNF1[i] = shared_TNF[contigs[contig_idx] * 136 + i];
     }
+    */
     size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
     for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
         if (i == contig_idx) continue;
-        double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], shared_TNF, TNF + contigs[i] * 136);
         if (dist > local_max) {
             local_max = dist;
         }
@@ -462,8 +469,9 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample2<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
-                max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
+            get_tnf_max_prob_sample2<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double) + 136 * sizeof(float),
+                                       streams[i]>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i,
+                                                     min((contigs_per_kernel * (i + 1)), _nobs));
         }
         for (size_t i = 0; i < n_STREAMS; i++) {
             cudaStreamSynchronize(streams[i]);
