@@ -285,7 +285,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
     //  if (prob >= .1)  //second logistic model
     double preProb = -(b + c * d);
     // preProb <= LOG(9.0) yields prob > 0.1, so use second logistic model
-    prob = preProb <= floor_preProb ? floor_prob : 1.0 / (1 + exp(preProb));
+    prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
 
     if (prob >= floor_prob) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
@@ -300,7 +300,7 @@ __device__ double cal_tnf_dist_d2(double r1, double r2, float* TNF1, float* TNF2
         // prob = 1.0 / (1 + EXP(-(b + c * d)));
         //  prob = prob < .1 ? .1 : prob;
         preProb = -(b + c * d);  // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0) to calculate, otherwise use the floor
-        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : floor_prob;
+        prob = preProb <= floor_preProb ? 1.0 / (1 + exp(preProb)) : 0.1;
     }
 
     return prob;
