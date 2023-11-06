@@ -306,6 +306,7 @@ __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* s
     for (size_t i = dim_per_thread * threadIdx.x; i < min(dim_per_thread * threadIdx.x + dim_per_thread, (size_t)136); i++) {
         shared_TNF[i] = TNF[contigs[contig_idx] * 136 + i];
     }
+    __syncthreads();
     if (contig_idx >= limit) return;
     double local_max = 0.0;
     /*
