@@ -918,19 +918,34 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMalloc((void**)&graph_d, TILE * TILE * sizeof(double));
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
+        size_t matrix_y = min(TILE, (nobs - ii));
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
-            size_t matrix_y = min(TILE, (nobs - ii));
+            if (jj == 0) {
+                size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
+                cudaDeviceSynchronize();
+                cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
+            } else {
+                cudaDeviceSynchronize();
+                cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
+            }
+            if (jj + TILE <= nobs) {
+                size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
+                size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE);
+            }
+
             // async porfa
             // TIMERSTART(1);
+            /*
             {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
-                // get_tnf_graph2<<<numThreads2, matrix_y, 136 * 4>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
-
                 cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
                 getError("GRAPH" + std::to_string(ii) + "_" + std::to_string(jj));
             }
+            */
             // TIMERSTOP(1);
             // TIMERSTART(2);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
