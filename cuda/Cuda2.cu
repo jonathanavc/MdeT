@@ -268,7 +268,7 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
-        if (ct1 == ct2) continue;
+        // if (ct1 == ct2) continue;
         graph[ct1 * nc2 + ct2] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + ct2 * 136);
     }
 }
@@ -925,8 +925,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             {
                 // size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 // get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii, jj);
-                get_tnf_graph2<<<numThreads2, matrix_y, 136 * 4>>>(graph_d, TNF_d, contig_log, min(TILE, (nobs - ii)), matrix_x, ii,
-                                                                   jj);
+                get_tnf_graph2<<<numThreads2, matrix_y, 136 * 4>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
 
                 cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
                 getError("GRAPH");
