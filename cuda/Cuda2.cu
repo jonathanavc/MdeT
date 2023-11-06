@@ -1592,6 +1592,7 @@ int main(int ac, char* av[]) {
             for (int i = 0; i < numThreads; i++) {  // esperar a que terminen de leer
                 readerThreads[i].join();
             }
+
             close(fpint);
             size_t contig_name_i;
             size_t contig_i;
@@ -1601,6 +1602,70 @@ int main(int ac, char* av[]) {
             small_contigs.reserve(fsize / 1000);
             small_contig_names.reserve(fsize / 1000);
             small_seqs.reserve(fsize / 1000);
+            {
+#pragma omp declare reduction( \
+        merge_string_view : std::vector<string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+#pragma omp declare reduction( \
+        merge_map_sv_st : std::unordered_map<string_view, size_t> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+                size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
+#omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) reduction(merge_map_sv_st: contigs, small_contigs) schedule(dynamic, 1000) shared(os)
+                for (int t = 0; t < numThreads; t++) {
+                    for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
+                        if (_mem[i] == fasta_delim) {
+                            i++;
+                            contig_name_i = i;  // guardar el inicio del nombre del contig
+                            while (_mem[i] != line_delim) i++;
+                            std::string_view name(_mem + contig_name_i, i - contig_name_i);
+                            i++;
+                            contig_i = i;  // guardar el inicio del contig
+                            while (i < fsize && _mem[i] != line_delim) i++;
+                            std::string_view seq(_mem + contig_i, i - contig_i);
+                            if (seq.length() >= (int)minContig) {
+                                contigs[name] = nobs++;
+                                contig_names.push_back(name);
+                                seqs.push_back(seq);
+                            } else if (seq.length() >= (int)1000) {
+                                small_contigs[name] = nobs1++;
+                                small_contig_names.push_back(name);
+                                small_seqs.push_back(seq);
+                            } else if (os) {
+                                if (onlyLabel) {
+                                    *os << name << line_delim;
+                                } else {
+                                    printFasta(*os, name, seq);
+                                }
+                            }
+                        }
+                    }
+                }
+                for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
+                    if (_mem[i] == fasta_delim) {
+                        i++;
+                        contig_name_i = i;  // guardar el inicio del nombre del contig
+                        while (_mem[i] != line_delim) i++;
+                        std::string_view name(_mem + contig_name_i, i - contig_name_i);
+                        i++;
+                        contig_i = i;  // guardar el inicio del contig
+                        while (i < fsize && _mem[i] != line_delim) i++;
+                        std::string_view seq(_mem + contig_i, i - contig_i);
+                        if (seq.length() >= (int)minContig) {
+                            contigs[name] = nobs++;
+                            contig_names.push_back(name);
+                            seqs.push_back(seq);
+                        } else if (seq.length() >= (int)1000) {
+                            small_contigs[name] = nobs1++;
+                            small_contig_names.push_back(name);
+                            small_seqs.push_back(seq);
+                        } else if (os) {
+                            if (onlyLabel) {
+                                *os << name << line_delim;
+                            } else {
+                                printFasta(*os, name, seq);
+                            }
+                        }
+                    }
+                }
+            }
             for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
                 if (_mem[i] == fasta_delim) {
                     i++;
