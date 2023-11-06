@@ -928,7 +928,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 get_tnf_graph2<<<numThreads2, matrix_y, 136 * 4>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
 
                 cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
-                getError("GRAPH");
+                getError("GRAPH" + std::to_string(ii) + "_" + std::to_string(jj));
             }
             // TIMERSTOP(1);
             // TIMERSTART(2);
