@@ -1605,10 +1605,9 @@ int main(int ac, char* av[]) {
             {
 #pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
-#pragma omp declare reduction( \
-        merge_map_sv_st : std::unordered_map<std::string_view, size_t> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+#pragma omp declare reduction(merge_map_sv_st : std::unordered_map<std::string_view, size_t> : omp_out += omp_in.end())
                 size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
-#omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) reduction(merge_map_sv_st: contigs, small_contigs) schedule(dynamic, 1000) shared(os)
+#omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) reduction(merge_map_sv_st: contigs, small_contigs) shared(os)
                 for (int t = 0; t < numThreads; t++) {
                     for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
                         if (_mem[i] == fasta_delim) {
