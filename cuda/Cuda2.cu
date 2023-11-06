@@ -309,8 +309,7 @@ __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* s
     }
     size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
     for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
-        double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF + contigs[contig_idx] * 136,
-                                          TNF + contigs[i] * 136);
+        double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
         if (dist > local_max) {
             local_max = dist;
         }
