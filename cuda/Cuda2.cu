@@ -276,21 +276,18 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
 
 __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                         size_t _limit, const size_t contig_per_thread) {
-    // float TNF1[136];
+    float TNF1[136];
     size_t contig_idx = _des + (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
     size_t limit = min(contig_idx + contig_per_thread, _limit);
     if (contig_idx >= limit) return;
     while (contig_idx != limit) {
         double local_max = 0.0;
-        /*
         for (int i = 0; i < 136; i++) {
             TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
         }
-        */
         for (size_t i = 0; i < nobs; i++) {
             if (i == contig_idx) continue;
-            double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF + contigs[contig_idx] * 136,
-                                              TNF + contigs[i] * 136);
+            double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
             if (dist > local_max) {
                 local_max = dist;
             }
