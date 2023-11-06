@@ -263,6 +263,7 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
     for (size_t i = cp_per_thread * threadIdx.x; i < min(cp_per_thread * threadIdx.x + cp_per_thread, (size_t)136); i++) {
         TNF1[i] = TNF[ct1 * 136 + i];
     }
+    __syncthreads();
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
