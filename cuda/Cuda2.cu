@@ -121,7 +121,7 @@ static size_t nobs1 = 0;  // # of small
 static boost::numeric::ublas::matrix<float> ABD;
 static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
-static boost::numeric::ublas::matrix<float> TNF;
+// static boost::numeric::ublas::matrix<float> TNF;
 
 // static float* TNF_data;
 static float* TNF_d;
@@ -2345,6 +2345,7 @@ int main(int ac, char* av[]) {
     verbose_message("Outputting bins\n");
     output_bins(cls);
     verbose_message("Finished\n");
+    cudaFreeeHost(_mem);
     cudaFree(TNF_d);
     cudaFree(contig_log);
     return 0;
