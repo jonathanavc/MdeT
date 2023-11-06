@@ -300,7 +300,7 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
 __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                          size_t limit) {
     extern __shared__ double shared_max[];
-    size_t contig_idx = _des + (blockIdx.x * blockDim.x);
+    size_t contig_idx = _des + blockIdx.x;
     if (contig_idx >= limit) return;
     double local_max = 0.0;
     float TNF1[136];
@@ -984,19 +984,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE);
             }
-
-            // async porfa
-            // TIMERSTART(1);
-            /*
-            {
-                size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
-                cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
-                getError("GRAPH" + std::to_string(ii) + "_" + std::to_string(jj));
-            }
-            */
-            // TIMERSTOP(1);
-            // TIMERSTART(2);
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
@@ -1009,7 +996,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                 }
             }
-            // TIMERSTOP(2);
         }
         for (size_t k = 0; k < TILE; ++k) {
             while (!edges[k].empty()) {
