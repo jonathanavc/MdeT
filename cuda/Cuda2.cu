@@ -462,7 +462,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample2<<<numThreads2, contigs_per_kernel, numThreads2 * sizeof(double), streams[i]>>>(
+            get_tnf_max_prob_sample2<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
                 max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
         }
         for (size_t i = 0; i < n_STREAMS; i++) {
@@ -975,14 +975,14 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<numThreads2, bloqs>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE);
             }
 
             // async porfa
