@@ -297,6 +297,40 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
     }
 }
 
+__global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
+                                         size_t limit) {
+    extern __shared__ double shared_max[];
+    size_t contig_idx = _des + (blockIdx.x * blockDim.x);
+    if (contig_idx >= limit) return;
+    double local_max = 0.0;
+    float TNF1[136];
+    for (int i = 0; i < 136; i++) {
+        TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
+    }
+    size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
+    for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
+        if (i == contig_idx) continue;
+        double dist = 1. - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        if (dist > local_max) {
+            local_max = dist;
+        }
+    }
+    shared_max[threadIdx.x] = local_max;
+    __syncthreads();
+    // reduction max
+    for (size_t i = blockDim.x / 2; i > 0; i >>= 1) {
+        if (threadIdx.x < i) {
+            if (shared_max[threadIdx.x] < shared_max[threadIdx.x + i]) {
+                shared_max[threadIdx.x] = shared_max[threadIdx.x + i];
+            }
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        max_dist[contig_idx] = shared_max[0];
+    }
+}
+
 /*
 __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
@@ -425,6 +459,21 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     {
         cudaStream_t streams[n_STREAMS];
+        size_t bloqs = (_nobs + n_STREAMS - 1) / n_STREAMS;
+        for (int i = 0; i < n_STREAMS; i++) {
+            cudaStreamCreate(&streams[i]);
+            get_tnf_max_prob_sample2<<<bloqs, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
+                max_dist_d, TNF_d, contig_log, contigs_d, nobs, contig_per_kernel * i, min((contig_per_kernel * (i + 1)), _nobs));
+        }
+        for (size_t i = 0; i < n_STREAMS; i++) {
+            cudaStreamSynchronize(streams[i]);
+            cudaStreamDestroy(streams[i]);
+        }
+        cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
+    }
+    /*
+    {
+        cudaStream_t streams[n_STREAMS];
         size_t bloqs = (_nobs + (numThreads2 * n_STREAMS) - 1) / (numThreads2 * n_STREAMS);
         size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
@@ -438,6 +487,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         }
         cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     }
+    */
     cudaFree(contigs_d);
     getError("kernel");
 }
