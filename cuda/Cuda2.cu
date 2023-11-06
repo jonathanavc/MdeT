@@ -260,7 +260,7 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
     __shared__ float TNF1[136];
     size_t ct1 = off1 + blockIdx.x;
     size_t cp_per_thread = (136 + blockDim.x - 1) / blockDim.x;
-    for (int i = cp_per_thread * threadIdx.x; i < min(cp_per_thread * threadIdx.x, 136); i++) {
+    for (size_t i = cp_per_thread * threadIdx.x; i < min(cp_per_thread * threadIdx.x, (size_t)136); i++) {
         TNF1[i] = TNF[ct1 * 136 + i];
     }
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
