@@ -185,6 +185,67 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
 // más preciso
 __device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672;
 
+__device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
+    double d = 0.0;
+    float tn1, tn2, _diff;
+    for (size_t i = 0; i < 136; ++i) {
+        tn1 = TNF1[i];
+        tn2 = TNF2[i];
+        _diff = tn1 - tn2;
+        d += _diff * _diff;
+    }
+
+    d = sqrt(d);
+
+    double b, c;
+
+    double lw[19];
+    lw[0] = min(r1, r2);
+    lw[1] = max(r1, r2);
+    lw[2] = lw[0] * lw[0];
+    lw[4] = lw[2] * lw[0];
+    lw[6] = lw[4] * lw[0];
+    lw[8] = lw[6] * lw[0];
+    lw[10] = lw[8] * lw[0];
+    lw[11] = lw[10] * lw[0];
+    lw[3] = lw[1] * lw[1];
+    lw[5] = lw[3] * lw[1];
+    lw[7] = lw[5] * lw[1];
+    lw[9] = lw[7] * lw[1];
+    lw[12] = lw[0] * lw[1];
+    lw[14] = lw[4] * lw[5];
+    lw[15] = lw[6] * lw[7];
+    lw[16] = lw[8] * lw[9];
+    lw[13] = lw[2] * lw[3];
+    lw[18] = lw[9] * lw[1];
+
+    // double prob;
+
+    b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
+        _b1[8] * lw[7] + _b1[9] * lw[8] + _b1[10] * lw[9] + _b1[11] * lw[10] + _b1[12] * lw[11] + _b1[13] * lw[12] + _b1[14] * lw[13] +
+        _b1[15] * lw[14] + _b1[16] * lw[15] + _b1[17] * lw[16];
+
+    c = _c1[0] + _c1[1] * lw[0] + _c1[2] * lw[1] + _c1[3] * lw[2] + _c1[4] * lw[3] + _c1[5] * lw[4] + _c1[6] * lw[5] + _c1[7] * lw[6] +
+        _c1[8] * lw[7] + _c1[9] * lw[8] + _c1[10] * lw[9] + _c1[11] * lw[10] + _c1[12] * lw[11] + _c1[13] * lw[12] + _c1[14] * lw[13] +
+        _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
+
+    double preProb = -(b + c * d);
+
+    // prob = preProb <= floor_preProb ? 0.1 : 1.0 / (1 + exp(preProb));
+
+    if (preprob <= floor_preProb) {
+        b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] +
+            _b2[7] * lw[6] + _b2[8] * lw[7] + _b2[9] * lw[8] + _b2[10] * lw[9] + _b2[11] * lw[10] + _b2[12] * lw[18] +
+            _b2[13] * lw[13] + _b2[14] * lw[14] + _b2[15] * lw[15] + _b2[16] * lw[16];
+        c = _c2[0] + _c2[1] * lw[0] + _c2[2] * lw[1] + _c2[3] * lw[2] + _c2[4] * lw[3] + _c2[5] * lw[4] + _c2[6] * lw[5] +
+            _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
+            _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
+        preProb = -(b + c * d);
+        preProb = preProb < floor_preProb ? floor_preProb : preProb;
+    }
+    return preProb;
+}
+
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
@@ -331,6 +392,40 @@ __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* s
     }
 }
 
+__global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
+                                         size_t limit) {
+    extern __shared__ double shared_max[];
+    size_t contig_idx = _des + blockIdx.x;
+    if (contig_idx >= limit) return;
+    double local_max = 0.0;
+    float TNF1[136];
+    for (int i = 0; i < 136; i++) {
+        TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
+    }
+    size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
+    for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
+        if (i == contig_idx) continue;
+        double dist = cal_tnf_pre_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        if (dist > local_max) {
+            local_max = dist;
+        }
+    }
+    shared_max[threadIdx.x] = local_max;
+    __syncthreads();
+    // reduction max
+    for (size_t i = blockDim.x / 2; i > 0; i >>= 1) {
+        if (threadIdx.x < i) {
+            if (shared_max[threadIdx.x] < shared_max[threadIdx.x + i]) {
+                shared_max[threadIdx.x] = shared_max[threadIdx.x + i];
+            }
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
+    }
+}
+
 /*
 __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
                                     size_t _des, const size_t contig_per_thread, const size_t limit) {
@@ -462,7 +557,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
         size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
         for (int i = 0; i < n_STREAMS; i++) {
             cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample2<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
+            get_tnf_max_prob_sample3<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
                 max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
         }
         for (size_t i = 0; i < n_STREAMS; i++) {
