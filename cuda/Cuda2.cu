@@ -1638,33 +1638,6 @@ int main(int ac, char* av[]) {
                         }
                     }
                 }
-                for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
-                    if (_mem[i] == fasta_delim) {
-                        i++;
-                        contig_name_i = i;  // guardar el inicio del nombre del contig
-                        while (_mem[i] != line_delim) i++;
-                        std::string_view name(_mem + contig_name_i, i - contig_name_i);
-                        i++;
-                        contig_i = i;  // guardar el inicio del contig
-                        while (i < fsize && _mem[i] != line_delim) i++;
-                        std::string_view seq(_mem + contig_i, i - contig_i);
-                        if (seq.length() >= (int)minContig) {
-                            contigs[name] = nobs++;
-                            contig_names.push_back(name);
-                            seqs.push_back(seq);
-                        } else if (seq.length() >= (int)1000) {
-                            small_contigs[name] = nobs1++;
-                            small_contig_names.push_back(name);
-                            small_seqs.push_back(seq);
-                        } else if (os) {
-                            if (onlyLabel) {
-                                *os << name << line_delim;
-                            } else {
-                                printFasta(*os, name, seq);
-                            }
-                        }
-                    }
-                }
             }
             if (0)
                 for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
