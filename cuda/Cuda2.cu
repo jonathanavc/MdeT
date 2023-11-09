@@ -1641,6 +1641,7 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
+#pragma omp barrier
                     for (int i = 0; t < numThreads; i++) {
 #pragma omp barrier
                         if (i == omp_get_thread_num()) {
