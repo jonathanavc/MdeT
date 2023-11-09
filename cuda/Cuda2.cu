@@ -1641,10 +1641,10 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
+#pragma omp parallel
                     for (int i = 0; i < numThreads; i++) {
 #pragma omp barrier
                         if (i == t) {
-#pragma omp critical
                             {
                                 for (auto& pair : contigs_l) {
                                     pair.second += nobs;
