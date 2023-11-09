@@ -1594,12 +1594,6 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            // contigs.reserve(fsize / 1000);
-            // contig_names.reserve(fsize / 1000);
-            // seqs.reserve(fsize / 1000);
-            // small_contigs.reserve(fsize / 1000);
-            // small_contig_names.reserve(fsize / 1000);
-            // small_seqs.reserve(fsize / 1000);
             {
 #pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -1640,6 +1634,12 @@ int main(int ac, char* av[]) {
                 }
             }
             if (0) {
+                // contigs.reserve(fsize / 1000);
+                // contig_names.reserve(fsize / 1000);
+                // seqs.reserve(fsize / 1000);
+                // small_contigs.reserve(fsize / 1000);
+                // small_contig_names.reserve(fsize / 1000);
+                // small_seqs.reserve(fsize / 1000);
                 size_t contig_name_i;
                 size_t contig_i;
                 for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
