@@ -1639,9 +1639,9 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-                    for (int t = 0; t < numThreads; t++) {
+                    for (int i = 0; t < numThreads; i++) {
 #pragma omp barrier
-                        if (t == omp_get_thread_num()) {
+                        if (i == omp_get_thread_num()) {
                             contigs.merge(contigs_l);
                             small_contigs.merge(small_contigs_l);
                             contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
