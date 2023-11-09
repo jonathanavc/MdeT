@@ -1594,8 +1594,6 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            size_t contig_name_i;
-            size_t contig_i;
             // contigs.reserve(fsize / 1000);
             // contig_names.reserve(fsize / 1000);
             // seqs.reserve(fsize / 1000);
@@ -1610,6 +1608,8 @@ int main(int ac, char* av[]) {
 #pragma omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) \
     reduction(merge_map_sv_st : contigs, small_contigs) shared(os)
                 for (int t = 0; t < numThreads; t++) {
+                    size_t contig_name_i;
+                    size_t contig_i;
                     for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
                         if (_mem[i] == fasta_delim) {
                             i++;
