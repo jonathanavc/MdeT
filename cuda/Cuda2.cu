@@ -1596,12 +1596,12 @@ int main(int ac, char* av[]) {
             close(fpint);
             size_t contig_name_i;
             size_t contig_i;
-            contigs.reserve(fsize / 1000);
-            contig_names.reserve(fsize / 1000);
-            seqs.reserve(fsize / 1000);
-            small_contigs.reserve(fsize / 1000);
-            small_contig_names.reserve(fsize / 1000);
-            small_seqs.reserve(fsize / 1000);
+            // contigs.reserve(fsize / 1000);
+            // contig_names.reserve(fsize / 1000);
+            // seqs.reserve(fsize / 1000);
+            // small_contigs.reserve(fsize / 1000);
+            // small_contig_names.reserve(fsize / 1000);
+            // small_seqs.reserve(fsize / 1000);
             {
 #pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
@@ -1711,6 +1711,8 @@ int main(int ac, char* av[]) {
     }
 
     if (contig_names.size() != contigs.size() || small_contig_names.size() != small_contigs.size()) {
+        printf("contig_names: %lu, contigs: %lu, small_contig_names: %lu, small_contigs: %lu\n", contig_names.size(), contigs.size(),
+               small_contig_names.size(), small_contigs.size());
         cerr << "[Error!] Need to check whether there are duplicated sequence ids in the assembly file" << endl;
         return 1;
     }
