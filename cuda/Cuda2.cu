@@ -1594,7 +1594,7 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            {
+            if (0) {
                 //#pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
                 // #pragma omp declare reduction(merge_map_sv_st : std::unordered_map<std::string_view, size_t> :
@@ -1602,8 +1602,10 @@ int main(int ac, char* av[]) {
                 size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
 //#pragma omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) \
     reduction(merge_map_sv_st : contigs, small_contigs) shared(os)
-#pragma omp parallel for reduction(+ : nobs, nobs1) shared(os)
+#pragma omp parallel for shared(os)
                 for (int t = 0; t < numThreads; t++) {
+                    size_t nobs_l = 0;
+                    size_t nobs1_l = 0;
                     std::unordered_map<std::string_view, size_t> contigs_l;
                     std::unordered_map<std::string_view, size_t> small_contigs_l;
                     std::vector<std::string_view> contig_names_l;
@@ -1623,11 +1625,11 @@ int main(int ac, char* av[]) {
                             while (i < fsize && _mem[i] != line_delim) i++;
                             std::string_view seq(_mem + contig_i, i - contig_i);
                             if (seq.length() >= (int)minContig) {
-                                contigs_l[name] = nobs++;
+                                contigs_l[name] = nobs_l++;
                                 contig_names_l.push_back(name);
                                 seqs_l.push_back(seq);
                             } else if (seq.length() >= (int)1000) {
-                                small_contigs_l[name] = nobs1++;
+                                small_contigs_l[name] = nobs1_l++;
                                 small_contig_names_l.push_back(name);
                                 small_seqs_l.push_back(seq);
                             } else if (os) {
@@ -1650,11 +1652,10 @@ int main(int ac, char* av[]) {
                             seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
                             small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
                         }
-#pragma omp barrier
                     }
                 }
             }
-            if (0) {
+            if (1) {
                 // contigs.reserve(fsize / 1000);
                 // contig_names.reserve(fsize / 1000);
                 // seqs.reserve(fsize / 1000);
