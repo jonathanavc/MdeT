@@ -1594,7 +1594,7 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            if (0) {
+            if (1) {
                 //#pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
                 // #pragma omp declare reduction(merge_map_sv_st : std::unordered_map<std::string_view, size_t> :
@@ -1663,7 +1663,7 @@ int main(int ac, char* av[]) {
                     }
                 }
             }
-            if (1) {
+            if (0) {
                 // contigs.reserve(fsize / 1000);
                 // contig_names.reserve(fsize / 1000);
                 // seqs.reserve(fsize / 1000);
