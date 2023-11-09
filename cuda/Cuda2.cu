@@ -1641,9 +1641,9 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-#pragma omp barrier
+#pragma omp single
                     for (int i = 0; t < numThreads; i++) {
-#pragma omp barrier
+#pragma omp task
                         if (i == omp_get_thread_num()) {
                             for (auto& pair : contigs_l) {
                                 pair.second += nobs;
