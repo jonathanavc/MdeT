@@ -1650,6 +1650,7 @@ int main(int ac, char* av[]) {
                             seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
                             small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
                         }
+#pragma omp barrier
                     }
                 }
             }
