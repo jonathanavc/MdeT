@@ -1639,7 +1639,7 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-                    for (int t = 0; t < omp_get_num_threads(); t++) {
+                    for (int t = 0; t < numThreads; t++) {
 #pragma omp barrier
                         if (t == omp_get_thread_num()) {
                             contigs.merge(contigs_l);
@@ -1689,11 +1689,11 @@ int main(int ac, char* av[]) {
                         }
                     }
                 }
+                contig_names.shrink_to_fit();        // liberar memoria no usada
+                seqs.shrink_to_fit();                // liberar memoria no usada
+                small_contig_names.shrink_to_fit();  // liberar memoria no usada
+                small_seqs.shrink_to_fit();          // liberar memoria no usada
             }
-            contig_names.shrink_to_fit();        // liberar memoria no usada
-            seqs.shrink_to_fit();                // liberar memoria no usada
-            small_contig_names.shrink_to_fit();  // liberar memoria no usada
-            small_seqs.shrink_to_fit();          // liberar memoria no usada
 
             if (os) {
                 os->close();
