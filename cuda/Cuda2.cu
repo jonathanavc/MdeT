@@ -1639,7 +1639,9 @@ int main(int ac, char* av[]) {
                     }
                 }
             }
-            if (0)
+            if (0) {
+                size_t contig_name_i;
+                size_t contig_i;
                 for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
                     if (_mem[i] == fasta_delim) {
                         i++;
@@ -1667,6 +1669,7 @@ int main(int ac, char* av[]) {
                         }
                     }
                 }
+            }
             contig_names.shrink_to_fit();        // liberar memoria no usada
             seqs.shrink_to_fit();                // liberar memoria no usada
             small_contig_names.shrink_to_fit();  // liberar memoria no usada
