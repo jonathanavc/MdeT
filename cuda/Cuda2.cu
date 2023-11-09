@@ -1602,8 +1602,9 @@ int main(int ac, char* av[]) {
                 size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
 //#pragma omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) \
     reduction(merge_map_sv_st : contigs, small_contigs) shared(os)
-#pragma omp parallel for ordered shared(os)
-                for (int t = 0; t < numThreads; t++) {
+#pragma omp parallel shared(os)
+                {
+                    int t = omp_get_thread_num();
                     size_t nobs_l = 0;
                     size_t nobs1_l = 0;
                     std::unordered_map<std::string_view, size_t> contigs_l;
@@ -1641,24 +1642,7 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-#pragma omp ordered critical
-                    {
-                        for (auto& pair : contigs_l) {
-                            pair.second += nobs;
-                        }
-                        for (auto& pair : small_contigs_l) {
-                            pair.second += nobs1;
-                        }
-                        contigs.merge(contigs_l);
-                        small_contigs.merge(small_contigs_l);
-                        contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
-                        small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(), small_contig_names_l.end());
-                        seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
-                        small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
-                        nobs += nobs_l;
-                        nobs1 += nobs1_l;
-                    }
-                    /*
+
                     for (int i = 0; i < numThreads; i++) {
 #pragma omp barrier
                         if (i == t) {
@@ -1681,7 +1665,6 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-                    */
                 }
             }
             if (0) {
