@@ -1644,21 +1644,24 @@ int main(int ac, char* av[]) {
                     for (int i = 0; i < numThreads; i++) {
 #pragma omp barrier
                         if (i == t) {
-                            for (auto& pair : contigs_l) {
-                                pair.second += nobs;
+#pragma omp critical
+                            {
+                                for (auto& pair : contigs_l) {
+                                    pair.second += nobs;
+                                }
+                                for (auto& pair : small_contigs_l) {
+                                    pair.second += nobs1;
+                                }
+                                contigs.merge(contigs_l);
+                                small_contigs.merge(small_contigs_l);
+                                contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
+                                small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
+                                                          small_contig_names_l.end());
+                                seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
+                                small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
+                                nobs += nobs_l;
+                                nobs1 += nobs1_l;
                             }
-                            for (auto& pair : small_contigs_l) {
-                                pair.second += nobs1;
-                            }
-                            contigs.merge(contigs_l);
-                            small_contigs.merge(small_contigs_l);
-                            contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
-                            small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
-                                                      small_contig_names_l.end());
-                            seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
-                            small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
-                            nobs += nobs_l;
-                            nobs1 += nobs1_l;
                         }
                     }
                 }
