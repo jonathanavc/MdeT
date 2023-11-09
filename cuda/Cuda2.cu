@@ -1638,17 +1638,17 @@ int main(int ac, char* av[]) {
                                 }
                             }
                         }
-                        for (int t = 0; t < omp_get_num_threads(); t++) {
+                    }
+                    for (int t = 0; t < omp_get_num_threads(); t++) {
 #pragma omp barrier
-                            if (t == omp_get_thread_num()) {
-                                contigs.merge(contigs_l);
-                                small_contigs.merge(small_contigs_l);
-                                contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
-                                small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
-                                                          small_contig_names_l.end());
-                                seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
-                                small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
-                            }
+                        if (t == omp_get_thread_num()) {
+                            contigs.merge(contigs_l);
+                            small_contigs.merge(small_contigs_l);
+                            contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
+                            small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
+                                                      small_contig_names_l.end());
+                            seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
+                            small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
                         }
                     }
                 }
