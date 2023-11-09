@@ -1602,7 +1602,7 @@ int main(int ac, char* av[]) {
                 size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
 //#pragma omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) \
     reduction(merge_map_sv_st : contigs, small_contigs) shared(os)
-#pragma omp parallel for shared(os)
+#pragma omp parallel for ordered shared(os)
                 for (int t = 0; t < numThreads; t++) {
                     size_t nobs_l = 0;
                     size_t nobs1_l = 0;
@@ -1641,7 +1641,7 @@ int main(int ac, char* av[]) {
                             }
                         }
                     }
-#pragma omp ordered
+#pragma omp ordered critical
                     {
                         for (auto& pair : contigs_l) {
                             pair.second += nobs;
