@@ -1156,6 +1156,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                 p = pp;
                 cov = pcov;
             }
+            printf("hola");
             break;
         } else
             verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
