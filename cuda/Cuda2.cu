@@ -1132,7 +1132,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     int round = 0;
 
     for (; p > 700;) {
-        printf("round %d\n", round);
         round++;
 
         double cutoff = (double)p / 1000.;
@@ -1154,7 +1153,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         cov = (double)counton / _nobs;
 
         if (cov >= coverage) {
-            printf("cov: %f\n", cov);
             // previous cov is closer to coverage then choose prev p instead current p
             if (cov - coverage > coverage - pcov) {
                 p = pp;
