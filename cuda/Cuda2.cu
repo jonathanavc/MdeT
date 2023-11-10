@@ -497,6 +497,7 @@ __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs
 void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
+        cudaDeviceReset();
         if (s != "") std::cerr << s << "|";
         std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         exit(1);
