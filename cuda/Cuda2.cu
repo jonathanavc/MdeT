@@ -1119,13 +1119,10 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     cudaFree(max_nobs_d);
 
-    // nuevo
-    /*
     std::priority_queue<double> pq;
     for (size_t i = 0; i < _nobs; ++i) {
         pq.push(max_nobs_h[i]);
     }
-    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1137,17 +1134,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         double cutoff = (double)p / 1000.;
         int counton = 0;
 
-        /*
         while (!pq.empty() && pq.top() >= cutoff) {
             pq.pop();
         }
-        counton = _nobs - pq.size();
-        */
 
-#pragma omp parallel for reduction(+ : counton)
-        for (size_t i = 0; i < _nobs; i++) {
-            if (max_nobs_h[i] >= cutoff) counton++;
-        }
+        counton = _nobs - pq.size();
 
         cov = (double)counton / _nobs;
 
