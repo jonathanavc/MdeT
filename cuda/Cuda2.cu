@@ -1138,7 +1138,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         double cutoff = (double)p / 1000.;
         int counton = 0;
 
-        while (pq.top() >= cutoff) {
+        while (!pq.empty() && pq.top() >= cutoff) {
             pq.pop();
         }
 
@@ -1177,7 +1177,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     }
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
-
     return p;
 }
 
