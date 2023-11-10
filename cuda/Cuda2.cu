@@ -1130,6 +1130,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     int round = 0;
 
     for (; p > 700;) {
+        printf("round %d\n", round);
         round++;
 
         double cutoff = (double)p / 1000.;
@@ -1156,7 +1157,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                 p = pp;
                 cov = pcov;
             }
-            printf("hola");
+
             break;
         } else
             verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
