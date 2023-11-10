@@ -308,8 +308,8 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
 }
 */
 
-__global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, const size_t nc1, const size_t nc2, const size_t off1,
-                              const size_t off2, const double floor_preProb_cutoff) {
+__global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
+                              double floor_preProb_cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     if (r1 >= nc1) return;
@@ -318,7 +318,6 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, con
     size_t ct2 = off2 + r2;
     if (ct1 == ct2) return;
     {
-        // const double floor_preProb_cutoff = log((1.0 / (1. - cutoff)) - 1.0);
         double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
         if (preProb > floor_preProb_cutoff) {
             graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
@@ -1085,17 +1084,14 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         std::vector<std::priority_queue<std::pair<size_t, double>, std::vector<std::pair<size_t, double>>, CompareEdge>> edges(TILE);
         size_t matrix_y = min(TILE, (nobs - ii));
         for (size_t jj = 0; jj < nobs; jj += TILE) {
-            // cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
-                // cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
-                // cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
