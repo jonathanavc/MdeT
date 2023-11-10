@@ -331,7 +331,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
 __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
                                double floor_preProb_cutoff) {
     extern __shared__ float shared_TNF[];
-    const float local_TNF[136];
+    float local_TNF[136];
     size_t contig_index = blockIdx.x;
     if (contig_index >= nc1) return;
     size_t ct1 = off1 + contig_index;
