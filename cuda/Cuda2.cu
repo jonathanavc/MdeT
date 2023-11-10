@@ -1137,11 +1137,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         double cutoff = (double)p / 1000.;
         int counton = 0;
 
+        /*
         while (!pq.empty() && pq.top() >= cutoff) {
             pq.pop();
         }
-
-        // counton = _nobs - pq.size();
+        counton = _nobs - pq.size();
+        */
 
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
