@@ -187,45 +187,12 @@ __device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450
 
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
-    float tn1, tn2, _diff;
-    float _diffs[136];
+    float _diff;
 
-    for (size_t i = 0; i < 136; i += 4) {
-        _diffs[i] = TNF1[i] - TNF2[i];
-        _diffs[i + 1] = TNF1[i + 1] - TNF2[i + 1];
-        _diffs[i + 2] = TNF1[i + 2] - TNF2[i + 2];
-        _diffs[i + 3] = TNF1[i + 3] - TNF2[i + 3];
+    for (size_t i = 0; i < 136; i++) {
+        _diff = TNF1[i] - TNF2[i];
+        d += _diff * _diff;
     }
-    for (size_t i = 0; i < 136; i += 4) {
-        d += _diffs[i] * _diffs[i];
-        d += _diffs[i + 1] * _diffs[i + 1];
-        d += _diffs[i + 2] * _diffs[i + 2];
-        d += _diffs[i + 3] * _diffs[i + 3];
-    }
-
-    /*
-     for (size_t i = 0; i < 136; i += 4) {
-         tn1 = TNF1[i];
-         tn2 = TNF2[i];
-         _diff = tn1 - tn2;
-         d += _diff * _diff;
-
-         tn1 = TNF1[i + 1];
-         tn2 = TNF2[i + 1];
-         _diff = tn1 - tn2;
-         d += _diff * _diff;
-
-         tn1 = TNF1[i + 2];
-         tn2 = TNF2[i + 2];
-         _diff = tn1 - tn2;
-         d += _diff * _diff;
-
-         tn1 = TNF1[i + 3];
-         tn2 = TNF2[i + 3];
-         _diff = tn1 - tn2;
-         d += _diff * _diff;
-     }
-     */
 
     d = sqrt(d);
 
