@@ -188,7 +188,7 @@ __device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
-    float _diffs[136]
+    //float _diffs[136]
     /*
     for (size_t i = 0; i < 136; ++i) {
         tn1 = TNF1[i];
