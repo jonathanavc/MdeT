@@ -317,45 +317,11 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
     if (ct1 == ct2) return;
-    {
-        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-        if (preProb > floor_preProb_cutoff)
-            graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
-        else
-            graph[prob_index] = 0.0;
-    }
-
-    // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-}
-
-__global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
-                               double floor_preProb_cutoff) {
-    extern __shared__ float shared_TNF[];
-    float local_TNF[136];
-    size_t contig_index = blockIdx.x;
-    if (contig_index >= nc1) return;
-    size_t ct1 = off1 + contig_index;
-    size_t cp_per_thread = (136 + blockDim.x - 1) / blockDim.x;
-    for (size_t i = cp_per_thread * threadIdx.x; i < min(cp_per_thread * threadIdx.x + cp_per_thread, (size_t)136); i++) {
-        shared_TNF[i] = TNF[ct1 * 136 + i];
-    }
-    __syncthreads();
-    for (size_t i = 0; i < 136; i++) {
-        local_TNF[i] = shared_TNF[i];
-    }
-
-    size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
-    size_t graph_des = contig_index * nc2;
-    for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
-        size_t ct2 = off2 + i;
-        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], local_TNF, TNF + ct2 * 136);
-        if (preProb > floor_preProb_cutoff)
-            graph[graph_des + i] = 1.0 - (1.0 / (1 + exp(preProb)));
-        else
-            graph[graph_des + i] = 0.0;
-    }
-
-    // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    if (preProb > floor_preProb_cutoff)
+        graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
+    else
+        graph[prob_index] = 0.0;
 }
 
 /*
@@ -1090,10 +1056,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
-                // size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                // get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
-                get_tnf_graph2<<<matrix_y, numThreads2, 136 * sizeof(float)>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj,
-                                                                               floor_preProb_cutoff);
+                size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
             // TIMERSTART(1);
             cudaDeviceSynchronize();
@@ -1101,9 +1065,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
-                // size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph2<<<matrix_y, numThreads2, 136 * sizeof(float)>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii,
-                                                                               jj + TILE, floor_preProb_cutoff);
+                size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
+                                                      floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
