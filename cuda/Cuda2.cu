@@ -550,6 +550,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
+/*
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
     size_t n_STREAMS = 1;
     size_t* contigs_d;
@@ -570,6 +571,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaFree(contigs_d);
     getError("kernel");
 }
+*/
 
 void launch_tnf_max_prob_sample_kernel2(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d;
