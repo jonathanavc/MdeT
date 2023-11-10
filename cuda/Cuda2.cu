@@ -1064,17 +1064,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
     printf("TILE: %d\n", TILE);
 
-    /*
-    int numstreams;
-    cudaStream_t streams[numstreams];
-    for (size_t i = 0; i < numstreams; i++) {
-        cudaStreamCreate(&streams[i]);
-    }
-    */
-
+    const double floor_preProb_cutoff = log((1.0 / (1. - cutoff)) - 1.0);
     // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
     // reduction(merge_double: sTNF)
-    const double floor_preProb_cutoff = log((1.0 / (1. - cutoff)) - 1.0);
+
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
     reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
@@ -1091,6 +1084,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
+            cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
             if (jj + TILE <= nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
