@@ -1125,6 +1125,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         pq.push(max_nobs_h[i]);
     }
 
+    cudaFreeHost(max_nobs_h);
+
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
@@ -1152,6 +1154,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         cov = (double)counton / _nobs;
 
         if (cov >= coverage) {
+            printf("cov: %f\n", cov);
             // previous cov is closer to coverage then choose prev p instead current p
             if (cov - coverage > coverage - pcov) {
                 p = pp;
@@ -1172,12 +1175,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
     }
-
-    while (!pq.empty()) pq.pop();
-
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
-    cudaFreeHost(max_nobs_h);
+
     return p;
 }
 
