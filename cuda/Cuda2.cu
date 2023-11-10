@@ -195,30 +195,11 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
         _diff = tn1 - tn2;
         d += _diff * _diff;
     }
-    */
-    for (size_t i = 0; i < 136; i += 4) {
-        tn1 = TNF1[i];
-        tn2 = TNF2[i];
-        _diff = tn1 - tn2;
-        d += _diff * _diff;
-
-        tn1 = TNF1[i + 1];
-        tn2 = TNF2[i + 1];
-        _diff = tn1 - tn2;
-        d += _diff * _diff;
-
-        tn1 = TNF1[i + 2];
-        tn2 = TNF2[i + 2];
-        _diff = tn1 - tn2;
-        d += _diff * _diff;
-
-        tn1 = TNF1[i + 3];
-        tn2 = TNF2[i + 3];
-        _diff = tn1 - tn2;
-        d += _diff * _diff;
-    }
-
     d = sqrt(d);
+    */
+    float _diffs[136];
+    for (size_t i = 0; i < 136; i++) _diffs[i] = TNF1[i] - TNF2[i];
+    d = norm(136, _diffs);
 
     double b, c;
 
