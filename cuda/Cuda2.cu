@@ -1024,7 +1024,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             (size_t)10);
     } catch (...) {
     }
-    printf("TILE: %d\n", TILE);
+    // printf("TILE: %d\n", TILE);
 
     const double floor_preProb_cutoff = log((1.0 / (1. - cutoff)) - 1.0);
     // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
