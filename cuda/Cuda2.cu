@@ -1092,8 +1092,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[que_index * matrix_x + (j - jj)];
-                    if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
-                                          (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
+                    if (sTNF != 0.0 && (edges[que_index].size() < maxEdges ||
+                                        (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
