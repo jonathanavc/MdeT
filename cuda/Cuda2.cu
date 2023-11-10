@@ -464,10 +464,12 @@ __device__ short get_tn(char* __restrict__ contig) {
 }
 
 __device__ void next_contig(char* __restrict__ contig, char c) {
+    /*
     if (c == '\n') {
         contig[0] = 'X';
         return;
     }
+    */
     for (int i = 0; i < 3; i++) {
         contig[i] = contig[i + 1];
     }
@@ -1634,7 +1636,7 @@ int main(int ac, char* av[]) {
                             std::string_view name(_mem + contig_name_i, i - contig_name_i);
                             i++;
                             contig_i = i;  // guardar el inicio del contig
-                            while (i < fsize && _mem[i] != fasta_delim) i++;
+                            while (i < fsize && _mem[i] != line_delim) i++;
                             i--;
                             std::string_view seq(_mem + contig_i, i - contig_i);
                             if (seq.length() >= (int)minContig) {
