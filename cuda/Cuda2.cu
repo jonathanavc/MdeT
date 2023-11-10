@@ -1637,7 +1637,6 @@ int main(int ac, char* av[]) {
                             i++;
                             contig_i = i;  // guardar el inicio del contig
                             while (i < fsize && _mem[i] != line_delim) i++;
-                            i--;
                             std::string_view seq(_mem + contig_i, i - contig_i);
                             if (seq.length() >= (int)minContig) {
                                 contigs_l[name] = nobs_l++;
