@@ -197,7 +197,7 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
     }
     d = sqrt(d);
     */
-    double _diffs[136];
+    float _diffs[136];
     for (size_t i = 0; i < 136; i++) _diffs[i] = TNF1[i] - TNF2[i];
     for (size_t i = 0; i < 136; i++) d += _diffs[i] * _diffs[i];
     d = sqrt(d);
