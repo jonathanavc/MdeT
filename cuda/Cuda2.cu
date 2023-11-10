@@ -544,37 +544,18 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    {
-        cudaStream_t streams[n_STREAMS];
-        size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
-        for (int i = 0; i < n_STREAMS; i++) {
-            cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample3<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
-                max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
-        }
-        for (size_t i = 0; i < n_STREAMS; i++) {
-            cudaStreamSynchronize(streams[i]);
-            cudaStreamDestroy(streams[i]);
-        }
-        cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaStream_t streams[n_STREAMS];
+    size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
+    for (int i = 0; i < n_STREAMS; i++) {
+        cudaStreamCreate(&streams[i]);
+        get_tnf_max_prob_sample3<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
+            max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
     }
-    /*
-    {
-        cudaStream_t streams[n_STREAMS];
-        size_t bloqs = (_nobs + (numThreads2 * n_STREAMS) - 1) / (numThreads2 * n_STREAMS);
-        size_t contig_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
-        for (int i = 0; i < n_STREAMS; i++) {
-            cudaStreamCreate(&streams[i]);
-            get_tnf_max_prob_sample<<<bloqs, numThreads2, 0, streams[i]>>>(
-                max_dist_d, TNF_d, contig_log, contigs_d, nobs, contig_per_kernel * i, min((contig_per_kernel * (i + 1)), _nobs), 1);
-        }
-        for (size_t i = 0; i < n_STREAMS; i++) {
-            cudaStreamSynchronize(streams[i]);
-            cudaStreamDestroy(streams[i]);
-        }
-        cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
+    for (size_t i = 0; i < n_STREAMS; i++) {
+        cudaStreamSynchronize(streams[i]);
+        cudaStreamDestroy(streams[i]);
     }
-    */
+    cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(contigs_d);
     getError("kernel");
 }
@@ -1104,18 +1085,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaFreeHost(graph_h);
     }
 
-    /*
-    for (size_t i = 0; i < numstreams; i++) {
-        cudaStreamDestroy(streams[i]);
-    }
-    */
-
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
-    // clean up
-    // TNF.clear();
-    // TNF.resize(0, 0, false);
     g.sTNF.shrink_to_fit();
     g.to.shrink_to_fit();
     g.from.shrink_to_fit();
@@ -1131,32 +1103,18 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
 
-    /*
-#pragma omp parallel for
-    for (size_t j = 0; j < nobs; ++j) {
-        for (size_t i = 0; i < _nobs; ++i) {
-            Similarity s = 1. - cal_tnf_dist(idx[i], idx[j]);  // similarity scores from the virtually shuffled matrix
-            matrix[i * nobs + j] = s;
-        }
-    }
-    */
-    /*
-    double *matrix_d, *matrix_h;
-    TIMERSTART(1);
-    cudaMallocHost((void**)&matrix_h, _nobs * nobs * sizeof(double));
-    cudaMalloc((void**)&matrix_d, _nobs * nobs * sizeof(double));
-    getError("malloc");
-    launch_tnf_prob_sample_kernel(idx, matrix_d, matrix_h, _nobs);
-    cudaFree(matrix_d);
-    TIMERSTOP(1);
-    */
-
     double *max_nobs_d, *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     getError("malloc");
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     cudaFree(max_nobs_d);
+    {  // nuevo
+        std::priority_queue<double> pq;
+        for (size_t i = 0; i < _nobs; ++i) {
+            pq.push(max_nobs_h[i]);
+        }
+    }
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1166,44 +1124,21 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-        /*
-#pragma omp parallel for
-        for (size_t i = 0; i < _nobs; ++i) {
-            if (max_nobs_h[i] >= cutoff) {
-                connected_nodes[i] = 1;
-            }
-        }
-        */
-        /*
-        #pragma omp parallel for
-                for (size_t i = 0; i < _nobs; ++i) {
-                    size_t kk = nobs;
-                    if (connected_nodes[i]) kk = _nobs;
-                    for (size_t j = i + 1; j < kk; ++j) {
-                        Similarity s = matrix_h[i * nobs + j];
-                        if (s >= cutoff) {
-                            connected_nodes[i] = 1;
-                            if (j < _nobs) {
-                                connected_nodes[j] = 1;
-                            }
-                        }
-                    }
-                }
-        */
-
-        // cov = (double) connected_nodes.size() / _nobs;
         int counton = 0;
 
+        while (pq.top() >= cutoff) {
+            pq.pop();
+        }
+
+        counton = _nobs - pq.size();
+
+        /*
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
             if (max_nobs_h[i] >= cutoff) counton++;
         }
-        /*
-#pragma omp parallel for reduction(+ : counton)
-        for (size_t i = 0; i < _nobs; i++) {
-            if (connected_nodes[i] == 1) counton++;
-        }
         */
+
         cov = (double)counton / _nobs;
 
         if (cov >= coverage) {
@@ -1226,13 +1161,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
     }
-
-    // free(matrix);
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
-    // cudaFreeHost(matrix);
     cudaFreeHost(max_nobs_h);
-    // cudaFreeHost(matrix_h);
     return p;
 }
 
@@ -1657,7 +1588,7 @@ int main(int ac, char* av[]) {
             size_t chunk = fsize / numThreads;
             cudaError_t cudaStatus = cudaMallocHost((void**)&_mem, fsize);
             if (cudaStatus != cudaSuccess) {
-                fprintf(stderr, "cudaMallocHost failed!");
+                fprintf(stderr, "cuda_Mallo_cHost failed!");
                 return 1;
             }
             int fpint = open(inFile.c_str(), O_RDWR | O_CREAT, S_IREAD | S_IWRITE | S_IRGRP | S_IROTH);
@@ -2052,7 +1983,6 @@ int main(int ac, char* av[]) {
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
 
-    // cudaMallocHost((void**)&TNF_data, nobs * 136 * sizeof(float));
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     {
         ProgressTracker progress(nobs);
@@ -2085,16 +2015,7 @@ int main(int ac, char* av[]) {
             seqs_h_index_i.clear();
             seqs_h_index_e.clear();
         }
-        /*
-#pragma omp parallel for
-        for (size_t i = 0; i < nobs; i++) {
-            for (int j = 0; j < 136; j++) {
-                TNF(i, j) = TNF_data[i * 136 + j];
-            }
-        }
-        */
     }
-    // cudaFreeHost(TNF_data);
     TIMERSTOP(TNF_CAL);
 
     verbose_message("Finished TNF calculation.                                  \n");
