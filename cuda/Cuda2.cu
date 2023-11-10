@@ -312,9 +312,8 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     if (r1 >= nc1) return;
-    size_t r2 = prob_index % nc2;
     size_t ct1 = off1 + r1;
-    size_t ct2 = off2 + r2;
+    size_t ct2 = off2 + prob_index % nc2;
     // if (ct1 == ct2) return;
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
     if (preProb > floor_preProb_cutoff)
