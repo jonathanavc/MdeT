@@ -550,30 +550,7 @@ void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
     cudaFree(seqs_d_index);
 }
 
-/*
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
-    size_t n_STREAMS = 1;
-    size_t* contigs_d;
-    cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
-    cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    cudaStream_t streams[n_STREAMS];
-    size_t contigs_per_kernel = (_nobs + n_STREAMS - 1) / n_STREAMS;
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamCreate(&streams[i]);
-        get_tnf_max_prob_sample3<<<contigs_per_kernel, numThreads2, numThreads2 * sizeof(double), streams[i]>>>(
-            max_dist_d, TNF_d, contig_log, contigs_d, nobs, contigs_per_kernel * i, min((contigs_per_kernel * (i + 1)), _nobs));
-    }
-    for (size_t i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
-    cudaFree(contigs_d);
-    getError("kernel");
-}
-*/
-
-void launch_tnf_max_prob_sample_kernel2(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
@@ -1128,8 +1105,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     double *max_nobs_d, *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
-    getError("malloc");
-    launch_tnf_max_prob_sample_kernel2(idx, max_nobs_d, max_nobs_h, _nobs);
+    launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
+    getError("launch_tnf_max_prob_sample_kernel");
     cudaFree(max_nobs_d);
 
     std::priority_queue<double> pq;
