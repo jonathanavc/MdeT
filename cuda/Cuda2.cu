@@ -345,13 +345,14 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
     }
 
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
+    size_t graph_des = contig_index * nc2;
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
         double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], local_TNF, TNF + ct2 * 136);
         if (preProb > floor_preProb_cutoff)
-            graph[contig_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
+            graph[graph_des + i] = 1.0 - (1.0 / (1 + exp(preProb)));
         else
-            graph[contig_index * nc2 + i] = 0.0;
+            graph[graph_des + i] = 0.0;
     }
 
     // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
