@@ -1109,11 +1109,11 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     getError("malloc");
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     cudaFree(max_nobs_d);
-    {  // nuevo
-        std::priority_queue<double> pq;
-        for (size_t i = 0; i < _nobs; ++i) {
-            pq.push(max_nobs_h[i]);
-        }
+
+    // nuevo
+    std::priority_queue<double> pq;
+    for (size_t i = 0; i < _nobs; ++i) {
+        pq.push(max_nobs_h[i]);
     }
 
     size_t p = 999, pp = 1000;
