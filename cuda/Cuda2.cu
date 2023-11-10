@@ -498,7 +498,6 @@ void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         cudaDeviceReset();
-
         if (s != "") std::cerr << s << "|";
         std::cerr << "Error: " << cudaGetErrorString(err) << std::endl;
         cudaError_t err = cudaGetLastError();
