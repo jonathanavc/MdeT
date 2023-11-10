@@ -330,8 +330,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
 
 __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
                                double floor_preProb_cutoff) {
-    __shared__ float TNF1[136];
-
+    extern __shared__ __ float TNF1;
     size_t contig_index = blockIdx.x;
     if (contig_index >= nc1) return;
     size_t ct1 = off1 + contig_index;
@@ -345,9 +344,9 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
         size_t ct2 = off2 + i;
         double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + ct2 * 136);
         if (preProb > floor_preProb_cutoff)
-            graph[ct1 * nc2 + ct2] = 1.0 - (1.0 / (1 + exp(preProb)));
+            graph[contig_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
         else
-            graph[ct1 * nc2 + ct2] = 0.0;
+            graph[contig_index * nc2 + i] = 0.0;
     }
 
     // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
@@ -1105,8 +1104,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             if (jj == 0) {
                 // size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 // get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
-                get_tnf_graph2<<<matrix_y, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj,
-                                                          floor_preProb_cutoff);
+                get_tnf_graph2<<<matrix_y, numThreads2, 0, 136 * sizeof(float)>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii,
+                                                                                  jj, floor_preProb_cutoff);
             }
             // TIMERSTART(1);
             cudaDeviceSynchronize();
