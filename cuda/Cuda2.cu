@@ -246,6 +246,7 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
     return preProb;
 }
 
+/*
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
@@ -305,6 +306,7 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     }
     return prob;
 }
+*/
 
 __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, const size_t nc1, const size_t nc2, const size_t off1,
                               const size_t off2, const double floor_preProb_cutoff) {
@@ -322,15 +324,6 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, con
             graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
         }
     }
-
-    /*
-    {
-        double prob = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-        if (prob > cutoff) {
-            graph[prob_index] = prob;
-        }
-    }
-    */
 
     // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
 }
@@ -353,6 +346,7 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
 }
 */
 
+/*
 __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                         size_t _limit, const size_t contig_per_thread) {
     float TNF1[136];
@@ -375,7 +369,9 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, float* TNF, double* si
         contig_idx++;
     }
 }
+*/
 
+/*
 __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                          size_t limit) {
     extern __shared__ double shared_max[];
@@ -409,6 +405,7 @@ __global__ void get_tnf_max_prob_sample2(double* max_dist, float* TNF, double* s
         max_dist[contig_idx] = shared_max[0];
     }
 }
+*/
 
 __global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                          size_t limit) {
