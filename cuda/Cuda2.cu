@@ -315,7 +315,7 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t r2 = prob_index % nc2;
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
-    if (ct1 == ct2) return;
+    // if (ct1 == ct2) return;
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
     if (preProb > floor_preProb_cutoff)
         graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
@@ -1045,9 +1045,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
-            // TIMERSTART(1);
             cudaDeviceSynchronize();
-            // TIMERSTOP(1);
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
