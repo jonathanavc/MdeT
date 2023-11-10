@@ -306,7 +306,8 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     return prob;
 }
 
-__global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2) {
+__global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
+                              double cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     if (r1 >= nc1) return;
@@ -314,7 +315,11 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
     if (ct1 == ct2) return;
-    graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    double prob = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    if (prob > cutoff) {
+        graph[prob_index] = prob;
+    }
+    // graph[prob_index] = 1. - cal_tnf_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
 }
 
 /*
@@ -1072,7 +1077,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             if (jj == 0) {
                 cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
@@ -1080,7 +1085,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 cudaMemset(graph_d, 0, TILE * TILE * sizeof(double));
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE, cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
