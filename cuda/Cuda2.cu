@@ -330,19 +330,24 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
 
 __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
                                double floor_preProb_cutoff) {
-    extern __shared__ float TNF1[];
+    extern __shared__ float shared_TNF[];
+    const float local_TNF[136];
     size_t contig_index = blockIdx.x;
     if (contig_index >= nc1) return;
     size_t ct1 = off1 + contig_index;
     size_t cp_per_thread = (136 + blockDim.x - 1) / blockDim.x;
     for (size_t i = cp_per_thread * threadIdx.x; i < min(cp_per_thread * threadIdx.x + cp_per_thread, (size_t)136); i++) {
-        TNF1[i] = TNF[ct1 * 136 + i];
+        shared_TNF[i] = TNF[ct1 * 136 + i];
     }
     __syncthreads();
+    for (size_t i = 0; i < 136; i++) {
+        local_TNF[i] = shared_TNF[i];
+    }
+
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
-        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + ct2 * 136);
+        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], local_TNF, TNF + ct2 * 136);
         if (preProb > floor_preProb_cutoff)
             graph[contig_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
         else
