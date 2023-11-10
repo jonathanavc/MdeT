@@ -1170,6 +1170,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
     }
+    pq.clear();
     //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
     //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
     cudaFreeHost(max_nobs_h);
