@@ -195,11 +195,29 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
         _diff = tn1 - tn2;
         d += _diff * _diff;
     }
-    d = sqrt(d);
     */
-    float _diffs[136];
-    for (size_t i = 0; i < 136; i++) _diffs[i] = TNF1[i] - TNF2[i];
-    for (size_t i = 0; i < 136; i++) d += _diffs[i] * _diffs[i];
+    float _diffs[136] for (size_t i = 0; i < 136; i += 4) {
+        tn1 = TNF1[i];
+        tn2 = TNF2[i];
+        _diff = tn1 - tn2;
+        d += _diff * _diff;
+
+        tn1 = TNF1[i + 1];
+        tn2 = TNF2[i + 1];
+        _diff = tn1 - tn2;
+        d += _diff * _diff;
+
+        tn1 = TNF1[i + 2];
+        tn2 = TNF2[i + 2];
+        _diff = tn1 - tn2;
+        d += _diff * _diff;
+
+        tn1 = TNF1[i + 3];
+        tn2 = TNF2[i + 3];
+        _diff = tn1 - tn2;
+        d += _diff * _diff;
+    }
+
     d = sqrt(d);
 
     double b, c;
@@ -223,6 +241,8 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
+
+    // double prob;
 
     b = _b1[0] + _b1[1] * lw[0] + _b1[2] * lw[1] + _b1[3] * lw[2] + _b1[4] * lw[3] + _b1[5] * lw[4] + _b1[6] * lw[5] + _b1[7] * lw[6] +
         _b1[8] * lw[7] + _b1[9] * lw[8] + _b1[10] * lw[9] + _b1[11] * lw[10] + _b1[12] * lw[11] + _b1[13] * lw[12] + _b1[14] * lw[13] +
