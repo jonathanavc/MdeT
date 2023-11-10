@@ -1601,7 +1601,7 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            if (0) {
+            if (1) {
                 //#pragma omp declare reduction( \
         merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
                 // #pragma omp declare reduction(merge_map_sv_st : std::unordered_map<std::string_view, size_t> :
@@ -1630,7 +1630,7 @@ int main(int ac, char* av[]) {
                             std::string_view name(_mem + contig_name_i, i - contig_name_i);
                             i++;
                             contig_i = i;  // guardar el inicio del contig
-                            while (i < fsize && _mem[i] != line_delim) i++;
+                            while (i < fsize && _mem[i] != fasta_delim) i++;
                             std::string_view seq(_mem + contig_i, i - contig_i);
                             if (seq.length() >= (int)minContig) {
                                 contigs_l[name] = nobs_l++;
@@ -1647,6 +1647,7 @@ int main(int ac, char* av[]) {
                                     printFasta(*os, name, seq);
                                 }
                             }
+                            i--;
                         }
                     }
 
@@ -1674,7 +1675,7 @@ int main(int ac, char* av[]) {
                     }
                 }
             }
-            if (1) {
+            if (0) {
                 // contigs.reserve(fsize / 1000);
                 // contig_names.reserve(fsize / 1000);
                 // seqs.reserve(fsize / 1000);
