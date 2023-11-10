@@ -1120,12 +1120,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaFree(max_nobs_d);
 
     // nuevo
+    /*
     std::priority_queue<double> pq;
     for (size_t i = 0; i < _nobs; ++i) {
         pq.push(max_nobs_h[i]);
     }
-
-    cudaFreeHost(max_nobs_h);
+    */
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
@@ -1141,14 +1141,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             pq.pop();
         }
 
-        counton = _nobs - pq.size();
+        // counton = _nobs - pq.size();
 
-        /*
 #pragma omp parallel for reduction(+ : counton)
         for (size_t i = 0; i < _nobs; i++) {
             if (max_nobs_h[i] >= cutoff) counton++;
         }
-        */
 
         cov = (double)counton / _nobs;
 
@@ -1173,8 +1171,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         else                      // 89, 88, 87, ..., 70
             p -= rand() % 3 + 9;  // choose from 9,10,11
     }
-    //  verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%)]                       \n",
-    //  (double) p / 10., connected_nodes.size(), _nobs, cov * 100);
+
+    cudaFreeHost(max_nobs_h);
     return p;
 }
 
