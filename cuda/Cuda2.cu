@@ -1081,7 +1081,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
+            TIMERSTART(1);
             cudaDeviceSynchronize();
+            TIMERSTOP(1);
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
