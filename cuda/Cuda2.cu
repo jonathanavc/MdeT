@@ -110,8 +110,8 @@ static std::vector<std::string_view> small_contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<std::string_view> small_seqs;
 static std::vector<Distance> logSizes;
-static std::vector<Distance> sizes;
-static std::vector<Distance> small_sizes;
+static std::vector<size_t> sizes;
+static std::vector<size_t> small_sizes;
 
 typedef std::vector<int> ContigVector;
 typedef std::unordered_set<int> ContigSet;
@@ -1621,8 +1621,8 @@ int main(int ac, char* av[]) {
                 size_t nobs_l = 0;
                 size_t nobs1_l = 0;
                 std::vector<Distance> logSizes_l;
-                std::vector<std::string_view> sizes_l;
-                std::vector<Distance> small_sizes_l;
+                std::vector<size_t> sizes_l;
+                std::vector<size_t> small_sizes_l;
                 std::unordered_map<std::string_view, size_t> contigs_l;
                 std::unordered_map<std::string_view, size_t> small_contigs_l;
                 std::vector<std::string_view> contig_names_l;
