@@ -464,10 +464,12 @@ __device__ short get_tn(char* __restrict__ contig) {
 }
 
 __device__ void next_contig(char* __restrict__ contig, char c) {
+    /*
     if (c == '\n') {
         contig[0] = 'X';
         return;
     }
+    */
     for (int i = 0; i < 3; i++) {
         contig[i] = contig[i + 1];
     }
