@@ -464,7 +464,7 @@ __device__ short get_tn(char* __restrict__ contig) {
 }
 
 __device__ void next_contig(char* __restrict__ contig, char c) {
-    if (c == '\n') {
+    if (BN[c] & 4) {
         contig[0] = 'X';
         return;
     }
