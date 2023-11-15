@@ -1656,7 +1656,6 @@ int main(int ac, char* av[]) {
                             i--;
                         }
                     }
-
                     for (int i = 0; i < numThreads; i++) {
 #pragma omp barrier
                         if (i == t) {
