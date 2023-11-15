@@ -1859,7 +1859,7 @@ int main(int ac, char* av[]) {
                     contig_names[num] = "";
                     seqs[num] = "";
                     logSizes[num] = -1;
-                    sizes[num] = -1;
+                    sizes[num] = 0;
                 }
                 ++num;
             } else if (isSmall) {
@@ -1874,7 +1874,7 @@ int main(int ac, char* av[]) {
                     }
                     small_contig_names[num1] = "";
                     small_seqs[num1] = "";
-                    small_sizes[num1] = -1;
+                    small_sizes[num1] = 0;
                 }
                 ++num1;
             }
@@ -1915,9 +1915,9 @@ int main(int ac, char* av[]) {
         assert(nobs1 == small_contig_names.size());
         logSizes.erase(std::remove(logSizes.begin(), logSizes.end(), -1), logSizes.end());
         assert(nobs == logSizes.size());
-        sizes.erase(std::remove(sizes.begin(), sizes.end(), -1), sizes.end());
+        sizes.erase(std::remove(sizes.begin(), sizes.end(), 0), sizes.end());
         assert(nobs == sizes.size());
-        small_sizes.erase(std::remove(small_sizes.begin(), small_sizes.end(), -1), small_sizes.end());
+        small_sizes.erase(std::remove(small_sizes.begin(), small_sizes.end(), 0), small_sizes.end());
         assert(nobs1 == small_sizes.size());
         if (debug) {
             verbose_message("seqs.size = %d, contig_names.size = %d\n", seqs.size(), contig_names.size());
