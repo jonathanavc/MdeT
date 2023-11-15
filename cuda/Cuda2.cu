@@ -1605,14 +1605,8 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            if (1) {
-                //#pragma omp declare reduction( \
-        merge_string_view : std::vector<std::string_view> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
-                // #pragma omp declare reduction(merge_map_sv_st : std::unordered_map<std::string_view, size_t> :
-                // omp_out.merge(omp_in))
+            {
                 size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
-//#pragma omp parallel for reduction(+ : nobs, nobs1) reduction(merge_string_view : contig_names, seqs, small_contig_names, small_seqs) \
-    reduction(merge_map_sv_st : contigs, small_contigs) shared(os)
 #pragma omp parallel shared(os)
                 {
                     int t = omp_get_thread_num();
@@ -1684,6 +1678,7 @@ int main(int ac, char* av[]) {
                     }
                 }
             }
+            /*
             if (0) {
                 // contigs.reserve(fsize / 1000);
                 // contig_names.reserve(fsize / 1000);
@@ -1734,6 +1729,7 @@ int main(int ac, char* av[]) {
                 }
                 delete os;
             }
+            */
         }
     }
 
