@@ -1620,6 +1620,7 @@ int main(int ac, char* av[]) {
                     int t = omp_get_thread_num();
                     size_t nobs_l = 0;
                     size_t nobs1_l = 0;
+                    std::vector<Distance> logSizes_l;
                     std::unordered_map<std::string_view, size_t> contigs_l;
                     std::unordered_map<std::string_view, size_t> small_contigs_l;
                     std::vector<std::string_view> contig_names_l;
@@ -1628,21 +1629,28 @@ int main(int ac, char* av[]) {
                     std::vector<std::string_view> small_seqs_l;
                     size_t contig_name_i;
                     size_t contig_i;
+                    size_t contig_size;
                     for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
                         if (_mem[i] == fasta_delim) {
+                            size_t cont_lines = 0;
                             i++;
                             contig_name_i = i;  // guardar el inicio del nombre del contig
                             while (_mem[i] != line_delim) i++;
                             std::string_view name(_mem + contig_name_i, i - contig_name_i);
                             i++;
                             contig_i = i;  // guardar el inicio del contig
-                            while (i < fsize && _mem[i] != line_delim) i++;
+                            while (i < fsize && _mem[i] != fasta_delim) {
+                                if (_mem[i] == line_delim) cont_lines++;
+                                i++;
+                            }
                             std::string_view seq(_mem + contig_i, i - contig_i);
-                            if (seq.length() >= (int)minContig) {
+                            contig_size = seq.length() - cont_lines;
+                            if (contig_size >= (int)minContig) {
                                 contigs_l[name] = nobs_l++;
                                 contig_names_l.push_back(name);
                                 seqs_l.push_back(seq);
-                            } else if (seq.length() >= (int)1000) {
+                                logSizes_l.push_back(LOG10(std::min(contig_size, (size_t)500000)));
+                            } else if (contig_size >= (int)1000) {
                                 small_contigs_l[name] = nobs1_l++;
                                 small_contig_names_l.push_back(name);
                                 small_seqs_l.push_back(seq);
@@ -1653,6 +1661,7 @@ int main(int ac, char* av[]) {
                                     printFasta(*os, name, seq);
                                 }
                             }
+                            i--;
                         }
                     }
 
@@ -1660,12 +1669,8 @@ int main(int ac, char* av[]) {
 #pragma omp barrier
                         if (i == t) {
                             {
-                                for (auto& pair : contigs_l) {
-                                    pair.second += nobs;
-                                }
-                                for (auto& pair : small_contigs_l) {
-                                    pair.second += nobs1;
-                                }
+                                for (auto& pair : contigs_l) pair.second += nobs;
+                                for (auto& pair : small_contigs_l) pair.second += nobs1;
                                 contigs.merge(contigs_l);
                                 small_contigs.merge(small_contigs_l);
                                 contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
@@ -1673,6 +1678,7 @@ int main(int ac, char* av[]) {
                                                           small_contig_names_l.end());
                                 seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
                                 small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
+                                logSizes.insert(logSizes.end(), logSizes_l.begin(), logSizes_l.end());
                                 nobs += nobs_l;
                                 nobs1 += nobs1_l;
                             }
@@ -1898,6 +1904,7 @@ int main(int ac, char* av[]) {
                     }
                     contig_names[num] = "";
                     seqs[num] = "";
+                    logSizes[num] = -1;
                 }
                 ++num;
             } else if (isSmall) {
@@ -1950,6 +1957,8 @@ int main(int ac, char* av[]) {
         assert(nobs == contig_names.size());
         small_contig_names.erase(std::remove(small_contig_names.begin(), small_contig_names.end(), ""), small_contig_names.end());
         assert(nobs1 == small_contig_names.size());
+        logSizes.erase(std::remove(logSizes.begin(), logSizes.end(), -1), logSizes.end());
+        assert(nobs == logSizes.size());
         if (debug) {
             verbose_message("seqs.size = %d, contig_names.size = %d\n", seqs.size(), contig_names.size());
         }
@@ -1966,11 +1975,13 @@ int main(int ac, char* av[]) {
                     1000, minContig);
 
     // prepare logsizes
+    /*
     logSizes.resize(nobs);
 #pragma omp parallel for
     for (size_t r = 0; r < nobs; ++r) {
         logSizes[r] = LOG10(std::min(seqs[r].size(), (size_t)500000));
     }
+    */
 
     cudaMalloc((void**)&contig_log, nobs * sizeof(double));
     cudaMemcpy(contig_log, logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
