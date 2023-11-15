@@ -110,6 +110,8 @@ static std::vector<std::string_view> small_contig_names;
 static std::vector<std::string_view> seqs;
 static std::vector<std::string_view> small_seqs;
 static std::vector<Distance> logSizes;
+static std::vector<Distance> sizes;
+static std::vector<Distance> small_sizes;
 
 typedef std::vector<int> ContigVector;
 typedef std::unordered_set<int> ContigSet;
@@ -1167,9 +1169,12 @@ void rescue_singletons(ClassMap& cls) {
     verbose_message("There are %d bins already\n", cls.size());
     std::unordered_set<size_t> large_unbinned;
     for (auto i = 0; i < nobs; i++) {
+        if (sizes[i] >= minClsSize) large_unbinned.insert(i);
+        /*
         if (seqs[i].size() >= minClsSize) {
             large_unbinned.insert(i);
         }
+        */
     }
     for (auto it = cls.begin(); it != cls.end(); ++it) {
         size_t kk = it->first;
@@ -1177,7 +1182,8 @@ void rescue_singletons(ClassMap& cls) {
 
         for (auto it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
             if (*it2 < (int)nobs) {
-                if (seqs[*it2].size() >= minClsSize) large_unbinned.erase(*it2);  // it was binned!
+                if (sizes[*it2] >= minClsSize) large_unbinned.erase(*it2);  // it was binned!
+                // if (seqs[*it2].size() >= minClsSize) large_unbinned.erase(*it2);  // it was binned!
             }
         }
     }
@@ -1208,9 +1214,11 @@ void output_bins(ClassMap& cls) {
 
                     for (auto it2 = cluster.begin(); it2 != cluster.end(); ++it2) {
                         if (*it2 < (int)nobs) {
-                            s += seqs[*it2].size();
+                            // s += seqs[*it2].size();
+                            s += sizes[*it2];
                         } else {
-                            s1 += small_seqs[*it2 - nobs].size();
+                            // s1 += small_seqs[*it2 - nobs].size();
+                            s1 += small_sizes[*it2 - nobs];
                         }
                     }
 
@@ -1605,106 +1613,51 @@ int main(int ac, char* av[]) {
             }
 
             close(fpint);
-            {
-                size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
+
+            size_t char_per_thread = (fsize + numThreads - 1) / numThreads;
 #pragma omp parallel shared(os)
-                {
-                    int t = omp_get_thread_num();
-                    size_t nobs_l = 0;
-                    size_t nobs1_l = 0;
-                    std::vector<Distance> logSizes_l;
-                    std::unordered_map<std::string_view, size_t> contigs_l;
-                    std::unordered_map<std::string_view, size_t> small_contigs_l;
-                    std::vector<std::string_view> contig_names_l;
-                    std::vector<std::string_view> small_contig_names_l;
-                    std::vector<std::string_view> seqs_l;
-                    std::vector<std::string_view> small_seqs_l;
-                    size_t contig_name_i;
-                    size_t contig_i;
-                    size_t contig_size;
-                    for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
-                        if (_mem[i] == fasta_delim) {
-                            size_t cont_lines = 0;
-                            i++;
-                            contig_name_i = i;  // guardar el inicio del nombre del contig
-                            while (_mem[i] != line_delim) i++;
-                            std::string_view name(_mem + contig_name_i, i - contig_name_i);
-                            i++;
-                            contig_i = i;  // guardar el inicio del contig
-                            while (i < fsize && _mem[i] != fasta_delim) {
-                                if (_mem[i] == line_delim) cont_lines++;
-                                i++;
-                            }
-                            std::string_view seq(_mem + contig_i, i - contig_i);
-                            contig_size = seq.length() - cont_lines;
-                            if (contig_size >= (int)minContig) {
-                                contigs_l[name] = nobs_l++;
-                                contig_names_l.push_back(name);
-                                seqs_l.push_back(seq);
-                                logSizes_l.push_back(LOG10(std::min(contig_size, (size_t)500000)));
-                            } else if (contig_size >= (int)1000) {
-                                small_contigs_l[name] = nobs1_l++;
-                                small_contig_names_l.push_back(name);
-                                small_seqs_l.push_back(seq);
-                            } else if (os) {
-                                if (onlyLabel) {
-                                    *os << name << line_delim;
-                                } else {
-                                    printFasta(*os, name, seq);
-                                }
-                            }
-                            i--;
-                        }
-                    }
-                    for (int i = 0; i < numThreads; i++) {
-#pragma omp barrier
-                        if (i == t) {
-                            {
-                                for (auto& pair : contigs_l) pair.second += nobs;
-                                for (auto& pair : small_contigs_l) pair.second += nobs1;
-                                contigs.merge(contigs_l);
-                                small_contigs.merge(small_contigs_l);
-                                contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
-                                small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
-                                                          small_contig_names_l.end());
-                                seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
-                                small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
-                                logSizes.insert(logSizes.end(), logSizes_l.begin(), logSizes_l.end());
-                                nobs += nobs_l;
-                                nobs1 += nobs1_l;
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-            if (0) {
-                // contigs.reserve(fsize / 1000);
-                // contig_names.reserve(fsize / 1000);
-                // seqs.reserve(fsize / 1000);
-                // small_contigs.reserve(fsize / 1000);
-                // small_contig_names.reserve(fsize / 1000);
-                // small_seqs.reserve(fsize / 1000);
+            {
+                int t = omp_get_thread_num();
+                size_t nobs_l = 0;
+                size_t nobs1_l = 0;
+                std::vector<Distance> logSizes_l;
+                std::vector<std::string_view> sizes_l;
+                std::vector<Distance> small_sizes_l;
+                std::unordered_map<std::string_view, size_t> contigs_l;
+                std::unordered_map<std::string_view, size_t> small_contigs_l;
+                std::vector<std::string_view> contig_names_l;
+                std::vector<std::string_view> small_contig_names_l;
+                std::vector<std::string_view> seqs_l;
+                std::vector<std::string_view> small_seqs_l;
                 size_t contig_name_i;
                 size_t contig_i;
-                for (size_t i = 0; i < fsize; i++) {  // leer el archivo caracter por caracter
+                size_t contig_size;
+                for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
                     if (_mem[i] == fasta_delim) {
+                        size_t cont_lines = 0;
                         i++;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
                         while (_mem[i] != line_delim) i++;
                         std::string_view name(_mem + contig_name_i, i - contig_name_i);
                         i++;
                         contig_i = i;  // guardar el inicio del contig
-                        while (i < fsize && _mem[i] != line_delim) i++;
+                        while (i < fsize && _mem[i] != fasta_delim) {
+                            if (_mem[i] == line_delim) cont_lines++;
+                            i++;
+                        }
                         std::string_view seq(_mem + contig_i, i - contig_i);
-                        if (seq.length() >= (int)minContig) {
-                            contigs[name] = nobs++;
-                            contig_names.push_back(name);
-                            seqs.push_back(seq);
-                        } else if (seq.length() >= (int)1000) {
-                            small_contigs[name] = nobs1++;
-                            small_contig_names.push_back(name);
-                            small_seqs.push_back(seq);
+                        contig_size = seq.length() - cont_lines;
+                        if (contig_size >= (int)minContig) {
+                            contigs_l[name] = nobs_l++;
+                            contig_names_l.push_back(name);
+                            seqs_l.push_back(seq);
+                            logSizes_l.push_back(LOG10(std::min(contig_size, (size_t)500000)));
+                            sizes_l.push_back(contig_size);
+                        } else if (contig_size >= (int)1000) {
+                            small_contigs_l[name] = nobs1_l++;
+                            small_contig_names_l.push_back(name);
+                            small_seqs_l.push_back(seq);
+                            small_sizes_l.push_back(contig_size);
                         } else if (os) {
                             if (onlyLabel) {
                                 *os << name << line_delim;
@@ -1712,23 +1665,31 @@ int main(int ac, char* av[]) {
                                 printFasta(*os, name, seq);
                             }
                         }
+                        i--;
                     }
                 }
-                contig_names.shrink_to_fit();        // liberar memoria no usada
-                seqs.shrink_to_fit();                // liberar memoria no usada
-                small_contig_names.shrink_to_fit();  // liberar memoria no usada
-                small_seqs.shrink_to_fit();          // liberar memoria no usada
-            }
-
-            if (os) {
-                os->close();
-                if (!*os) {
-                    cerr << "[Error!] Failed to write to " << filteredFile_cls << endl;
-                    return 1;
+                for (int i = 0; i < numThreads; i++) {
+#pragma omp barrier
+                    if (i == t) {
+                        {
+                            for (auto& pair : contigs_l) pair.second += nobs;
+                            for (auto& pair : small_contigs_l) pair.second += nobs1;
+                            contigs.merge(contigs_l);
+                            small_contigs.merge(small_contigs_l);
+                            contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
+                            small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
+                                                      small_contig_names_l.end());
+                            seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
+                            small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
+                            logSizes.insert(logSizes.end(), logSizes_l.begin(), logSizes_l.end());
+                            sizes.insert(sizes.end(), sizes_l.begin(), sizes_l.end());
+                            small_sizes.insert(small_sizes.end(), small_sizes_l.begin(), small_sizes_l.end());
+                            nobs += nobs_l;
+                            nobs1 += nobs1_l;
+                        }
+                    }
                 }
-                delete os;
             }
-            */
         }
     }
 
@@ -1898,6 +1859,7 @@ int main(int ac, char* av[]) {
                     contig_names[num] = "";
                     seqs[num] = "";
                     logSizes[num] = -1;
+                    sizes[num] = -1;
                 }
                 ++num;
             } else if (isSmall) {
@@ -1912,6 +1874,7 @@ int main(int ac, char* av[]) {
                     }
                     small_contig_names[num1] = "";
                     small_seqs[num1] = "";
+                    small_sizes[num1] = -1;
                 }
                 ++num1;
             }
@@ -1952,6 +1915,10 @@ int main(int ac, char* av[]) {
         assert(nobs1 == small_contig_names.size());
         logSizes.erase(std::remove(logSizes.begin(), logSizes.end(), -1), logSizes.end());
         assert(nobs == logSizes.size());
+        sizes.erase(std::remove(sizes.begin(), sizes.end(), -1), sizes.end());
+        assert(nobs == sizes.size());
+        small_sizes.erase(std::remove(small_sizes.begin(), small_sizes.end(), -1), small_sizes.end());
+        assert(nobs1 == small_sizes.size());
         if (debug) {
             verbose_message("seqs.size = %d, contig_names.size = %d\n", seqs.size(), contig_names.size());
         }
@@ -2226,7 +2193,8 @@ int main(int ac, char* av[]) {
             size_t s = 0;
 
             for (auto it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                s += seqs[*it2].size();
+                // s += seqs[*it2].size();
+                s += sizes[*it2];
             }
 
             if (s < minClsSize) {
@@ -2373,7 +2341,8 @@ int main(int ac, char* av[]) {
             for (auto it = cls_leftovers.begin(); it != cls_leftovers.end(); ++it) {
                 size_t kk = it->first;
                 for (auto it2 = cls_leftovers[kk].begin(); it2 != cls_leftovers[kk].end(); ++it2) {
-                    added_sum += seqs[*it2].size();
+                    added_sum += sizes[*it2];
+                    // added_sum += seqs[*it2].size();
                 }
             }
 
@@ -2398,7 +2367,8 @@ int main(int ac, char* av[]) {
             for (auto it = cls_small.begin(); it != cls_small.end(); ++it) {
                 size_t kk = it->first;
                 for (auto it2 = cls_small[kk].begin(); it2 != cls_small[kk].end(); ++it2) {
-                    added_sum += small_seqs[*it2 - nobs].size();
+                    added_sum += small_sizes[*it2 - nobs];
+                    // added_sum += small_seqs[*it2 - nobs].size();
                 }
             }
 
