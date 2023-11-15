@@ -1635,7 +1635,6 @@ int main(int ac, char* av[]) {
                                 if (_mem[i] == line_delim) cont_lines++;
                                 i++;
                             }
-                            if (i != fsize) i--;
                             std::string_view seq(_mem + contig_i, i - contig_i);
                             contig_size = seq.length() - cont_lines;
                             if (contig_size >= (int)minContig) {
@@ -1654,6 +1653,7 @@ int main(int ac, char* av[]) {
                                     printFasta(*os, name, seq);
                                 }
                             }
+                            i--;
                         }
                     }
                     for (int i = 0; i < numThreads; i++) {
