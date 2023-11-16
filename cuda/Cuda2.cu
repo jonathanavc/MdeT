@@ -390,6 +390,8 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
         else
             graph[prob_index] = 0.0;
     } else {
+        double d = 0.0;
+        float diff;
         for (int i = 68; i < 136; i++) {
             diff = tnf1[i] - tnf2[i];
             d += diff * diff;
