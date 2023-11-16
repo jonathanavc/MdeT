@@ -337,7 +337,7 @@ __global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, si
     size_t tnf2_index = (off2 + diff_per_thread * threadIdx.x) * 136;
     for (size_t i = diff_per_thread * threadIdx.x; i < min(diff_per_thread * threadIdx.x + diff_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
-        if (ct1 == ct2) continue;
+        // if (ct1 == ct2) continue;
         double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + tnf2_index);
         if (preProb > floor_preProb_cutoff)
             graph[c1_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
