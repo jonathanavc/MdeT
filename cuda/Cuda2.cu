@@ -1130,7 +1130,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
-    int counton = 0;
+
     for (; p > 700;) {
         round++;
 
@@ -1144,6 +1144,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             }
         }
         */
+        int counton = 0;
         while (max_nobs_h[counton] >= cutoff && counton < _nobs) counton++;
         // while (pq.top() >= cutoff) pq.pop();
 
