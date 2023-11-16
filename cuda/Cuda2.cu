@@ -187,7 +187,7 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
 // más preciso
 __device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672;
 
-__device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
+__device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
     double d = 0.0;
     float _diff;
     for (size_t i = 0; i < 136; ++i) {
@@ -306,8 +306,8 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
 }
 */
 
-__global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
-                              double floor_preProb_cutoff) {
+__global__ void get_tnf_graph(double* __restrict__ graph, const float* __restrict__ TNF, const double* __restrict__ contig_log,
+                              size_t nc1, size_t nc2, size_t off1, size_t off2, double floor_preProb_cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     if (r1 >= nc1) return;
@@ -321,35 +321,8 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
         graph[prob_index] = 0.0;
 }
 
-__global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
-                               double floor_preProb_cutoff) {
-    float TNF1[136];
-    size_t c1_index = blockIdx.x;
-    if (c1_index >= nc1) return;
-    size_t ct1 = off1 + c1_index;
-    {
-        size_t tnf1_index = ct1 * 136;
-        for (int i = 0; i < 136; i++) {
-            TNF1[i] = TNF[tnf1_index + i];
-        }
-    }
-    size_t diff_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
-    size_t tnf2_index = (off2 + diff_per_thread * threadIdx.x) * 136;
-    for (size_t i = diff_per_thread * threadIdx.x; i < min(diff_per_thread * threadIdx.x + diff_per_thread, nc2); i++) {
-        size_t ct2 = off2 + i;
-        // if (ct1 == ct2) continue;
-        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + tnf2_index);
-        if (preProb > floor_preProb_cutoff)
-            graph[c1_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
-        else
-            graph[c1_index * nc2 + i] = 0.0;
-
-        tnf2_index += 136;
-    }
-}
-
-__global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
-                                         size_t limit) {
+__global__ void get_tnf_max_prob_sample3(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
+                                         size_t _des, size_t limit) {
     extern __shared__ double shared_max[];
     size_t contig_idx = _des + blockIdx.x;
     if (contig_idx >= limit) return;
