@@ -1435,7 +1435,7 @@ int main(int ac, char* av[]) {
     }
 
     omp_set_num_threads(numThreads);
-    verbose_message("Executing with %d threads\n", numThreads);
+    verbose_message("Executing with %d CPU threads and %d CUDA threads\n", numThreads, numThreads2);
 
     nobs = 0, nobs1 = 0;
 
