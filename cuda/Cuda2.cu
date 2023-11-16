@@ -306,8 +306,8 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
 }
 */
 
-__global__ void get_tnf_graph(double* __restrict__ graph, const float* __restrict__ TNF, const double* __restrict__ contig_log,
-                              size_t nc1, size_t nc2, size_t off1, size_t off2, double floor_preProb_cutoff) {
+__global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1,
+                              size_t nc2, size_t off1, size_t off2, double floor_preProb_cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     if (r1 >= nc1) return;
@@ -321,8 +321,8 @@ __global__ void get_tnf_graph(double* __restrict__ graph, const float* __restric
         graph[prob_index] = 0.0;
 }
 
-__global__ void get_tnf_max_prob_sample3(double* __restrict__ max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
-                                         size_t _des, size_t limit) {
+__global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
+                                         size_t nobs, size_t _des, size_t limit) {
     extern __shared__ double shared_max[];
     size_t contig_idx = _des + blockIdx.x;
     if (contig_idx >= limit) return;
