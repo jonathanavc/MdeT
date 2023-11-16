@@ -1125,8 +1125,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     }
     */
 
-    std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
-
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
