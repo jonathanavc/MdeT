@@ -95,7 +95,7 @@ static bool saveCls = false;
 static bool outUnbinned = false;
 static size_t minSample = 3;
 static unsigned long long totalSize = 0, totalSize1 = 0;
-static int numThreads2 = 16;
+static int numThreads2 = 32;
 
 static size_t maxEdges = 200;
 static const char line_delim = '\n';
@@ -1428,6 +1428,12 @@ int main(int ac, char* av[]) {
         numThreads = omp_get_max_threads();
     else
         numThreads = std::min(numThreads, (size_t)omp_get_max_threads());
+
+    if (numThreads2 % 32 != 0) {
+        cerr << "numThreads2 must be a multiple of 32" << endl;
+        return 1;
+    }
+
     omp_set_num_threads(numThreads);
     verbose_message("Executing with %d threads\n", numThreads);
 
