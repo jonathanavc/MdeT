@@ -1094,7 +1094,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         size_t matrix_y = min(TILE, (nobs - ii));
         for (size_t jj = 0; jj < nobs; jj += TILE) {
             size_t matrix_x = min(TILE, (nobs - jj));
-            TIMERSTART(1);
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
@@ -1102,8 +1101,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 // floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
-            TIMERSTOP(1);
-            exit(1);
 
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE <= nobs) {
