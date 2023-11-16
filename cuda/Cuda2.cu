@@ -382,7 +382,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
                 _b2[13] * lw[13] + _b2[14] * lw[14] + _b2[15] * lw[15] + _b2[16] * lw[16];
         }
         __syncthreads();
-        ƒ preProb = -(b + shared[threadIdx.x / 2] * d);
+        preProb = -(b + shared[threadIdx.x / 2] * d);
         if (flag && preProb > floor_preProb) preProb = floor_preProb;
 
         if (preProb > floor_preProb_cutoff)
