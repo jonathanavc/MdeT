@@ -467,12 +467,10 @@ __device__ short get_tn(char* __restrict__ contig) {
 }
 
 __device__ void next_contig(char* __restrict__ contig, char c) {
-    /*
     if (c == '\n') {
         contig[0] = 'X';
         return;
     }
-    */
     for (int i = 0; i < 3; i++) {
         contig[i] = contig[i + 1];
     }
@@ -493,7 +491,6 @@ __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs
         for (size_t j = 0; j < 3; j++) next_contig(contig_temp, contig[j]);
         for (size_t j = 3; j < contig_size; ++j) {
             char c = contig[j];
-            if (c == '\n') continue;
             next_contig(contig_temp, c);
             short tn = get_tn(contig_temp);
             if (tn & 256) continue;
