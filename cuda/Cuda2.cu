@@ -190,15 +190,8 @@ __device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float _diff;
-
-    for (size_t i = 0; i < 136; i += 4) {
+    for (size_t i = 0; i < 136; ++i) {
         _diff = TNF1[i] - TNF2[i];
-        d += _diff * _diff;
-        _diff = TNF1[i + 1] - TNF2[i + 1];
-        d += _diff * _diff;
-        _diff = TNF1[i + 2] - TNF2[i + 2];
-        d += _diff * _diff;
-        _diff = TNF1[i + 3] - TNF2[i + 3];
         d += _diff * _diff;
     }
 
@@ -248,7 +241,8 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
             _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
             _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
-        preProb = preProb < floor_preProb ? floor_preProb : preProb;
+        if (preProb > floor_preProb) preProb = floor_preProb;
+        // preProb = preProb < floor_preProb ? floor_preProb : preProb;
     }
     return preProb;
 }
