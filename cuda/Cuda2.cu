@@ -1103,8 +1103,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     size_t _nobs = full ? nobs : std::min(nobs, (size_t)2500);
 
-    std::vector<unsigned char> connected_nodes;
-    connected_nodes.resize(_nobs);
+    // std::vector<unsigned char> connected_nodes;
+    // connected_nodes.resize(_nobs);
 
     std::vector<size_t> idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
@@ -1130,12 +1130,16 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-
-        while (pq.top() >= cutoff) {
-            pq.pop();
+        int counton = 0;
+#pragma omp parallel for
+        for (size_t i = 0; i < _nobs; ++i) {
+            if (max_nobs_h[i] >= cutoff) {
+                counton++;
+            }
         }
+        // while (pq.top() >= cutoff) pq.pop();
 
-        int counton = _nobs - pq.size();
+        // int counton = _nobs - pq.size();
 
         cov = (double)counton / _nobs;
 
