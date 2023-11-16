@@ -564,6 +564,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
     get_tnf_max_prob_sample3<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, 0,
                                                                                    _nobs);
+    cudaDeviceSynchronize();
     cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(contigs_d);
     getError("kernel");
@@ -1117,19 +1118,24 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     getError("launch_tnf_max_prob_sample_kernel");
     cudaFree(max_nobs_d);
 
+    /*
     std::priority_queue<double> pq;
     for (size_t i = 0; i < _nobs; ++i) {
         pq.push(max_nobs_h[i]);
     }
+    */
+
+    sort(max_nobs_h, max_nobs_h + _nobs);
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
     int round = 0;
-
+    int counton = 0;
     for (; p > 700;) {
         round++;
 
         double cutoff = (double)p / 1000.;
+        /**
         int counton = 0;
 #pragma omp parallel for
         for (size_t i = 0; i < _nobs; ++i) {
@@ -1137,6 +1143,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
                 counton++;
             }
         }
+        */
+        while (max_nobs_h[counton] >= cutoff) counton++;
         // while (pq.top() >= cutoff) pq.pop();
 
         // int counton = _nobs - pq.size();
