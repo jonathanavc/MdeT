@@ -253,7 +253,6 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, float* TNF1, float* T
     return preProb;
 }
 
-/*
 __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0.0;
     float tn1, tn2, _diff;
@@ -313,7 +312,6 @@ __device__ double cal_tnf_dist_d(double r1, double r2, float* TNF1, float* TNF2)
     }
     return prob;
 }
-*/
 
 __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
                               double floor_preProb_cutoff) {
@@ -404,7 +402,8 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* s
     size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
     for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
         if (i == contig_idx) continue;
-        double dist = cal_tnf_pre_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        double dist = 1 - cal_tnf_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        // double dist = cal_tnf_pre_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
         if (dist > local_max) {
             local_max = dist;
         }
@@ -421,7 +420,8 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* s
         __syncthreads();
     }
     if (threadIdx.x == 0) {
-        max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
+        max_dist[contig_idx] = shared_max[0];
+        // max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
     }
 }
 
