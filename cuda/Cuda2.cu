@@ -1002,7 +1002,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 // get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
-                get_tnf_graph2<<<matrix_x, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj,
+                get_tnf_graph2<<<matrix_y, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj,
                                                           floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
@@ -1012,8 +1012,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 // get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
                 // floor_preProb_cutoff);
-                get_tnf_graph2<<<matrix_next_x, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
-                                                               floor_preProb_cutoff);
+                get_tnf_graph2<<<matrix_y, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
+                                                          floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
