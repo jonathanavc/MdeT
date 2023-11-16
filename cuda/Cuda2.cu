@@ -457,6 +457,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
 __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
+    if (contig[i] & 4) return 256;
     for (short i = 0; i < 4; i++) {
         N = BN[contig[i]];
         if (N & 4) return 256;
