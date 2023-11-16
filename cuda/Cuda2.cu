@@ -1130,13 +1130,12 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
         round++;
 
         double cutoff = (double)p / 1000.;
-        int counton = 0;
 
         while (!pq.empty() && pq.top() >= cutoff) {
             pq.pop();
         }
 
-        counton = _nobs - pq.size();
+        int counton = _nobs - pq.size();
 
         cov = (double)counton / _nobs;
 
@@ -1149,8 +1148,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
             break;
         } else
-            verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
-                            (double)p / 10., counton, _nobs, cov * 100, round);
+            verbose_message("%dPreparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
+                            pq.size(), (double)p / 10., counton, _nobs, cov * 100, round);
         pp = p;
         pcov = cov;
 
