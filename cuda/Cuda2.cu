@@ -2106,8 +2106,16 @@ int main(int ac, char* av[]) {
         }
 
         if (verbose) {
-            for (auto it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
-            for (auto it = small_seqs.begin(); it != small_seqs.end(); ++it) totalSize1 += it->size();
+#pragma omp parallel for reduction(+ : totalSize)
+            for (size_t i = 0; i < nobs; ++i) {
+                totalSize += sizes[i];
+            }
+// for ƒ(auto it = seqs.begin(); it != seqs.end(); ++it) totalSize += it->size();
+#pragma omp parallel for reduction(+ : totalSize1)
+            for (size_t i = 0; i < nobs1; ++i) {
+                totalSize1 += small_sizes[i];
+            }
+            // for (auto it = small_seqs.begin(); it != small_seqs.end(); ++it) totalSize1 += it->size();
         }
 
         // dissolve all small bins and give them another chance to be binned with large ones.
