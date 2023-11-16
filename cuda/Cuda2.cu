@@ -327,7 +327,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + prob_index % nc2;
     if (ct1 == ct2) return;
-    float *tnf1 = TNF + ct1 * 136, *tnf2 = TNF + ct2 * 136;
+    const float *tnf1 = TNF + ct1 * 136, *tnf2 = TNF + ct2 * 136;
 
     if (threadIdx.x % 2 == 0) {
         double d, preProb;
@@ -344,8 +344,8 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
         double b, c;
 
         double lw[19];
-        lw[0] = min(r1, r2);
-        lw[1] = max(r1, r2);
+        lw[0] = min(contig_log[ct1], contig_log[ct2]);
+        lw[1] = max(contig_log[ct1], contig_log[ct2]);
         lw[2] = lw[0] * lw[0];
         lw[4] = lw[2] * lw[0];
         lw[6] = lw[4] * lw[0];
@@ -402,8 +402,8 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
         double b, c;
 
         double lw[19];
-        lw[0] = min(r1, r2);
-        lw[1] = max(r1, r2);
+        lw[0] = min(contig_log[ct1], contig_log[ct2]);
+        lw[1] = max(contig_log[ct1], contig_log[ct2]);
         lw[2] = lw[0] * lw[0];
         lw[4] = lw[2] * lw[0];
         lw[6] = lw[4] * lw[0];
