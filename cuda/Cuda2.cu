@@ -321,6 +321,30 @@ __global__ void get_tnf_graph(double* graph, float* TNF, double* contig_log, siz
         graph[prob_index] = 0.0;
 }
 
+__global__ void get_tnf_graph2(double* graph, float* TNF, double* contig_log, size_t nc1, size_t nc2, size_t off1, size_t off2,
+                               double floor_preProb_cutoff) {
+    float TNF1[136];
+    size_t c1_index = blockIdx.x;
+    if (c1_index >= nc1) return;
+    size_t ct1 = off1 + c1_index;
+    {
+        size_t tnf1_index = ct1 * 136;
+        for (int i = 0; i < 136; i++) {
+            TNF1[i] = TNF[ct1 * 136 + i];
+        }
+    }
+    size_t diff_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
+    for (size_t i = diff_per_thread * threadIdx.x; i < min(diff_per_thread * threadIdx.x + diff_per_thread, nc2); i++) {
+        size_t ct2 = off2 + i;
+        if (ct1 == ct2) continue;
+        double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF1, TNF + ct2 * 136);
+        if (preProb > floor_preProb_cutoff)
+            graph[c1_index * nc2 + i] = 1.0 - (1.0 / (1 + exp(preProb)));
+        else
+            graph[c1_index * nc2 + i] = 0.0;
+    }
+}
+
 __global__ void get_tnf_max_prob_sample3(double* max_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs, size_t _des,
                                          size_t limit) {
     extern __shared__ double shared_max[];
