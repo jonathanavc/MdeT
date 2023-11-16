@@ -1131,7 +1131,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
         double cutoff = (double)p / 1000.;
 
-        while (!pq.empty() && pq.top() >= cutoff) {
+        while (pq.top() >= cutoff) {
             pq.pop();
         }
 
