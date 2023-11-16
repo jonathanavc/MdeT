@@ -1144,7 +1144,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
             }
         }
         */
-        while (max_nobs_h[counton] >= cutoff) counton++;
+        while (max_nobs_h[counton] >= cutoff && counton < _nobs) counton++;
         // while (pq.top() >= cutoff) pq.pop();
 
         // int counton = _nobs - pq.size();
