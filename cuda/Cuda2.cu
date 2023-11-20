@@ -1399,7 +1399,7 @@ void output_bins(ClassMap& cls) {
                                 minContig);
             }
             cout.precision(20);
-            cout << bin_id - 1 << " bins (" << binnedSize + binnedSize1 << " bases in total) formed." << std::endl;
+            if (verbose) cout << bin_id - 1 << " bins (" << binnedSize + binnedSize1 << " bases in total) formed." << std::endl;
 
         }  // omp single
     }      // omp parallel
@@ -1574,6 +1574,7 @@ int main(int ac, char* av[]) {
 
     // validate fasta and depths file (abd) have same set of sequence identifiers (in same ordering)
     // todo read fasta first, then read depths, then validate
+    TIMERSTART(read);
     {
         // need to handle the case where more data in assembly.fa than depth.txt (but contigs should be in order)
         std::unordered_set<std::string> inDepth;
@@ -1758,6 +1759,8 @@ int main(int ac, char* av[]) {
         return 1;
     }
     verbose_message("Number of large contigs >= %d are %d. \n", minContig, nobs);
+
+    TIMERSTOP(read);
 
     if (hasABD) {
         ABD.resize(nobs, nABD);
