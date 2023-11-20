@@ -42,11 +42,6 @@ tiempos["MetabatCuda2"] = {
             'std': 0,
             'ex': []
         },
-        'Binning': {
-            'avg': 0,
-            'std': 0,
-            'ex': []
-        },
         'Total': {
             'avg': 0,
             'std': 0,
@@ -63,8 +58,7 @@ for i in range(0, num_ex):
     tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[1]))
     tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
     tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
-    tiempos["MetabatCuda2"]['Binning']['ex'].append(float(valores[4]))
-    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[5]))
+    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
     print("[{:.1f}%] MetabatCuda2").format(((i + 1) / num_ex) * 100)
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
@@ -75,8 +69,6 @@ tiempos["MetabatCuda2"]['preGraph']['avg'] = avg(tiempos["MetabatCuda2"]['preGra
 tiempos["MetabatCuda2"]['preGraph']['std'] = std(tiempos["MetabatCuda2"]['preGraph']['ex'])
 tiempos["MetabatCuda2"]['Graph']['avg'] = avg(tiempos["MetabatCuda2"]['Graph']['ex'])
 tiempos["MetabatCuda2"]['Graph']['std'] = std(tiempos["MetabatCuda2"]['Graph']['ex'])
-tiempos["MetabatCuda2"]['Binning']['avg'] = avg(tiempos["MetabatCuda2"]['Binning']['ex'])
-tiempos["MetabatCuda2"]['Binning']['std'] = std(tiempos["MetabatCuda2"]['Binning']['ex'])
 tiempos["MetabatCuda2"]['Total']['avg'] = avg(tiempos["MetabatCuda2"]['Total']['ex'])
 tiempos["MetabatCuda2"]['Total']['std'] = std(tiempos["MetabatCuda2"]['Total']['ex'])    
 

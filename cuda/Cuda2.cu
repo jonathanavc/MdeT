@@ -1562,6 +1562,8 @@ int main(int ac, char* av[]) {
     omp_set_num_threads(numThreads);
     verbose_message("Executing with %d CPU threads and %d CUDA threads\n", numThreads, numThreads2);
 
+    TIMERSTART(total);
+
     nobs = 0, nobs1 = 0;
 
     std::unordered_map<std::string_view, size_t> contigs;
@@ -2467,5 +2469,7 @@ int main(int ac, char* av[]) {
     cudaFreeHost(_mem);
     cudaFree(TNF_d);
     cudaFree(contig_log);
+
+    TIMERSTOP(total);
     return 0;
 }
