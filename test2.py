@@ -75,6 +75,8 @@ tiempos["MetabatCuda2"]['Graph']['std'] = std(tiempos["MetabatCuda2"]['Graph']['
 tiempos["MetabatCuda2"]['Total']['avg'] = avg(tiempos["MetabatCuda2"]['Total']['ex'])
 tiempos["MetabatCuda2"]['Total']['std'] = std(tiempos["MetabatCuda2"]['Total']['ex'])    
 
+print("Total: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
+
 #GUARDAR
 _json = json.dumps(tiempos)
 with open(datetime.now().strftime("Test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
