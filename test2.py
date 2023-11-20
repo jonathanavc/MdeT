@@ -61,7 +61,7 @@ for i in range(0, num_ex):
     tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
     tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
     tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
-    print("[{:.1f}%] MetabatCuda2").format(((i + 1) / num_ex) * 100)
+    print("[{:.1f}%] MetabatCuda2"format(((i + 1) / num_ex) * 100))
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
 tiempos["MetabatCuda2"]['READ']['std'] = std(tiempos["MetabatCuda2"]['READ']['ex'])
