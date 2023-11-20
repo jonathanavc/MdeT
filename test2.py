@@ -54,7 +54,8 @@ print("METABAT CUDA 2")
 for i in range(0, num_ex):
     p = subprocess.Popen(['./metabatcuda2','-i' + archivo, '-o'+'out/out','--ct', '32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
-    print(err)
+    if(err):
+        print(err)
     valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     tiempos["MetabatCuda2"]['READ']['ex'].append(float(valores[0]))
     tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[1]))
