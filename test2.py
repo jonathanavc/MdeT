@@ -22,6 +22,7 @@ def std(arr):
 
 
 tiempos["MetabatCuda2"] = {
+        'File': archivo,
         'READ': {
             'avg': 0,
             'std': 0,
