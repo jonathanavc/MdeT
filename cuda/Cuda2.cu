@@ -1541,10 +1541,11 @@ int main(int ac, char* av[]) {
         }
     }
 
-    print_message(
-        "MetaBAT 2 (%s) using minContig %d, minCV %2.1f, minCVSum %2.1f, maxP %2.0f%%, minS %2.0f, maxEdges %d and minClsSize %d. "
-        "with random seed=%lld\n",
-        version.c_str(), minContig, minCV, minCVSum, maxP, minS, maxEdges, minClsSize, seed);
+    if (verbose)
+        print_message(
+            "MetaBAT 2 (%s) using minContig %d, minCV %2.1f, minCVSum %2.1f, maxP %2.0f%%, minS %2.0f, maxEdges %d and minClsSize %d. "
+            "with random seed=%lld\n",
+            version.c_str(), minContig, minCV, minCVSum, maxP, minS, maxEdges, minClsSize, seed);
 
     maxP /= 100., minS /= 100.;
 
