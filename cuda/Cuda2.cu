@@ -144,7 +144,8 @@ static std::chrono::steady_clock::time_point t1, t2;
 
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
 
-__host__ __device__ __constant__ const unsigned char TNmap_d[256] = {
+//__host__ __device__ __constant__
+const unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50, 135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
     8,   114, 5,   54,  107, 120, 72,  41, 44,  26,  27,  23,  71,  53,  12,  81,  31,  127, 30,  110, 3,   80,  132, 123, 71,  102,
     79,  1,   35,  124, 29,  4,   67,  34, 91,  17,  48,  52,  9,   77,  127, 117, 76,  93,  34,  65,  6,   73,  92,  68,  28,  94,
@@ -156,7 +157,8 @@ __host__ __device__ __constant__ const unsigned char TNmap_d[256] = {
     18,  128, 110, 62,  74,  61,  17,  95, 85,  66,  88,  94,  118, 40,  54,  19,  109, 90,  41,  56,  45,  11,  123, 130, 111, 108,
     21,  77,  82,  128, 96,  36,  59,  11, 23,  46,  64,  37,  1,   20,  0,   24,  119, 93,  39,  61,  38,  99};
 
-__host__ __device__ __constant__ const unsigned char BN[256] = {
+//__host__ __device__ __constant__
+const unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -352,36 +354,8 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
     }
 }
 
-/*
-__global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, double* size_log, size_t* contigs, size_t nobs,
-                                    size_t _des, const size_t contig_per_thread, const size_t limit) {
-    size_t r1;
-    size_t r2;
-    float TNF1[136];
-    size_t tnf_dist_index = (threadIdx.x + blockIdx.x * blockDim.x) * contig_per_thread;
-    size_t prob_index = _des + tnf_dist_index;
-    r1 = prob_index / nobs;
-    r2 = prob_index % nobs;
-    size_t _limit2 = min(tnf_dist_index + contig_per_thread, limit - _des);
-    if (tnf_dist_index >= _limit2) return;
-    while (tnf_dist_index != _limit2) {
-        for (int i = 0; i < 136; i++) {
-            TNF1[i] = TNF[contigs[r1] * 136 + i];
-        }
-        while (r2 < nobs) {
-            if (tnf_dist_index == _limit2) break;
-            tnf_dist[tnf_dist_index] =
-                1. - cal_tnf_dist_d(size_log[contigs[r1]], size_log[contigs[r2]], TNF1, TNF + contigs[r2] * 136);
-            tnf_dist_index++;
-            r2++;
-        }
-        r2 = 0;
-        r1++;
-    }
-}
-*/
-
-__host__ __device__ short get_tn(char* __restrict__ contig) {
+//__host__ __device__
+short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
     // if (contig[0] == 'X') return 256;
@@ -393,7 +367,8 @@ __host__ __device__ short get_tn(char* __restrict__ contig) {
     return tn;
 }
 
-__host__ __device__ void next_contig(char* __restrict__ contig, char c) {
+//__host__ __device__
+void next_contig(char* __restrict__ contig, char c) {
     if (c == '\n') {
         contig[0] = 'X';
         return;
@@ -404,6 +379,7 @@ __host__ __device__ void next_contig(char* __restrict__ contig, char c) {
     contig[3] = c;
 }
 
+/*
 __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const size_t* __restrict__ seqs_d_index,
                         const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
     const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -433,6 +409,7 @@ __global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs
         }
     }
 }
+*/
 
 void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
