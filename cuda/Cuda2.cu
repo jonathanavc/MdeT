@@ -369,7 +369,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
             _c1[13] * lw[12] + _c1[14] * lw[13] + _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
         //__syncthreads();
-        //double d, 
+        // double d,
         double preProb;
 
         d = shared[threadIdx.x / 2];
@@ -1061,8 +1061,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
                 // get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
-                get_tnf_graph2<<<bloqs * 2, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj,
-                                                           floor_preProb_cutoff);
+                get_tnf_graph2<<<bloqs * 2, numThreads2, numThreads2 * sizeof(double)>>>(graph_d, TNF_d, contig_log, matrix_y,
+                                                                                         matrix_x, ii, jj, floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
 
