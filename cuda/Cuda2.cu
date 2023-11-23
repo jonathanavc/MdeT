@@ -1927,6 +1927,7 @@ int main(int ac, char* av[]) {
         }
         verbose_message("Finished TNF calculation.                                  \n");
         cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+        cudaFreeHost(TNF);
     }
     TIMERSTOP(a);
     /*
