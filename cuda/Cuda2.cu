@@ -347,7 +347,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
         lw[12] = lw[0] * lw[1];
         lw[14] = lw[4] * lw[5];
         lw[15] = lw[6] * lw[7];
-        lw[16] = lw[8] * lw[9];s
+        lw[16] = lw[8] * lw[9];
         lw[13] = lw[2] * lw[3];
         lw[18] = lw[9] * lw[1];
         __syncthreads();
