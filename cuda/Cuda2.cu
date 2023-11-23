@@ -1898,7 +1898,7 @@ int main(int ac, char* av[]) {
             std::string_view seq = seqs[r];
             char contig_temp[4] = {0};
             float TNF_temp[136] = {0};
-            if (contig_size < 4) continue;
+            if (seq.length() < 4) continue;
             for (size_t j = 0; j < 3; j++) next_contig(contig_temp, seq[j]);
             for (size_t j = 3; j < seq.length(); ++j) {
                 char c = seq[j];
