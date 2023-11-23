@@ -369,7 +369,8 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
             _c1[13] * lw[12] + _c1[14] * lw[13] + _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
         //__syncthreads();
-        //double d, preProb;
+        //double d, 
+        double preProb;
 
         d = shared[threadIdx.x / 2];
         preProb = -(b + c * d);
