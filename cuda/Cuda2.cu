@@ -1914,7 +1914,7 @@ int main(int ac, char* av[]) {
             rsum = sqrt(rsum);
             size_t tnf_index = r * 136;
             for (int c = 0; c < 136; ++c) {
-                TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
+                TNF[tnf_index + c] = TNF_temp[c] / rsum;
             }
 
             if (verbose) {
