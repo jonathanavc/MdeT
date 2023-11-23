@@ -1885,8 +1885,8 @@ int main(int ac, char* av[]) {
 
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
+    TIMERSTART(a);
     {
-        TIMERSTART(a);
         float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
         ProgressTracker progress(nobs);
