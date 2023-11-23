@@ -361,6 +361,8 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
 
         double d, preProb;
 
+        __syncthreads();
+
         d = shared[threadIdx.x / 2];
         preProb = -(b + c * d);
         if (preProb <= floor_preProb) {
