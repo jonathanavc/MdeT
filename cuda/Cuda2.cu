@@ -332,7 +332,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
     if (threadIdx.x % 2 == 0) {
         double d = 0.0;
         float diff = 0;
-        for (int i = 0; i < 68; i++) {
+        for (int i = 0; i < 136; i++) {
             diff = tnf1[i] - tnf2[i];
             d += diff * diff;
         }
