@@ -144,7 +144,7 @@ static std::chrono::steady_clock::time_point t1, t2;
 
 static std::vector<int> TNLookup;  // lookup table 0 - 255 of raw 4-mer to tetramer index in TNF
 
-__device__ __constant__ unsigned char TNmap_d[256] = {
+__host__ __device__ __constant__ const unsigned char TNmap_d[256] = {
     2,   21,  31,  115, 101, 119, 67,  50, 135, 126, 69,  92,  116, 88,  8,   78,  47,  96,  3,   70,  106, 38,  48,  83,  16,  22,
     8,   114, 5,   54,  107, 120, 72,  41, 44,  26,  27,  23,  71,  53,  12,  81,  31,  127, 30,  110, 3,   80,  132, 123, 71,  102,
     79,  1,   35,  124, 29,  4,   67,  34, 91,  17,  48,  52,  9,   77,  127, 117, 76,  93,  34,  65,  6,   73,  92,  68,  28,  94,
@@ -156,7 +156,7 @@ __device__ __constant__ unsigned char TNmap_d[256] = {
     18,  128, 110, 62,  74,  61,  17,  95, 85,  66,  88,  94,  118, 40,  54,  19,  109, 90,  41,  56,  45,  11,  123, 130, 111, 108,
     21,  77,  82,  128, 96,  36,  59,  11, 23,  46,  64,  37,  1,   20,  0,   24,  119, 93,  39,  61,  38,  99};
 
-__device__ __constant__ unsigned char BN[256] = {
+__host__ __device__ __constant__ const unsigned char BN[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 1, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -381,7 +381,7 @@ __global__ void get_tnf_prob_sample(double* __restrict__ tnf_dist, float* TNF, d
 }
 */
 
-__device__ short get_tn(char* __restrict__ contig) {
+__host__ __device__ short get_tn(char* __restrict__ contig) {
     unsigned char N;
     short tn = 0;
     // if (contig[0] == 'X') return 256;
@@ -393,7 +393,7 @@ __device__ short get_tn(char* __restrict__ contig) {
     return tn;
 }
 
-__device__ void next_contig(char* __restrict__ contig, char c) {
+__host__ __device__ void next_contig(char* __restrict__ contig, char c) {
     if (c == '\n') {
         contig[0] = 'X';
         return;
@@ -1885,6 +1885,47 @@ int main(int ac, char* av[]) {
 
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
+    {
+        float* TNF;
+        cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
+        ProgressTracker progress(nobs);
+
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(numThreads) proc_bind(spread) schedule(dynamic)
+#else
+#endif
+        for (size_t r = 0; r < nobs; ++r) {
+            std::string_view seq = seqs[r];
+            char contig_temp[4] = {0};
+            float TNF_temp[136] = {0};
+            if (contig_size < 4) continue;
+            for (size_t j = 0; j < 3; j++) next_contig(contig_temp, seq[j]);
+            for (size_t j = 3; j < seq.length(); ++j) {
+                char c = seq[j];
+                next_contig(contig_temp, c);
+                short tn = get_tn(contig_temp);
+                if (tn & 256) continue;
+                TNF_temp[TNmap_d[tn]]++;
+            }
+            double rsum = 0;
+            for (int c = 0; c < 136; ++c) {
+                rsum += TNF_temp[c] * TNF_temp[c];
+            }
+            rsum = sqrt(rsum);
+            size_t tnf_index = r * 136;
+            for (int c = 0; c < 136; ++c) {
+                TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
+            }
+
+            if (verbose) {
+                progress.track();
+                if (omp_get_thread_num() == 0 && progress.isStepMarker()) {
+                    verbose_message("Calculating TNF %s\r", progress.getProgress());
+                }
+            }
+        }
+        verbose_message("Finished TNF calculation.                                  \n");
+    }
 
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     {
