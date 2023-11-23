@@ -1861,7 +1861,6 @@ int main(int ac, char* av[]) {
     // size_t max_gpu_mem = 4000000000;  // 4gb
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     TIMERSTART(TNF_CAL);
-    TIMERSTART(a);
     {
         float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
@@ -1904,7 +1903,6 @@ int main(int ac, char* av[]) {
         cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
         cudaFreeHost(TNF);
     }
-    TIMERSTOP(a);
     /*
     TIMERSTART(b);
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
