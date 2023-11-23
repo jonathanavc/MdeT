@@ -1883,7 +1883,8 @@ int main(int ac, char* av[]) {
 
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
-    size_t max_gpu_mem = 4000000000;  // 4gb
+    // size_t max_gpu_mem = 4000000000;  // 4gb
+    cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     TIMERSTART(TNF_CAL);
     TIMERSTART(a);
     {
@@ -1925,9 +1926,10 @@ int main(int ac, char* av[]) {
             }
         }
         verbose_message("Finished TNF calculation.                                  \n");
+        cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
     }
     TIMERSTOP(a);
-
+    /*
     TIMERSTART(b);
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     {
@@ -1963,6 +1965,7 @@ int main(int ac, char* av[]) {
         }
     }
     TIMERSTOP(b);
+    */
     TIMERSTOP(TNF_CAL);
 
     verbose_message("Finished TNF calculation.                                  \n");
