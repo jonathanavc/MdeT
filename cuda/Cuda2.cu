@@ -330,6 +330,16 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
     const float *tnf1 = TNF + ct1 * 136, *tnf2 = TNF + ct2 * 136;
 
     if (threadIdx.x % 2 == 0) {
+        double d = 0.0;
+        float diff = 0;
+        for (int i = 0; i < 136; i++) {
+            diff = tnf1[i] - tnf2[i];
+            d += diff * diff;
+        }
+        __syncthreads();
+        d += shared[threadIdx.x / 2];
+        d = sqrt(d);
+
         double b, c;
         double lw[19];
         lw[0] = min(contig_log[ct1], contig_log[ct2]);
@@ -359,9 +369,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
             _c1[7] * lw[6] + _c1[8] * lw[7] + _c1[9] * lw[8] + _c1[10] * lw[9] + _c1[11] * lw[10] + _c1[12] * lw[11] +
             _c1[13] * lw[12] + _c1[14] * lw[13] + _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
 
-        double d, preProb;
-
-        __syncthreads();
+        double preProb;
 
         d = shared[threadIdx.x / 2];
         preProb = -(b + c * d);
@@ -387,7 +395,6 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
             diff = tnf1[i] - tnf2[i];
             d += diff * diff;
         }
-        d = sqrt(d);
         shared[threadIdx.x / 2] = d;
         __syncthreads();
     }
