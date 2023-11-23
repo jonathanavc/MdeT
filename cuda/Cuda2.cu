@@ -1886,7 +1886,7 @@ int main(int ac, char* av[]) {
     size_t max_gpu_mem = 4000000000;  // 4gb
     TIMERSTART(TNF_CAL);
     {
-        TIMERSTART(1);
+        TIMERSTART(a);
         float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
         ProgressTracker progress(nobs);
@@ -1927,9 +1927,9 @@ int main(int ac, char* av[]) {
         }
         verbose_message("Finished TNF calculation.                                  \n");
     }
-    TIMERSTOP(1);
+    TIMERSTOP(a);
 
-    TIMERSTART(2);
+    TIMERSTART(b);
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     {
         ProgressTracker progress(nobs);
@@ -1963,7 +1963,7 @@ int main(int ac, char* av[]) {
             seqs_h_index_e.clear();
         }
     }
-    TIMERSTOP(2);
+    TIMERSTOP(b);
     TIMERSTOP(TNF_CAL);
 
     verbose_message("Finished TNF calculation.                                  \n");
