@@ -157,5 +157,5 @@ print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 
 #GUARDAR
 _json = json.dumps(tiempos)
-with open(datetime.now().strftime("Test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
+with open(archivo.split("/")[-1] +  datetime.now().strftime("_test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
     outfile.write(_json)
