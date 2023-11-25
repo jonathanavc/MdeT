@@ -2,6 +2,7 @@ import sys
 import subprocess
 import json
 import re
+import math
 from datetime import datetime
 
 print("File: " + sys.argv[1])
@@ -18,8 +19,38 @@ def avg(arr):
 
 def std(arr):
     avg = sum(arr)/len(arr)
-    return sum([(x-avg)**2 for x in arr])/len(arr)
+    return math.sqrt(sum([(x-avg)**2 for x in arr])/len(arr))
+    #return  sum([(x-avg)**2 for x in arr])/len(arr)
 
+tiempos["Metabat2"] = {
+        'File': archivo,
+        'READ': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'TNF': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'preGraph': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'Graph': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'Total': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        }
+}
+    
 
 tiempos["MetabatCuda2"] = {
         'File': archivo,
@@ -62,7 +93,18 @@ for i in range(0, num_ex):
     tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
     tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
     tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
-    print("[{:.1f}%] MetabatCuda2".format(((i + 1) / num_ex) * 100), end='\r')
+
+    p = subprocess.Popen(['./metabat2','-i' + archivo, '-o'+'out/out'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    out, err = p.communicate()
+    if(err):
+        print(err)
+    valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
+    tiempos["Metabat2"]['READ']['ex'].append(float(valores[0]))
+    tiempos["Metabat2"]['TNF']['ex'].append(float(valores[1]))
+    tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[2]))
+    tiempos["Metabat2"]['Graph']['ex'].append(float(valores[3]))
+    tiempos["Metabat2"]['Total']['ex'].append(float(valores[4]))
+    print("[{:.1f}%] Test".format(((i + 1) / num_ex) * 100), end='\r')
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
 tiempos["MetabatCuda2"]['READ']['std'] = std(tiempos["MetabatCuda2"]['READ']['ex'])
@@ -73,9 +115,45 @@ tiempos["MetabatCuda2"]['preGraph']['std'] = std(tiempos["MetabatCuda2"]['preGra
 tiempos["MetabatCuda2"]['Graph']['avg'] = avg(tiempos["MetabatCuda2"]['Graph']['ex'])
 tiempos["MetabatCuda2"]['Graph']['std'] = std(tiempos["MetabatCuda2"]['Graph']['ex'])
 tiempos["MetabatCuda2"]['Total']['avg'] = avg(tiempos["MetabatCuda2"]['Total']['ex'])
-tiempos["MetabatCuda2"]['Total']['std'] = std(tiempos["MetabatCuda2"]['Total']['ex'])    
+tiempos["MetabatCuda2"]['Total']['std'] = std(tiempos["MetabatCuda2"]['Total']['ex'])
 
-print("Total: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
+tiempos["Metabat2"]['READ']['avg'] = avg(tiempos["Metabat2"]['READ']['ex'])
+tiempos["Metabat2"]['READ']['std'] = std(tiempos["Metabat2"]['READ']['ex'])
+tiempos["Metabat2"]['TNF']['avg'] = avg(tiempos["Metabat2"]['TNF']['ex'])
+tiempos["Metabat2"]['TNF']['std'] = std(tiempos["Metabat2"]['TNF']['ex'])
+tiempos["Metabat2"]['preGraph']['avg'] = avg(tiempos["Metabat2"]['preGraph']['ex'])
+tiempos["Metabat2"]['preGraph']['std'] = std(tiempos["Metabat2"]['preGraph']['ex'])
+tiempos["Metabat2"]['Graph']['avg'] = avg(tiempos["Metabat2"]['Graph']['ex'])
+tiempos["Metabat2"]['Graph']['std'] = std(tiempos["Metabat2"]['Graph']['ex'])
+tiempos["Metabat2"]['Total']['avg'] = avg(tiempos["Metabat2"]['Total']['ex'])
+tiempos["Metabat2"]['Total']['std'] = std(tiempos["Metabat2"]['Total']['ex'])
+
+tiempos["tabla"] = {
+    "READ": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['READ']['avg'],
+        "Metabat2": tiempos["Metabat2"]['READ']['avg']
+    },
+    "TNF": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['TNF']['avg'],
+        "Metabat2": tiempos["Metabat2"]['TNF']['avg']
+    },
+    "preGraph": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['preGraph']['avg'],
+        "Metabat2": tiempos["Metabat2"]['preGraph']['avg']
+    },
+    "Graph": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['Graph']['avg'],
+        "Metabat2": tiempos["Metabat2"]['Graph']['avg']
+    },
+    "Total": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['Total']['avg'],
+        "Metabat2": tiempos["Metabat2"]['Total']['avg']
+    }   
+}
+
+print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
+
+print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 
 #GUARDAR
 _json = json.dumps(tiempos)
