@@ -1416,7 +1416,7 @@ int main(int ac, char* av[]) {
     else
         numThreads = std::min(numThreads, (size_t)omp_get_max_threads());
 
-    if (numThreads2 % 32 != 0) {
+    if (numThreads2 % 32 == 0) {
         cerr << "numThreads2 must be a multiple of 32" << endl;
         return 1;
     }
