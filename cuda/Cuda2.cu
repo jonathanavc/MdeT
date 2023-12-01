@@ -95,7 +95,7 @@ static bool saveCls = false;
 static bool outUnbinned = false;
 static size_t minSample = 3;
 static unsigned long long totalSize = 0, totalSize1 = 0;
-static int numThreads2 = 32;
+static int = 32;
 
 static size_t maxEdges = 200;
 static const char line_delim = '\n';
@@ -543,12 +543,25 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     }
     os << fasta_delim << label << line_delim;
     const char* _seq = seq.begin();
+    char buff[60];
     const int maxWidth = 60;
+    for (size_t s = 0; s < len;) {
+        int cont = 0;
+        while (cont < maxWidth || s + cont < len) {
+            buff[cont] = _seq[s + cont];
+            cont++;
+        }
+        os.write(buff, cont);
+        os << line_delim;
+        s += cont;
+    }
+    /*
     for (size_t s = 0; s < len; s += maxWidth) {
         int bytes = s + maxWidth < len ? maxWidth : len - s;
         os.write(_seq + s, bytes);
         os << line_delim;
     }
+    */
     return os;
 }
 
