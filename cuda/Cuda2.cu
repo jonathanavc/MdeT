@@ -1334,7 +1334,7 @@ int main(int ac, char* av[]) {
         "No bin output. Usually combined with --saveCls to check only contig memberships")(
         "seed", po::value<unsigned long long>(&seed)->default_value(0), "For exact reproducibility. (0: use random seed)")(
         "debug,d", po::value<bool>(&debug)->zero_tokens(), "Debug output")(
-        "verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output")("ct", po::value<int>(&numThreads2)->default_value(16),
+        "verbose,v", po::value<bool>(&verbose)->zero_tokens(), "Verbose output")("ct", po::value<int>(&numThreads2)->default_value(32),
                                                                                  "Number of cuda threads");
 
     po::variables_map vm;
@@ -1416,7 +1416,7 @@ int main(int ac, char* av[]) {
     else
         numThreads = std::min(numThreads, (size_t)omp_get_max_threads());
 
-    if (numThreads2 % 32 == 0) {
+    if (numThreads2 % 32 != 0) {
         cerr << "numThreads2 must be a multiple of 32" << endl;
         return 1;
     }
