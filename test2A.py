@@ -6,7 +6,9 @@ import math
 from datetime import datetime
 
 print("File: " + sys.argv[1])
+print("File abd: " + sys.argv[2])
 archivo = sys.argv[1]
+archivo_abd = sys.argv[2]
 num_ex = 10
 
 tiempos = {
@@ -44,6 +46,11 @@ tiempos["Metabat2"] = {
             'std': 0,
             'ex': []
         },
+        'binning':{
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
         'Total': {
             'avg': 0,
             'std': 0,
@@ -74,6 +81,11 @@ tiempos["MetabatCuda2"] = {
             'std': 0,
             'ex': []
         },
+        'binning':{
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
         'Total': {
             'avg': 0,
             'std': 0,
@@ -83,7 +95,7 @@ tiempos["MetabatCuda2"] = {
         
 print("METABAT CUDA 2")
 for i in range(0, num_ex):
-    p = subprocess.Popen(['./metabatcuda2','-i' + archivo, '-o'+'out/out','--ct', '32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.Popen(['./metabatcuda2','-i' + archivo,'-a',archivo_abd, '-o'+'out/out','--ct', '32'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
     if(err):
         print(err)
@@ -93,8 +105,9 @@ for i in range(0, num_ex):
     tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
     tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
     tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
+    tiempos["MetabatCuda2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
 
-    p = subprocess.Popen(['./metabat2','-i' + archivo, '-o'+'out/out'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.Popen(['./metabat2','-i' + archivo,'-a',archivo_abd, '-o'+'out/out'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
     if(err):
         print(err)
@@ -104,6 +117,8 @@ for i in range(0, num_ex):
     tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[2]))
     tiempos["Metabat2"]['Graph']['ex'].append(float(valores[3]))
     tiempos["Metabat2"]['Total']['ex'].append(float(valores[4]))
+    tiempos["Metabat2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
+    
     print("[{:.1f}%] Test".format(((i + 1) / num_ex) * 100), end='\r')
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
@@ -116,6 +131,9 @@ tiempos["MetabatCuda2"]['Graph']['avg'] = avg(tiempos["MetabatCuda2"]['Graph']['
 tiempos["MetabatCuda2"]['Graph']['std'] = std(tiempos["MetabatCuda2"]['Graph']['ex'])
 tiempos["MetabatCuda2"]['Total']['avg'] = avg(tiempos["MetabatCuda2"]['Total']['ex'])
 tiempos["MetabatCuda2"]['Total']['std'] = std(tiempos["MetabatCuda2"]['Total']['ex'])
+tiempos["MetabatCuda2"]['binning']['avg'] = avg(tiempos["MetabatCuda2"]['binning']['ex'])
+tiempos["MetabatCuda2"]['binning']['std'] = std(tiempos["MetabatCuda2"]['binning']['ex'])
+
 
 tiempos["Metabat2"]['READ']['avg'] = avg(tiempos["Metabat2"]['READ']['ex'])
 tiempos["Metabat2"]['READ']['std'] = std(tiempos["Metabat2"]['READ']['ex'])
@@ -127,6 +145,8 @@ tiempos["Metabat2"]['Graph']['avg'] = avg(tiempos["Metabat2"]['Graph']['ex'])
 tiempos["Metabat2"]['Graph']['std'] = std(tiempos["Metabat2"]['Graph']['ex'])
 tiempos["Metabat2"]['Total']['avg'] = avg(tiempos["Metabat2"]['Total']['ex'])
 tiempos["Metabat2"]['Total']['std'] = std(tiempos["Metabat2"]['Total']['ex'])
+tiempos["Metabat2"]['binning']['avg'] = avg(tiempos["Metabat2"]['binning']['ex'])
+tiempos["Metabat2"]['binning']['std'] = std(tiempos["Metabat2"]['binning']['ex'])
 
 tiempos["tabla"] = {
     "READ": {
@@ -145,6 +165,10 @@ tiempos["tabla"] = {
         "MetabatCuda2": tiempos["MetabatCuda2"]['Graph']['avg'],
         "Metabat2": tiempos["Metabat2"]['Graph']['avg']
     },
+    "binning": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['binning']['avg'],
+        "Metabat2": tiempos["Metabat2"]['binning']['avg']
+    },
     "Total": {
         "MetabatCuda2": tiempos["MetabatCuda2"]['Total']['avg'],
         "Metabat2": tiempos["Metabat2"]['Total']['avg']
@@ -157,5 +181,6 @@ print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 
 #GUARDAR
 _json = json.dumps(tiempos)
+
 with open(archivo.split("/")[-1] +  datetime.now().strftime("_test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
     outfile.write(_json)
