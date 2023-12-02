@@ -1669,10 +1669,10 @@ int main(int ac, char* av[]) {
 
                     if (contigs.find(label) == contigs.end()) {  // small or additional contigs
                         if (small_contigs.find(label) == small_contigs.end()) {
-                            /*
+                        
                             std::cout << "[Error!] Need to check whether the contig " << label
                                       << " in the abundance file is in the assembly file" << endl;
-                            */
+                        
                             break;
                         } else
                             isSmall = true;
