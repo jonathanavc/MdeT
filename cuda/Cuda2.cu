@@ -1539,7 +1539,7 @@ int main(int ac, char* av[]) {
                 std::vector<std::string_view> seqs_l;
                 std::vector<std::string_view> small_seqs_l;
                 size_t contig_name_i;
-                contig_name_e;
+                size_t contig_name_e;
                 size_t contig_i;
                 size_t contig_size;
                 for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
