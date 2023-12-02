@@ -1548,7 +1548,7 @@ int main(int ac, char* av[]) {
                         i++;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
                         while (_mem[i] != line_delim) {
-                            if (_mem[i] == " ") contig_name_e = i;
+                            if (_mem[i] == ' ') contig_name_e = i;
                             i++;
                         }
                         std::string_view name(_mem + contig_name_i, contig_name_e - contig_name_i);
