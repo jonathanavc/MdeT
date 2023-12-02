@@ -1769,8 +1769,8 @@ int main(int ac, char* av[]) {
                             printFasta(*os, contig_names[num], seqs[num]);
                         }
                     }
-                    contig_names[num] = std::string_view(null, 1);
-                    seqs[num] = std::string_view(null, 1);
+                    contig_names[num] = "";
+                    seqs[num] = "";
                     logSizes[num] = -1;
                     sizes[num] = 0;
                 }
@@ -1785,8 +1785,8 @@ int main(int ac, char* av[]) {
                             printFasta(*os, small_contig_names[num1], small_seqs[num1]);
                         }
                     }
-                    small_contig_names[num1] = std::string_view(null, 1);
-                    small_seqs[num1] = std::string_view(null, 1);
+                    small_contig_names[num1] = "";
+                    small_seqs[num1] = "";
                     small_sizes[num1] = 0;
                 }
                 ++num1;
@@ -1819,13 +1819,13 @@ int main(int ac, char* av[]) {
         }
         verbose_message("Finished reading %d contigs and %d coverages from %s\n", r, nABD, abdFile.c_str());
 
-        seqs.erase(std::remove(seqs.begin(), seqs.end(), "-"), seqs.end());
+        seqs.erase(std::remove(seqs.begin(), seqs.end(), ""), seqs.end());
         assert(nobs == seqs.size());
-        small_seqs.erase(std::remove(small_seqs.begin(), small_seqs.end(), "-"), small_seqs.end());
+        small_seqs.erase(std::remove(small_seqs.begin(), small_seqs.end(), ""), small_seqs.end());
         assert(nobs1 == small_seqs.size());
-        contig_names.erase(std::remove(contig_names.begin(), contig_names.end(), "-"), contig_names.end());
+        contig_names.erase(std::remove(contig_names.begin(), contig_names.end(), ""), contig_names.end());
         assert(nobs == contig_names.size());
-        small_contig_names.erase(std::remove(small_contig_names.begin(), small_contig_names.end(), "-"), small_contig_names.end());
+        small_contig_names.erase(std::remove(small_contig_names.begin(), small_contig_names.end(), ""), small_contig_names.end());
         assert(nobs1 == small_contig_names.size());
         logSizes.erase(std::remove(logSizes.begin(), logSizes.end(), -1), logSizes.end());
         assert(nobs == logSizes.size());
