@@ -1542,8 +1542,9 @@ int main(int ac, char* av[]) {
                 size_t contig_i;
                 size_t contig_size;
                 for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
-                    size_t contig_name_e;
+                    
                     if (_mem[i] == fasta_delim) {
+                        size_t contig_name_e = 0;
                         size_t cont_lines = 0;
                         i++;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
