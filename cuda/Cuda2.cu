@@ -1544,7 +1544,7 @@ int main(int ac, char* av[]) {
                 for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
                     if (_mem[i] == fasta_delim) {
                         size_t cont_lines = 0;
-                        //i++;
+                        i++;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
                         while (_mem[i] != line_delim) i++;
                         std::string_view name(_mem + contig_name_i, i - contig_name_i);
