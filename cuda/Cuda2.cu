@@ -1556,9 +1556,11 @@ int main(int ac, char* av[]) {
                                 name = name.substr(0, end);
                             }
                         }
+                        /*
                         if (name[0] == 'S') {
                             std::cout << "Scaffold found:" << name << std::endl;
                         }
+                        */
                         i++;
                         contig_i = i;  // guardar el inicio del contig
                         while (i < fsize && _mem[i] != fasta_delim) {
@@ -1674,9 +1676,10 @@ int main(int ac, char* av[]) {
 
                     if (contigs.find(label) == contigs.end()) {  // small or additional contigs
                         if (small_contigs.find(label) == small_contigs.end()) {
+                            /*
                             std::cout << "[Error!] Need to check whether the contig " << label
                                       << " in the abundance file is in the assembly file" << endl;
-
+                            */
                             break;
                         } else
                             isSmall = true;
