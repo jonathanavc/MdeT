@@ -1551,7 +1551,7 @@ int main(int ac, char* av[]) {
                         }
                         std::string_view name(_mem + contig_name_i, i - contig_name_i);
                         {
-                            size_t end = name.find_first_of(' ');
+                            size_t end = name.find_first_of(" \n\t");
                             if (end != std::string::npos) {
                                 name = name.substr(0, end);
                             }
