@@ -1545,7 +1545,7 @@ int main(int ac, char* av[]) {
                     if (_mem[i] == fasta_delim) {
                         size_t cont_lines = 0;
                         i++;
-                        contig_name_e = 0;
+                        size_t contig_name_e = 0;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
                         while (_mem[i] != line_delim) {
                             if (_mem[i] == ' ') contig_name_e = i;
