@@ -1542,18 +1542,20 @@ int main(int ac, char* av[]) {
                 size_t contig_i;
                 size_t contig_size;
                 for (size_t i = t * char_per_thread; i < min(fsize, (t + 1) * char_per_thread); i++) {
-                    
                     if (_mem[i] == fasta_delim) {
-                        size_t contig_name_e = 0;
                         size_t cont_lines = 0;
                         i++;
                         contig_name_i = i;  // guardar el inicio del nombre del contig
                         while (_mem[i] != line_delim) {
-                            if (_mem[i] == ' ') contig_name_e = i;
                             i++;
                         }
-                        if (contig_name_e == 0) contig_name_e = i;
-                        std::string_view name(_mem + contig_name_i, contig_name_e - contig_name_i);
+                        std::string_view name(_mem + contig_name_i, i - contig_name_i);
+                        {
+                            size_t end = name.find_first_of(' ');
+                            if (end != std::string::npos) {
+                                name = name.substr(0, end);
+                            }
+                        }
                         i++;
                         contig_i = i;  // guardar el inicio del contig
                         while (i < fsize && _mem[i] != fasta_delim) {
@@ -1669,10 +1671,9 @@ int main(int ac, char* av[]) {
 
                     if (contigs.find(label) == contigs.end()) {  // small or additional contigs
                         if (small_contigs.find(label) == small_contigs.end()) {
-                        
                             std::cout << "[Error!] Need to check whether the contig " << label
                                       << " in the abundance file is in the assembly file" << endl;
-                        
+
                             break;
                         } else
                             isSmall = true;
