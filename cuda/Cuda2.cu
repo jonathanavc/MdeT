@@ -1556,6 +1556,9 @@ int main(int ac, char* av[]) {
                                 name = name.substr(0, end);
                             }
                         }
+                        if (name.contains("Scaffold")) {
+                            std::cout << "Scaffold found:" << name << std::endl;
+                        }
                         i++;
                         contig_i = i;  // guardar el inicio del contig
                         while (i < fsize && _mem[i] != fasta_delim) {
