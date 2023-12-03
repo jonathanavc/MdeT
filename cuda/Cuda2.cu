@@ -1556,7 +1556,7 @@ int main(int ac, char* av[]) {
                                 name = name.substr(0, end);
                             }
                         }
-                        if (name.contains("Scaffold")) {
+                        if (name[0] == 'S') {
                             std::cout << "Scaffold found:" << name << std::endl;
                         }
                         i++;
