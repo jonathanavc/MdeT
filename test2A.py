@@ -12,6 +12,7 @@ archivo_abd = sys.argv[2]
 num_ex = 10
 
 tiempos = {
+    'File': archivo,
     "MetabatCuda2": {},
     "Metabat2": {}
 }
@@ -25,8 +26,12 @@ def std(arr):
     #return  sum([(x-avg)**2 for x in arr])/len(arr)
 
 tiempos["Metabat2"] = {
-        'File': archivo,
         'READ': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'ABD': {
             'avg': 0,
             'std': 0,
             'ex': []
@@ -60,8 +65,12 @@ tiempos["Metabat2"] = {
     
 
 tiempos["MetabatCuda2"] = {
-        'File': archivo,
         'READ': {
+            'avg': 0,
+            'std': 0,
+            'ex': []
+        },
+        'ABD': {
             'avg': 0,
             'std': 0,
             'ex': []
@@ -101,11 +110,12 @@ for i in range(0, num_ex):
         print(err)
     valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     tiempos["MetabatCuda2"]['READ']['ex'].append(float(valores[0]))
-    tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[1]))
-    tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
-    tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
-    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
-    tiempos["MetabatCuda2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
+    tiempos["MetabatCuda2"]['ABD']['ex'].append(float(valores[1]))
+    tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[2]))
+    tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[3]))
+    tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[4]))
+    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[5]))
+    tiempos["MetabatCuda2"]['binning']['ex'].append(float(valores[5]) - float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
 
     p = subprocess.Popen(['./metabat2','-i' + archivo,'-a',archivo_abd, '-o'+'out/out'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
@@ -113,16 +123,19 @@ for i in range(0, num_ex):
         print(err)
     valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     tiempos["Metabat2"]['READ']['ex'].append(float(valores[0]))
-    tiempos["Metabat2"]['TNF']['ex'].append(float(valores[1]))
-    tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[2]))
-    tiempos["Metabat2"]['Graph']['ex'].append(float(valores[3]))
-    tiempos["Metabat2"]['Total']['ex'].append(float(valores[4]))
-    tiempos["Metabat2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
+    tiempos["Metabat2"]['ABD']['ex'].append(float(valores[1]))
+    tiempos["Metabat2"]['TNF']['ex'].append(float(valores[2]))
+    tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[3]))
+    tiempos["Metabat2"]['Graph']['ex'].append(float(valores[4]))
+    tiempos["Metabat2"]['Total']['ex'].append(float(valores[5]))
+    tiempos["Metabat2"]['binning']['ex'].append(float(valores[5]) - float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
     
     print("[{:.1f}%] Test".format(((i + 1) / num_ex) * 100), end='\r')
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
 tiempos["MetabatCuda2"]['READ']['std'] = std(tiempos["MetabatCuda2"]['READ']['ex'])
+tiempos["MetabatCuda2"]['ABD']['avg'] = avg(tiempos["MetabatCuda2"]['ABD']['ex'])
+tiempos["MetabatCuda2"]['ABD']['std'] = std(tiempos["MetabatCuda2"]['ABD']['ex'])
 tiempos["MetabatCuda2"]['TNF']['avg'] = avg(tiempos["MetabatCuda2"]['TNF']['ex'])
 tiempos["MetabatCuda2"]['TNF']['std'] = std(tiempos["MetabatCuda2"]['TNF']['ex'])
 tiempos["MetabatCuda2"]['preGraph']['avg'] = avg(tiempos["MetabatCuda2"]['preGraph']['ex'])
@@ -137,6 +150,8 @@ tiempos["MetabatCuda2"]['binning']['std'] = std(tiempos["MetabatCuda2"]['binning
 
 tiempos["Metabat2"]['READ']['avg'] = avg(tiempos["Metabat2"]['READ']['ex'])
 tiempos["Metabat2"]['READ']['std'] = std(tiempos["Metabat2"]['READ']['ex'])
+tiempos["Metabat2"]['ABD']['avg'] = avg(tiempos["Metabat2"]['ABD']['ex'])
+tiempos["Metabat2"]['ABD']['std'] = std(tiempos["Metabat2"]['ABD']['ex'])
 tiempos["Metabat2"]['TNF']['avg'] = avg(tiempos["Metabat2"]['TNF']['ex'])
 tiempos["Metabat2"]['TNF']['std'] = std(tiempos["Metabat2"]['TNF']['ex'])
 tiempos["Metabat2"]['preGraph']['avg'] = avg(tiempos["Metabat2"]['preGraph']['ex'])
@@ -152,6 +167,10 @@ tiempos["tabla"] = {
     "READ": {
         "MetabatCuda2": tiempos["MetabatCuda2"]['READ']['avg'],
         "Metabat2": tiempos["Metabat2"]['READ']['avg']
+    },
+    "ABD": {
+        "MetabatCuda2": tiempos["MetabatCuda2"]['ABD']['avg'],
+        "Metabat2": tiempos["Metabat2"]['ABD']['avg']
     },
     "TNF": {
         "MetabatCuda2": tiempos["MetabatCuda2"]['TNF']['avg'],

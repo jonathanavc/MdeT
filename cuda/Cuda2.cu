@@ -1625,6 +1625,7 @@ int main(int ac, char* av[]) {
 
     TIMERSTOP(read);
 
+    TIMERSTART(ABD);
     if (hasABD) {
         const char null[1] = {'-'};
         ABD.resize(nobs, nABD);
@@ -1861,6 +1862,7 @@ int main(int ac, char* av[]) {
             small_ABD.resize(nobs1, nABD, true);
         }
     }
+    TIMERSTOP(ABD);
     verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
                     1000, minContig);
 
