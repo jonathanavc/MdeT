@@ -1818,8 +1818,6 @@ int main(int ac, char* av[]) {
             }
             delete os;
         }
-
-        std::cout << "nobs = " << nobs << ",num = " << num << ",nobs1 = " << nobs1 << ",num1 = " << num1 << std::endl;
         assert(nobs == num && nobs1 == num1);
 
         nobs = num - nskip;
