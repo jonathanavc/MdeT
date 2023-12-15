@@ -99,11 +99,11 @@ for i in range(0, num_ex):
         print(err)
     valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     tiempos["MetabatCuda2"]['READ']['ex'].append(float(valores[0]))
-    tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[1]))
-    tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[2]))
-    tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[3]))
-    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[4]))
-    tiempos["MetabatCuda2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
+    tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[2]))
+    tiempos["MetabatCuda2"]['preGraph']['ex'].append(float(valores[3]))
+    tiempos["MetabatCuda2"]['Graph']['ex'].append(float(valores[4]))
+    tiempos["MetabatCuda2"]['Total']['ex'].append(float(valores[5]))
+    tiempos["MetabatCuda2"]['binning']['ex'].append(float(valores[5]) - float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[0]))
 
     p = subprocess.Popen(['./metabat2','-i' + archivo, '-o'+'out/out'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
@@ -111,11 +111,11 @@ for i in range(0, num_ex):
         print(err)
     valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     tiempos["Metabat2"]['READ']['ex'].append(float(valores[0]))
-    tiempos["Metabat2"]['TNF']['ex'].append(float(valores[1]))
-    tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[2]))
-    tiempos["Metabat2"]['Graph']['ex'].append(float(valores[3]))
-    tiempos["Metabat2"]['Total']['ex'].append(float(valores[4]))
-    tiempos["Metabat2"]['binning']['ex'].append(float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
+    tiempos["Metabat2"]['TNF']['ex'].append(float(valores[2]))
+    tiempos["Metabat2"]['preGraph']['ex'].append(float(valores[3]))
+    tiempos["Metabat2"]['Graph']['ex'].append(float(valores[4]))
+    tiempos["Metabat2"]['Total']['ex'].append(float(valores[5]))
+    tiempos["Metabat2"]['binning']['ex'].append(float(valores[5]) - float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[0]))
     
     print("[{:.1f}%] Test".format(((i + 1) / num_ex) * 100), end='\r')
 
@@ -180,5 +180,5 @@ print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 #GUARDAR
 _json = json.dumps(tiempos)
 
-with open(archivo.split("/")[-1] +  datetime.now().strftime("_test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
+with open("test/" + archivo.split("/")[-1] +  datetime.now().strftime("_test_%d.%m.%Y_%H.%M.%S")+".json", "w") as outfile:
     outfile.write(_json)
