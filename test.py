@@ -191,76 +191,76 @@ tiempos["Metabat2"]['binning']['std'] = std(tiempos["Metabat2"]['binning']['ex']
 
 tiempos["tabla"] = {
     "READ": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['READ']['avg'],
-            tiempos["MetabatCuda2"]['READ']['std']
-        ],
-        "Metabat2": [
-            tiempos["Metabat2"]['READ']['avg'],
-            tiempos["Metabat2"]['READ']['std']
-        ]
+        "MetabatCuda2": {
+            "avg":tiempos["MetabatCuda2"]['READ']['avg'],
+            "std": tiempos["MetabatCuda2"]['READ']['std']
+        },
+        "Metabat2": {
+            "avg":tiempos["Metabat2"]['READ']['avg'],
+            "std": tiempos["Metabat2"]['READ']['std']
+        }
     },
     "ABD": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['ABD']['avg'],
-            tiempos["MetabatCuda2"]['ABD']['std']
-        ],
-        "Metabat2": [
-            tiempos["Metabat2"]['ABD']['avg'],
-            tiempos["Metabat2"]['ABD']['std']
-        ]
+        "MetabatCuda2": {
+            "avg":tiempos["MetabatCuda2"]['ABD']['avg'],
+            "std": tiempos["MetabatCuda2"]['ABD']['std']
+        },
+        "Metabat2": {
+            "avg":tiempos["Metabat2"]['ABD']['avg'],
+            "std": tiempos["Metabat2"]['ABD']['std']
+        }
     },
     "TNF": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['TNF']['avg'],
-            tiempos["MetabatCuda2"]['TNF']['std']
-        ],
-        "Metabat2": [
-            tiempos["Metabat2"]['TNF']['avg'],
-            tiempos["Metabat2"]['TNF']['std']
-        ]
+        "MetabatCuda2": {
+            "avg":tiempos["MetabatCuda2"]['TNF']['avg'],
+            "std": tiempos["MetabatCuda2"]['TNF']['std']
+        },
+        "Metabat2": {
+            "avg": tiempos["Metabat2"]['TNF']['avg'],
+            "std": tiempos["Metabat2"]['TNF']['std']
+        }
     },
     "preGraph": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['preGraph']['avg'],
-            tiempos["MetabatCuda2"]['preGraph']['std']
-        ],
+        "MetabatCuda2": {
+            "avg": tiempos["MetabatCuda2"]['preGraph']['avg'],
+            "std": tiempos["MetabatCuda2"]['preGraph']['std']
+        },
         "Metabat2": {
-            tiempos["Metabat2"]['preGraph']['avg'],
-            tiempos["Metabat2"]['preGraph']['std']
+            "avg": tiempos["Metabat2"]['preGraph']['avg'],
+            "std": tiempos["Metabat2"]['preGraph']['std']
         }
     },
     "Graph": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['Graph']['avg'],
-            tiempos["MetabatCuda2"]['Graph']['std'],
+        "MetabatCuda2": {
+            "avg": tiempos["MetabatCuda2"]['Graph']['avg'],
+            "std": tiempos["MetabatCuda2"]['Graph']['std'],
         
-        ],
-        "Metabat2": [
-            tiempos["Metabat2"]['Graph']['avg'],
-            tiempos["Metabat2"]['Graph']['std'],
-        ]
+        },
+        "Metabat2": {
+            "avg": tiempos["Metabat2"]['Graph']['avg'],
+            "std": tiempos["Metabat2"]['Graph']['std'],
+        }
     },
     "binning": {
-        "MetabatCuda2":[
-            tiempos["MetabatCuda2"]['binning']['avg'],
-            tiempos["MetabatCuda2"]['binning']['std'],
-        ],
-        "Metabat2":[
-            tiempos["Metabat2"]['binning']['avg'],
-            tiempos["Metabat2"]['binning']['std'],
-        ]
+        "MetabatCuda2":{
+            "avg": tiempos["MetabatCuda2"]['binning']['avg'],
+            "std": tiempos["MetabatCuda2"]['binning']['std'],
+        },
+        "Metabat2":{
+            "avg": tiempos["Metabat2"]['binning']['avg'],
+            "std": tiempos["Metabat2"]['binning']['std'],
+        }
     },
     "Total": {
-        "MetabatCuda2": [
-            tiempos["MetabatCuda2"]['Total']['avg'],
-            tiempos["MetabatCuda2"]['Total']['std'],
+        "MetabatCuda2": {
+            "avg": tiempos["MetabatCuda2"]['Total']['avg'],
+            "std": tiempos["MetabatCuda2"]['Total']['std'],
         
-        ],
-        "Metabat2": [
-            tiempos["Metabat2"]['Total']['avg'],
-            tiempos["Metabat2"]['Total']['std'],
-        ]
+        },
+        "Metabat2": {
+            "avg": tiempos["Metabat2"]['Total']['avg'],
+            "std": tiempos["Metabat2"]['Total']['std'],
+        }
     },
     "Nbins": {
         "Seeds": 
