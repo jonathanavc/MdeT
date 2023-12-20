@@ -28,6 +28,7 @@ seeds = []
 
 tiempos = {
     'File': archivo,
+    'abd': archivo_abd,
     "MetabatCuda2": {},
     "Metabat2": {}
 }
