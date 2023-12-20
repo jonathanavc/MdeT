@@ -1570,7 +1570,7 @@ int main(int ac, char* av[]) {
                         }
                         contig_size = i - contig_i - cont_lines;
                         std::string_view seq;
-                        if (_mem[i - 1] == '\n')
+                        if (seq.back() == '\n')
                             seq = std::string_view(_mem + contig_i, i - contig_i - 1);
                         else
                             seq = std::string_view(_mem + contig_i, i - contig_i);
