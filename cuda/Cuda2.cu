@@ -1570,7 +1570,7 @@ int main(int ac, char* av[]) {
                         }
                         std::string_view seq(_mem + contig_i, i - contig_i);
                         contig_size = seq.size() - cont_lines;
-                        if (seq.back() == '\n') seq.substr(0, seq.size() - 1);
+                        if (seq.back() == '\n') seq = seq.substr(0, seq.size() - 1);
                         if (contig_size >= (int)minContig) {
                             contigs_l[name] = nobs_l++;
                             contig_names_l.push_back(name);
