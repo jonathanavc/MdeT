@@ -547,7 +547,7 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     for (size_t s = 0; s < len; s += maxWidth) {
         int bytes = s + maxWidth < len ? maxWidth : len - s;
         os.write(_seq + s, bytes);
-        //if (bytes == maxWidth) 
+        // if (bytes == maxWidth)
         os << line_delim;
         if (s + bytes < len && _seq[s + bytes] == '\n') s++;
     }
@@ -1568,8 +1568,10 @@ int main(int ac, char* av[]) {
                             if (_mem[i] == line_delim) cont_lines++;
                             i++;
                         }
-                        std::string_view seq(_mem + contig_i, i - contig_i - 1);
-                        contig_size = seq.length() - cont_lines;
+                        if (i < fsize)
+                            std::string_view seq(_mem + contig_i, i - contig_i - 1);
+                        else
+                            std::string_view seq(_mem + contig_i, i - contig_i) contig_size = seq.length() - cont_lines;
                         if (contig_size >= (int)minContig) {
                             contigs_l[name] = nobs_l++;
                             contig_names_l.push_back(name);
