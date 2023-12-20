@@ -1269,7 +1269,7 @@ void output_bins(ClassMap& cls) {
             }
             cout.precision(20);
             if (verbose) cout << bin_id - 1 << " bins (" << binnedSize + binnedSize1 << " bases in total) formed." << std::endl;
-
+            else cout << bin_id - 1 << std::endl;
         }  // omp single
     }      // omp parallel
 }
