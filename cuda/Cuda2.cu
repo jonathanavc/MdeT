@@ -1568,7 +1568,7 @@ int main(int ac, char* av[]) {
                             if (_mem[i] == line_delim) cont_lines++;
                             i++;
                         }
-                        contig_size = seq.length() - cont_lines;
+                        contig_size = i - contig_i - cont_lines;
                         if (_mem[i - 1] == '\n')
                             std::string_view seq(_mem + contig_i, i - contig_i - 1);
                         else
