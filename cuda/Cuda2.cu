@@ -546,11 +546,13 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     const int maxWidth = 60;
     size_t s = 0;
     char line[60];
-    while (s < len){
+    while (s < len) {
         int bytes = 0;
         while (bytes < maxWidth && s < len) {
-            line[bytes] = _seq[s];
-            bytes++;
+            if (_seq[s] != '\n') {
+                line[bytes] = _seq[s];
+                bytes++;
+            }
             s++;
         }
         os.write(line, bytes);
