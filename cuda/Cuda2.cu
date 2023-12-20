@@ -1568,11 +1568,11 @@ int main(int ac, char* av[]) {
                             if (_mem[i] == line_delim) cont_lines++;
                             i++;
                         }
+                        contig_size = seq.length() - cont_lines;
                         if (_mem[i - 1] == '\n')
                             std::string_view seq(_mem + contig_i, i - contig_i - 1);
                         else
-                            std::string_view seq(_mem + contig_i, i - contig_i); 
-                            contig_size = seq.length() - cont_lines;
+                            std::string_view seq(_mem + contig_i, i - contig_i);
                         if (contig_size >= (int)minContig) {
                             contigs_l[name] = nobs_l++;
                             contig_names_l.push_back(name);
