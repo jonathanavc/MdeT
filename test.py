@@ -278,6 +278,26 @@ tiempos["tabla"] = {
     }
 }
 
+
+latex_bins = "Semilla & Metabat 2 &  Metabat 2 CUDA \\\\"
+for i in range(0, num_ex):
+    latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + "\\\\ \n"
+latex_time = "{\n"
+for i in range(0, tiempos["tabla"].__len__() - 1):
+    latex_time += "(" + tiempos["tabla"].keys()[i] + "," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['Metabat2']['std']) + ")\n"
+latex_time += "};"
+
+latex_time = "{\n"
+for i in range(0, tiempos["tabla"].__len__() - 1):
+    latex_time += "(" + tiempos["tabla"].keys()[i] + "," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['MetabatCuda2']['std']) + ")\n"
+latex_time += "};"
+
+
+tiempos["latex"] = {
+    "Tiempos" : "",
+    "Bins": latex_bins
+}
+
 print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
 
 print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
