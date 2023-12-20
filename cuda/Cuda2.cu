@@ -544,7 +544,7 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     os << fasta_delim << label << line_delim;
     const char* _seq = seq.begin();
     const int maxWidth = 60;
-    s = 0;
+    size_t s = 0;
     char line[60];
     while (s < len){
         int bytes = 0;
