@@ -132,7 +132,7 @@ for i in range(0, num_ex):
     out, err = p.communicate()
     if(err):
         print(err)
-    valores = re.findall(r"[-+]?[0-9]*\.?[0-9]?([eE][-+]?[0-9]+)?", out)
+    valores = re.findall(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?", out)
     print(valores)
     tiempos["MetabatCuda2"]['READ']['ex'].append(float(valores[0]))
     tiempos["MetabatCuda2"]['ABD']['ex'].append(float(valores[1]))
@@ -148,7 +148,7 @@ for i in range(0, num_ex):
     if(err):
         print(err)
     #valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
-    valores = re.findall(r"[-+]?[0-9]*\.?[0-9]?([eE][-+]?[0-9]+)?", out)
+    valores = re.findall(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?", out)
     print(valores)
     tiempos["Metabat2"]['READ']['ex'].append(float(valores[0]))
     tiempos["Metabat2"]['ABD']['ex'].append(float(valores[1]))
