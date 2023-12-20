@@ -547,7 +547,7 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     for (size_t s = 0; s < len; s += maxWidth) {
         int bytes = s + maxWidth < len ? maxWidth : len - s;
         os.write(_seq + s, bytes);
-        if (bytes == maxWidth) os << line_delim;
+        //if (bytes == maxWidth) os << line_delim;
         if (s + bytes < len && _seq[s + bytes] == '\n') s++;
     }
     return os;
