@@ -24,7 +24,7 @@ else:
     archivo_abd = sys.argv[2]
     print("File abd: " + archivo_abd)
 
-seeds = []
+seeds_list = []
 
 tiempos = {
     'File': archivo,
@@ -123,7 +123,7 @@ tiempos["MetabatCuda2"] = {
 print("METABAT CUDA 2")
 for i in range(0, num_ex):
     seed = random.randint(0, 1000000000)
-    seeds.append(seed) 
+    seeds_list.append(seed) 
 
     if(archivo_abd != ""):
         p = subprocess.Popen(['./metabatcuda2','-i' + archivo,'-a',archivo_abd, '-o'+'outMetabat2/out','--ct', '32', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -264,7 +264,7 @@ tiempos["tabla"] = {
     },
     "Nbins": {
         "Seeds":{
-            seeds
+            seeds_list
         },
         "MetabatCuda2":{
             tiempos["MetabatCuda2"]['Nbins']
