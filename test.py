@@ -283,13 +283,17 @@ latex_bins = "Semilla & Metabat 2 &  Metabat 2 CUDA \\\\"
 for i in range(0, num_ex):
     latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + "\\\\ \n"
 latex_time = "{\n"
-for i in range(0, tiempos["tabla"].__len__() - 1):
-    latex_time += "(" + tiempos["tabla"].keys()[i] + "," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['Metabat2']['std']) + ")\n"
+for key in tiempos["tabla"].keys():
+    if key == "Nbins":
+        continue
+    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['Metabat2']['std']) + ")\n"
 latex_time += "};"
 
 latex_time = "{\n"
-for i in range(0, tiempos["tabla"].__len__() - 1):
-    latex_time += "(" + tiempos["tabla"].keys()[i] + "," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][tiempos["tabla"].keys()[i]]['MetabatCuda2']['std']) + ")\n"
+for key in tiempos["tabla"].keys():
+    if key == "Nbins":
+        continue
+    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['MetabatCuda2']['std']) + ")\n"
 latex_time += "};"
 
 
