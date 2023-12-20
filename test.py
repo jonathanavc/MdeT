@@ -261,8 +261,8 @@ tiempos["tabla"] = {
             tiempos["Metabat2"]['Total']['std'],
         }
     },
-    'Nbins': {
-        'Seeds':{
+    "Nbins": {
+        "Seeds":{
             seeds
         },
         "MetabatCuda2":{
