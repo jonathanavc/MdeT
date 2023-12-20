@@ -544,13 +544,29 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     os << fasta_delim << label << line_delim;
     const char* _seq = seq.begin();
     const int maxWidth = 60;
+    s = 0;
+    char line[60];
+    while (s < len){
+        int bytes = 0;
+        while (bytes < maxWidth && s < len) {
+            line[bytes] = _seq[s];
+            bytes++;
+            s++;
+        }
+        os.write(line, bytes);
+        os << line_delim;
+        bytes = 0;
+    }
+    /*
     for (size_t s = 0; s < len; s += maxWidth) {
+
         int bytes = s + maxWidth < len ? maxWidth : len - s;
         os.write(_seq + s, bytes);
         // if (bytes == maxWidth)
         os << line_delim;
         if (s + bytes < len && _seq[s + bytes] == '\n') s++;
     }
+    */
     return os;
 }
 
