@@ -263,15 +263,13 @@ tiempos["tabla"] = {
         }
     },
     "Nbins": {
-        "Seeds":{
-            seeds_list
-        },
-        "MetabatCuda2":{
-            tiempos["MetabatCuda2"]['Nbins']
-        },
-        "Metabat2":{
+        "Seeds": 
+            seeds_list,
+        "MetabatCuda2":
+            tiempos["MetabatCuda2"]['Nbins'],
+        "Metabat2":
             tiempos["Metabat2"]['Nbins']
-        }
+        
     }
 }
 
