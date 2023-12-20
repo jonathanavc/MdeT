@@ -133,7 +133,7 @@ for i in range(0, num_ex):
     if(err):
         print(err)
     valores = re.findall(r"[-+]?(?:\d*\.\d+|\d+\.\d*|\d+\.?\d*)(?:[eE][-+]?\d+)?", out)
-    print(valores)
+    #print(valores)
     tiempos["MetabatCuda2"]['READ']['ex'].append(float(valores[0]))
     tiempos["MetabatCuda2"]['ABD']['ex'].append(float(valores[1]))
     tiempos["MetabatCuda2"]['TNF']['ex'].append(float(valores[2]))
@@ -149,7 +149,7 @@ for i in range(0, num_ex):
         print(err)
     #valores = re.findall(r"[-+]?(?:\d*\.*\d+)", out)
     valores = re.findall(r"[-+]?(?:\d*\.\d+|\d+\.\d*|\d+\.?\d*)(?:[eE][-+]?\d+)?", out)
-    print(valores)
+    #print(valores)
     tiempos["Metabat2"]['READ']['ex'].append(float(valores[0]))
     tiempos["Metabat2"]['ABD']['ex'].append(float(valores[1]))
     tiempos["Metabat2"]['TNF']['ex'].append(float(valores[2]))
@@ -280,7 +280,7 @@ print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
 
 print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 
-print(tiempos)
+#print(tiempos)
 
 #GUARDAR
 _json = json.dumps(tiempos)
