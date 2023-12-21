@@ -545,18 +545,18 @@ std::ostream& printFasta(std::ostream& os, std::string_view label, std::string_v
     const char* _seq = seq.begin();
     const int maxWidth = 60;
     size_t s = 0;
-    char line[60];
+    char line[maxWidth + 1];
     while (s < len) {
         int bytes = 0;
-        while (bytes < maxWidth && s < len) {
+        while (bytes < maxWidth && s != len) {
             if (_seq[s] != '\n') {
                 line[bytes] = _seq[s];
                 bytes++;
             }
             s++;
         }
-        os.write(line, bytes);
-        os << line_delim;
+        line[bytes] = line_delim;
+        os.write(line, bytes + 1);
         bytes = 0;
     }
     /*
@@ -1268,8 +1268,10 @@ void output_bins(ClassMap& cls) {
                                 minContig);
             }
             cout.precision(20);
-            if (verbose) cout << bin_id - 1 << " bins (" << binnedSize + binnedSize1 << " bases in total) formed." << std::endl;
-            else cout << bin_id - 1 << std::endl;
+            if (verbose)
+                cout << bin_id - 1 << " bins (" << binnedSize + binnedSize1 << " bases in total) formed." << std::endl;
+            else
+                cout << bin_id - 1 << std::endl;
         }  // omp single
     }      // omp parallel
 }
