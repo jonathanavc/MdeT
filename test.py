@@ -310,7 +310,7 @@ print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
 
 print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
 
-print("Aceleration: " + str(tiempos["tiempos"]["Aceleration"]))
+print("Aceleration: " + str(tiempos["latex"]["Aceleration"]))
 
 #GUARDAR
 _json = json.dumps(tiempos)
