@@ -279,10 +279,11 @@ tiempos["tabla"] = {
 }
 
 
-latex_bins = r"\hline Semilla & Metabat 2 &  Metabat 2 CUDA \ \hline "
+latex_bins = '\hline Semilla & Metabat 2 &  Metabat 2 CUDA \\ \hline '
 for i in range(0, num_ex):
     latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + r"\\"
 latex_bins += r" \hline"
+latex_bins = latex_bins.__str__()
 
 latex_m2 = "{ "
 for key in tiempos["tabla"].keys():
