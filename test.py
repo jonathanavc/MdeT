@@ -279,23 +279,24 @@ tiempos["tabla"] = {
 }
 
 
-latex_bins = "Semilla & Metabat 2 &  Metabat 2 CUDA \\\\"
+latex_bins = "\hline Semilla & Metabat 2 &  Metabat 2 CUDA \\ \hline "
 for i in range(0, num_ex):
-    latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + "\\\\ \n"
-latex_time = "{\n"
+    latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + "\\"
+latex_bins += " \hline"
+
+latex_time = "{ "
 for key in tiempos["tabla"].keys():
     if key == "Nbins":
         continue
-    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['Metabat2']['std']) + ")\n"
-latex_time += "};"
+    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['Metabat2']['std']) + ") "
+latex_time += " };"
 
-latex_time = "{\n"
+latex_time = "{ "
 for key in tiempos["tabla"].keys():
     if key == "Nbins":
         continue
-    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['MetabatCuda2']['std']) + ")\n"
-latex_time += "};"
-
+    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['MetabatCuda2']['std']) + ") "
+latex_time += " };"
 
 tiempos["latex"] = {
     "Tiempos" : "",
