@@ -195,7 +195,7 @@ tiempos["Metabat2"]['binning']['avg'] = avg(tiempos["Metabat2"]['binning']['ex']
 tiempos["Metabat2"]['binning']['std'] = std(tiempos["Metabat2"]['binning']['ex'])
 
 tiempos["tabla"] = {
-    "READ": {
+    "Lectura": {
         "MetabatCuda2": {
             "avg":tiempos["MetabatCuda2"]['READ']['avg'],
             "std": tiempos["MetabatCuda2"]['READ']['std']
@@ -225,7 +225,7 @@ tiempos["tabla"] = {
             "std": tiempos["Metabat2"]['TNF']['std']
         }
     },
-    "preGraph": {
+    "PreGraph": {
         "MetabatCuda2": {
             "avg": tiempos["MetabatCuda2"]['preGraph']['avg'],
             "std": tiempos["MetabatCuda2"]['preGraph']['std']
@@ -246,7 +246,7 @@ tiempos["tabla"] = {
             "std": tiempos["Metabat2"]['Graph']['std'],
         }
     },
-    "binning": {
+    "Binning": {
         "MetabatCuda2":{
             "avg": tiempos["MetabatCuda2"]['binning']['avg'],
             "std": tiempos["MetabatCuda2"]['binning']['std'],
@@ -284,22 +284,23 @@ for i in range(0, num_ex):
     latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + r"\\"
 latex_bins += r" \hline"
 
-latex_time = "{ "
+latex_m2 = "{ "
 for key in tiempos["tabla"].keys():
     if key == "Nbins":
         continue
-    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['Metabat2']['std']) + ") "
-latex_time += " };"
+    latex_m2 += "(" + key + "," + str(tiempos["tabla"][key]['Metabat2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['Metabat2']['std']) + ") "
+latex_m2 += " };"
 
-latex_time += " { "
+latex_mc2 = " { "
 for key in tiempos["tabla"].keys():
     if key == "Nbins":
         continue
-    latex_time += "(" + key + "," + str(tiempos["tabla"][key]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['MetabatCuda2']['std']) + ") "
-latex_time += " };"
+    latex_mc2 += "(" + key + "," + str(tiempos["tabla"][key]['MetabatCuda2']['avg']) + ") +- (0," + str(tiempos["tabla"][key]['MetabatCuda2']['std']) + ") "
+latex_mc2 += " };"
 
 tiempos["latex"] = {
-    "Tiempos" : latex_time,
+    "Metabat2" : latex_m2,
+    "MetabatCuda2" : latex_mc2,
     "Bins": latex_bins
 }
 
