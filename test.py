@@ -279,10 +279,10 @@ tiempos["tabla"] = {
 }
 
 
-latex_bins = '\"hline Semilla & Metabat 2 &  Metabat 2 CUDA \ \"hline '
+latex_bins = '\'hline Semilla & Metabat 2 &  Metabat 2 CUDA \ \'hline '
 for i in range(0, num_ex):
-    latex_bins += str(seeds_list[i]) + " & " + str(tiempos["Metabat2"]['Nbins'][i]) + " & " + str(tiempos["MetabatCuda2"]['Nbins'][i]) + "\ "
-latex_bins += " \hline"
+    latex_bins += str(seeds_list[i]) + " & " + str(int(tiempos["Metabat2"]['Nbins'][i])) + " & " + str(int(tiempos["MetabatCuda2"]['Nbins'][i])) + "\ "
+latex_bins += " \'hline"
 latex_bins = latex_bins.__str__()
 
 latex_m2 = "{ "
@@ -309,6 +309,8 @@ tiempos["latex"] = {
 print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
 
 print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
+
+print("Aceleration: " + str(tiempos["tiempos"]["Aceleration"]))
 
 #GUARDAR
 _json = json.dumps(tiempos)
