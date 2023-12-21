@@ -299,7 +299,7 @@ for key in tiempos["tabla"].keys():
 latex_time += " };"
 
 tiempos["latex"] = {
-    "Tiempos" : "",
+    "Tiempos" : latex_time,
     "Bins": latex_bins
 }
 
