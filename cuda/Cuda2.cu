@@ -187,7 +187,8 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
 //__device__ __constant__ double floor_preProb 0x400193EA7AAD030B; //sin los mismos resultados
-//__device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672; // sin los mismos resultados
+//__device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672; // sin los mismos
+//resultados
 __device__ __constant__ double floor_preProb = 2.197224577336219564216435173875652253627777099609375;
 
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
@@ -1586,6 +1587,9 @@ int main(int ac, char* av[]) {
                         }
                         std::string_view seq(_mem + contig_i, i - contig_i);
                         contig_size = seq.size() - cont_lines;
+                        if (seq.back() == '\n') {
+                            seq = seq.substr(0, seq.size() - 1);
+                        }
                         if (contig_size >= (int)minContig) {
                             contigs_l[name] = nobs_l++;
                             contig_names_l.push_back(name);
