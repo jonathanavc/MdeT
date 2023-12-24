@@ -232,8 +232,8 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
         _c1[15] * lw[14] + _c1[16] * lw[15] + _c1[17] * lw[16];
     */
 
-    double ctg1 = logSizes[r1];
-    double ctg2 = logSizes[r2];
+    double ctg1 = r1;
+    double ctg2 = r2;
     double lw11 = min(ctg1, ctg2);
     double lw21 = max(ctg1, ctg2);
     double lw12 = lw11 * lw11;
