@@ -394,7 +394,8 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
         __syncthreads();
     }
     if (threadIdx.x == 0) {
-        max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
+        //max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
+        max_dist[contig_idx] = shared_max[0];
     }
 }
 
@@ -1024,6 +1025,9 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaFree(max_nobs_d);
 
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
+    for (size_t i = 1; i < _nobs; ++i) {
+        max_nobs_h[i] = 1. - (1.0 / (1.0 + EXP(max_nobs_h[i])));
+    }
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
