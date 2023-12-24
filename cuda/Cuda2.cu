@@ -319,7 +319,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     if (preProb >= floor_preProb_cutoff)
         graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
     else
-        graph[prob_index] = 0.0;
+        graph[prob_index] = -1;
 }
 
 __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
@@ -988,7 +988,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
-                    if (sTNF && (edges[que_index].size() < maxEdges ||
+                    if (sTNF != -1 && (edges[que_index].size() < maxEdges ||
                                  (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
