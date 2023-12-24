@@ -964,12 +964,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t graph_des = que_index * matrix_x;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
-
                     //double sTNF = graph_h[graph_des + (j - jj)];
-                    double sTNF = graph_h[graph_des + (j - jj)];
-                    if (sTNF <= floor_preProb_cutoff) continue;
-                    sTNF = 1. - (1.0 / (1.0 + EXP(sTNF)));
-                    if (sTNF != 0 && (edges[que_index].size() < maxEdges ||
+                    double sTNF = 1. - (1.0 / (1.0 + EXP(graph_h[graph_des + (j - jj)])));
+                    if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                  (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
@@ -1025,7 +1022,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaFree(max_nobs_d);
 
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
-    for (size_t i = 1; i < _nobs; ++i) {
+    for (size_t i = 0; i < _nobs; i++) {
         max_nobs_h[i] = 1. - (1.0 / (1.0 + EXP(max_nobs_h[i])));
     }
 
