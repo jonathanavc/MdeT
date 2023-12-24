@@ -1577,11 +1577,6 @@ int main(int ac, char* av[]) {
                                 name = name.substr(0, end);
                             }
                         }
-                        /*
-                        if (name[0] == 'S') {
-                            std::cout << "Scaffold found:" << name << std::endl;
-                        }
-                        */
                         i++;
                         contig_i = i;  // guardar el inicio del contig
                         while (i < fsize && _mem[i] != fasta_delim) {
@@ -1590,7 +1585,6 @@ int main(int ac, char* av[]) {
                         }
                         std::string_view seq(_mem + contig_i, i - contig_i);
                         contig_size = seq.size() - cont_lines;
-                        if (seq.back() == '\n') seq = seq.substr(0, seq.size() - 1);
                         if (contig_size >= (int)minContig) {
                             contigs_l[name] = nobs_l++;
                             contig_names_l.push_back(name);
@@ -1649,7 +1643,6 @@ int main(int ac, char* av[]) {
 
     TIMERSTART(ABD);
     if (hasABD) {
-        const char null[1] = {'-'};
         ABD.resize(nobs, nABD);
         ABD_VAR.resize(nobs, nABD);
         small_ABD.resize(nobs1, nABD);
@@ -1900,7 +1893,6 @@ int main(int ac, char* av[]) {
 
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
 
-    // size_t max_gpu_mem = 4000000000;  // 4gb
     cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
     TIMERSTART(TNF_CAL);
     {
