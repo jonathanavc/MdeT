@@ -381,38 +381,6 @@ void next_contig(char* __restrict__ contig, char c) {
     contig[3] = c;
 }
 
-/*
-__global__ void get_TNF(float* __restrict__ TNF_d, const char* __restrict__ seqs_d, const size_t* __restrict__ seqs_d_index,
-                        const size_t nobs, const size_t contigs_per_thread, const size_t seqs_d_index_size) {
-    const size_t thead_id = threadIdx.x + blockIdx.x * blockDim.x;
-    size_t limit = min(thead_id * contigs_per_thread + contigs_per_thread, nobs);
-    for (size_t contig_index = thead_id * contigs_per_thread; contig_index < limit; contig_index++) {
-        char contig_temp[4] = {0};
-        float TNF_temp[136] = {0};
-        const size_t tnf_index = contig_index * 136;
-        size_t contig_size = seqs_d_index[contig_index + seqs_d_index_size] - seqs_d_index[contig_index];
-        const char* contig = seqs_d + seqs_d_index[contig_index];
-        if (contig_size < 4) continue;
-        for (size_t j = 0; j < 3; j++) next_contig(contig_temp, contig[j]);
-        for (size_t j = 3; j < contig_size; ++j) {
-            char c = contig[j];
-            next_contig(contig_temp, c);
-            short tn = get_tn(contig_temp);
-            if (tn & 256) continue;
-            TNF_temp[TNmap_d[tn]]++;
-        }
-        double rsum = 0;
-        for (int c = 0; c < 136; ++c) {
-            rsum += TNF_temp[c] * TNF_temp[c];
-        }
-        rsum = sqrt(rsum);
-        for (int c = 0; c < 136; ++c) {
-            TNF_d[tnf_index + c] = TNF_temp[c] / rsum;
-        }
-    }
-}
-*/
-
 void getError(std::string s = "") {
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -427,40 +395,6 @@ void getError(std::string s = "") {
         exit(1);
     }
 }
-
-/*
-void launch_tnf_kernel(size_t cobs, size_t _first, size_t global_des) {
-    size_t n_STREAMS = ((cobs + 9999) / 10000);
-    cudaStream_t streams[n_STREAMS];
-    cudaMalloc((void**)&seqs_d, seqs_h_index_e[cobs - 1] * sizeof(char));
-    cudaMalloc((void**)&seqs_d_index, 2 * cobs * sizeof(size_t));
-    size_t contig_per_kernel = cobs / n_STREAMS;
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamCreate(&streams[i]);
-        size_t contig_to_process = contig_per_kernel;
-        size_t _des = contig_per_kernel * i;
-        size_t TNF_des = _des * 136;
-        if (i == n_STREAMS - 1) contig_to_process += (cobs % n_STREAMS);
-        size_t bloqs = (contig_to_process + numThreads2 - 1) / numThreads2;
-        size_t contigs_per_thread = 1;
-        cudaMemcpyAsync(seqs_d + seqs_h_index_i[_des], seqs[_first].data() + seqs_h_index_i[_des],
-                        seqs_h_index_e[_des + contig_to_process - 1] - seqs_h_index_i[_des], cudaMemcpyHostToDevice, streams[i]);
-        cudaMemcpyAsync(seqs_d_index + _des, seqs_h_index_i.data() + _des, contig_to_process * sizeof(size_t), cudaMemcpyHostToDevice,
-                        streams[i]);
-        cudaMemcpyAsync(seqs_d_index + cobs + _des, seqs_h_index_e.data() + _des, contig_to_process * sizeof(size_t),
-                        cudaMemcpyHostToDevice, streams[i]);
-        get_TNF<<<bloqs, numThreads2, 0, streams[i]>>>(TNF_d + 136 * global_des + TNF_des, seqs_d, seqs_d_index + _des,
-                                                       contig_to_process, contigs_per_thread, cobs);
-    }
-    for (int i = 0; i < n_STREAMS; i++) {
-        cudaStreamSynchronize(streams[i]);
-        cudaStreamDestroy(streams[i]);
-    }
-    getError("kernel");
-    cudaFree(seqs_d);
-    cudaFree(seqs_d_index);
-}
-*/
 
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_d, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d;
