@@ -188,7 +188,7 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
 
 //__device__ __constant__ double floor_preProb 0x400193EA7AAD030B; //sin los mismos resultados
 //__device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672; // sin los mismos
-//resultados
+// resultados
 __device__ __constant__ double floor_preProb = 2.1972245773362196;
 
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
@@ -255,7 +255,7 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
     c = -443565.465710869 + 718862.10804858 * lw11 + 5114.1630934534 * lw21 + -501588.206183097 * lw12 + 784.4442123743 * lw22 +
         194712.394138513 * lw13 + -377.9645994741 * lw23 + -45088.7863182741 * lw14 + 50.5960513287 * lw24 + 6220.3310639927 * lw15 +
         -2.3670776453 * lw25 + -473.269785487 * lw16 + 15.3213264134 * lw17 + -3282.8510348085 * lw11 * lw21 +
-        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;    
+        164.0438603974 * lw12 * lw22 + -5.2778800755 * lw13 * lw23 + 0.0929379305 * lw14 * lw24 + -0.0006826817 * lw15 * lw25;
 
     double preProb = -(b + c * d);
 
@@ -948,7 +948,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
-            //cudaDeviceSynchronize();
+            // cudaDeviceSynchronize();
             if (jj + TILE < nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
@@ -962,7 +962,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
                     if (sTNF != 0 && (edges[que_index].size() < maxEdges ||
-                                 (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
+                                      (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
@@ -1955,6 +1955,10 @@ int main(int ac, char* av[]) {
             gen_tnf_graph(g, pTNF / 1000.);
             TIMERSTOP(TNF_GRAPH);
 
+            std::ofstream file("graphC.bin", std::ios::binary);
+            file.write(reinterpret_cast<char*>(&g), sizeof(g));
+            file.close();
+
             size_t nEdges = g.sTNF.size();
 
             if (nEdges == 0) {
@@ -2163,7 +2167,7 @@ int main(int ac, char* av[]) {
             for (auto it = cls.begin(); it != cls.end(); ++it) {
                 size_t kk = it->first;
                 for (auto it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                    //binned_size += seqs[*it2].size();
+                    // binned_size += seqs[*it2].size();
                     binned_size += sizes[*it2];
                 }
             }
