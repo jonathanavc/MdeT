@@ -1915,43 +1915,6 @@ int main(int ac, char* av[]) {
         cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
         cudaFreeHost(TNF);
     }
-    /*
-    TIMERSTART(b);
-    cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
-    {
-        ProgressTracker progress(nobs);
-
-        seqs_h_index_i.reserve(nobs);
-        seqs_h_index_e.reserve(nobs);
-
-        // TNF.resize(nobs, nTNF);
-        // TNF.clear();
-        size_t cobs = 0;  // current obs
-        size_t _first = 0;
-        for (size_t i = 0; i < nobs; i++) {
-            if (seqs[i].data() - seqs[_first].data() + seqs[i].size() > max_gpu_mem) {
-                launch_tnf_kernel(cobs, _first, i - cobs);
-                seqs_h_index_i.clear();
-                seqs_h_index_e.clear();
-                progress.track(cobs);
-                verbose_message("Calculating TNF %s\r", progress.getProgress());
-                _first = i;
-                cobs = 0;
-            }
-            seqs_h_index_i.emplace_back(seqs[i].data() - seqs[_first].data());
-            seqs_h_index_e.emplace_back(seqs[i].data() - seqs[_first].data() + seqs[i].size());
-            cobs++;
-        }
-        if (cobs != 0) {
-            launch_tnf_kernel(cobs, _first, nobs - cobs);
-            progress.track(cobs);
-            verbose_message("Calculating TNF %s\r", progress.getProgress());
-            seqs_h_index_i.clear();
-            seqs_h_index_e.clear();
-        }
-    }
-    TIMERSTOP(b);
-    */
     TIMERSTOP(TNF_CAL);
 
     verbose_message("Finished TNF calculation.                                  \n");
@@ -2200,7 +2163,8 @@ int main(int ac, char* av[]) {
             for (auto it = cls.begin(); it != cls.end(); ++it) {
                 size_t kk = it->first;
                 for (auto it2 = cls[kk].begin(); it2 != cls[kk].end(); ++it2) {
-                    binned_size += seqs[*it2].size();
+                    //binned_size += seqs[*it2].size();
+                    binned_size += sizes[*it2];
                 }
             }
 
