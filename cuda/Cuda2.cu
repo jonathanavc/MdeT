@@ -1946,18 +1946,14 @@ int main(int ac, char* av[]) {
             } else {
                 pTNF *= 10;
             }
-            TIMERSTOP(GRAPH_SAMPLE)
             verbose_message("Finished Preparing TNF Graph Building [pTNF = %2.2f]                                             \n",
                             pTNF / 10.);
+            TIMERSTOP(GRAPH_SAMPLE);
 
             // 2. build tnf graph
             TIMERSTART(TNF_GRAPH);
             gen_tnf_graph(g, pTNF / 1000.);
             TIMERSTOP(TNF_GRAPH);
-
-            std::ofstream file("graphC.bin", std::ios::binary);
-            file.write(reinterpret_cast<char*>(&g), sizeof(g));
-            file.close();
 
             size_t nEdges = g.sTNF.size();
 
