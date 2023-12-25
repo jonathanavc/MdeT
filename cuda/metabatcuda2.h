@@ -28,7 +28,6 @@
 #include "OpenMP.h"
 #include "ProgressTracker.h"
 #include "kseq.h"
-#include "metabat_version.h"
 KSEQ_INIT(gzFile, gzread)
 
 #include "cuckoohash_map.hh"
