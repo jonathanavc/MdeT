@@ -354,14 +354,11 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + prob_index % nc2;
     if (ct1 == ct2) return;
-    graph[prob_index] = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-    /*
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-    if (preProb >= floor_preProb_cutoff)
+    if (preProb > floor_preProb_cutoff)
         graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
     else
         graph[prob_index] = 0;
-    */
 }
 
 __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
@@ -394,8 +391,7 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
         __syncthreads();
     }
     if (threadIdx.x == 0) {
-        //max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
-        max_dist[contig_idx] = shared_max[0];
+        max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
     }
 }
 
@@ -932,7 +928,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
     // printf("TILE: %d\n", TILE);
 
-    const double floor_preProb_cutoff = log((1.0 / (1. - cutoff)) - 1.0);
+    const double floor_preProb_cutoff = LOG((1.0 / (1. - cutoff)) - 1.0);
     // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
     // reduction(merge_double: sTNF)
 
@@ -964,9 +960,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t graph_des = que_index * matrix_x;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
-                    //double sTNF = graph_h[graph_des + (j - jj)];
-                    double sTNF = 1. - (1.0 / (1.0 + EXP(graph_h[graph_des + (j - jj)])));
-                    if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
+                    double sTNF = graph_h[graph_des + (j - jj)];
+                    if (sTNF != 0 && (edges[que_index].size() < maxEdges ||
                                  (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
@@ -1022,9 +1017,6 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaFree(max_nobs_d);
 
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
-    for (size_t i = 0; i < _nobs; i++) {
-        max_nobs_h[i] = 1. - (1.0 / (1.0 + EXP(max_nobs_h[i])));
-    }
 
     size_t p = 999, pp = 1000;
     double cov = 0, pcov = 0;
