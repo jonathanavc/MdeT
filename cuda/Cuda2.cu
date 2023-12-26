@@ -127,8 +127,8 @@ static boost::numeric::ublas::matrix<float> small_ABD;
 
 // static float* TNF_data;
 static float* TNF_d;
-static char* seqs_d;
-static size_t* seqs_d_index;
+// static char* seqs_d;
+// static size_t* seqs_d_index;
 static double* contig_log;
 std::vector<size_t> seqs_h_index_i;
 std::vector<size_t> seqs_h_index_e;
