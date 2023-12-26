@@ -30,7 +30,7 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include "../extra/metrictime2.hpp"
+#include "metrictime2.hpp"
 #include "ProgressTracker.h"
 #include "cuckoohash_map.hh"
 #include "ranker.h"
