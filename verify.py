@@ -1,5 +1,6 @@
 import hashlib
 import os
+import sys
 
 
 def check_md5(file1, file2):
