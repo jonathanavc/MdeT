@@ -8,18 +8,15 @@ directory_path2 = ""
 
 
 def check_md5(file1, file2):
-    print("Comparing " + file1 + " and " + file2)
     with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
         file1_hash = hashlib.md5(f1.read()).hexdigest()
         file2_hash = hashlib.md5(f2.read()).hexdigest()
-        print("File1: " + file1_hash)
-        print("File2: " + file2_hash)
     return file1_hash == file2_hash
 
 def check_all_files_in_directory(directory_path1, directory_path2):
     files = os.listdir(directory_path1)
     verified_files_count = 0
-    for i in range(1, len(files)):
+    for i in range(0, len(files)):
         file1 = os.path.join(directory_path1, files[i])
         file2 = os.path.join(directory_path2, files[i])
         if check_md5(file1, file2):
