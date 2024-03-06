@@ -8,6 +8,7 @@ directory_path2 = ""
 
 
 def check_md5(file1, file2):
+    print("Comparing " + file1 + " and " + file2)
     with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
         file1_hash = hashlib.md5(f1.read()).hexdigest()
         file2_hash = hashlib.md5(f2.read()).hexdigest()
