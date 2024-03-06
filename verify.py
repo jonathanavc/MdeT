@@ -11,10 +11,10 @@ def check_md5(file1, file2):
     return file1_hash == file2_hash
 
 def check_all_files_in_directory(directory_path1, directory_path2):
-    files = os.listdir(directory_path)
+    files = os.listdir(directory_path1)
     verified_files_count = 0
     for j in range(i+1, len(files)):
-        file1 = os.path.join(directory_path, files[i])
+        file1 = os.path.join(directory_path1, files[i])
         file2 = os.path.join(directory_path2, files[i])
         if not check_md5(file1, file2):
             print(f"The files {file1} and {file2} are not identical.")
