@@ -5,6 +5,8 @@ import re
 import math
 import random
 from datetime import datetime
+import hashlib
+import os
 
 num_ex = 10
 
@@ -25,6 +27,7 @@ else:
     print("File abd: " + archivo_abd)
 
 seeds_list = []
+sim_list = []
 
 tiempos = {
     'File': archivo,
@@ -40,6 +43,26 @@ def std(arr):
     avg = sum(arr)/len(arr)
     return math.sqrt(sum([(x-avg)**2 for x in arr])/len(arr))
     #return  sum([(x-avg)**2 for x in arr])/len(arr)
+
+def check_md5(file1, file2):
+    with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
+        file1_hash = hashlib.md5(f1.read()).hexdigest()
+        file2_hash = hashlib.md5(f2.read()).hexdigest()
+    return file1_hash == file2_hash
+
+def check_all_files_in_directory(directory_path1, directory_path2):
+    files = os.listdir(directory_path1)
+    verified_files_count = 0
+    for i in range(0, len(files)):
+        file1 = os.path.join(directory_path1, files[i])
+        file2 = os.path.join(directory_path2, files[i])
+        if check_md5(file1, file2):
+            verified_files_count += 1
+
+    if len(files) != 0:
+        return (verified_files_count / len(files)) * 100
+    else:
+        return 100
 
 tiempos["Metabat2"] = {
         'READ': {
@@ -126,7 +149,7 @@ for i in range(0, num_ex):
     seeds_list.append(seed) 
 
     if(archivo_abd != ""):
-        p = subprocess.Popen(['./metabatcuda2','-i' + archivo,'-a',archivo_abd, '-o'+'outMetabat2/out','--ct', '32', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(['./metabatcuda2','-i' + archivo,'-a',archivo_abd, '-o'+'outMetabat2Cuda/out','--ct', '32', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     else:
         p = subprocess.Popen(['./metabatcuda2','-i' + archivo, '-o'+'outMetabat2Cuda/out','--ct', '32', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
@@ -143,9 +166,9 @@ for i in range(0, num_ex):
     tiempos["MetabatCuda2"]['Nbins'].append(float(valores[5]))
 
     if(archivo_abd != ""):
-        p = subprocess.Popen(['./metabat2','-i' + archivo,'-a',archivo_abd, '-o'+'out/out', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(['./metabat2','-i' + archivo,'-a',archivo_abd, '-o'+'outMetabat2/out', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     else:
-        p = subprocess.Popen(['./metabat2','-i' + archivo, '-o'+'out/out', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(['./metabat2','-i' + archivo, '-o'+'outMetabat2/out', '--seed', str(seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     out, err = p.communicate()
     if(err):
         print(err)
@@ -160,7 +183,8 @@ for i in range(0, num_ex):
     tiempos["Metabat2"]['Total']['ex'].append(float(valores[6]))
     tiempos["Metabat2"]['binning']['ex'].append(float(valores[6]) - float(valores[4]) - float(valores[3]) - float(valores[2]) - float(valores[1]) - float(valores[0]))
     tiempos["Metabat2"]['Nbins'].append(float(valores[5]))
-    
+
+    sim_list.append(check_all_files_in_directory("outMetabat2", "outMetabat2Cuda"))
     print("[{:.1f}%] Test".format(((i + 1) / num_ex) * 100), end='\r')
 
 tiempos["MetabatCuda2"]['READ']['avg'] = avg(tiempos["MetabatCuda2"]['READ']['ex'])
@@ -270,6 +294,8 @@ tiempos["tabla"] = {
     "Nbins": {
         "Seeds": 
             seeds_list,
+        "Similarity":
+            sim_list,
         "MetabatCuda2":
             tiempos["MetabatCuda2"]['Nbins'],
         "Metabat2":
