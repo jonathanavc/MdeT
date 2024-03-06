@@ -23,13 +23,13 @@ def check_all_files_in_directory(directory_path1, directory_path2):
     if verified_files_count == len(files):
         print(f"All files are identical. Total files verified: {verified_files_count}")
 
-def main():
-    directory_path1 = ""
-    directory_path2 = ""
-    if(len(sys.argv) < 3):
-        print("Usage: python verify.py <directory_path1> <directory_path2>")
-        exit()
-    else:
-        directory_path1 = sys.argv[1]
-        directory_path2 = sys.argv[2]
-    check_all_files_in_directory(directory_path1, directory_path2)
+
+directory_path1 = ""
+directory_path2 = ""
+if(len(sys.argv) < 3):
+    print("Usage: python verify.py <directory_path1> <directory_path2>")
+    exit()
+else:
+    directory_path1 = sys.argv[1]
+    directory_path2 = sys.argv[2]
+check_all_files_in_directory(directory_path1, directory_path2)
