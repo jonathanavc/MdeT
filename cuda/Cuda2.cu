@@ -837,17 +837,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
     cudaFreeHost(TNF);
 
-
-
-    if (numDevices == 0) {
-        cerr << "No CUDA devices found" << endl;
-        exit(1);
-    }
-    else {
-        cout <<  "Using " << numDevices << " CUDA devices" << endl;
-    }
-
-
+    verbose_message("Executing with %d CUDA devices\n", numDevices);
+    
     ProgressTracker progress = ProgressTracker(nobs);
     std::vector<size_t>& from = g.from;
     std::vector<size_t>& to = g.to;
