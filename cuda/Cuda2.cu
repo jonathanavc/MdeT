@@ -814,6 +814,40 @@ bool is_nz(size_t r1, size_t r2) {
 #pragma omp declare reduction(merge_double : std::vector<double> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
 void gen_tnf_graph(Graph& g, Similarity cutoff) {
+
+    // preparar multiple gpu para el calculo de la matriz de distancias
+    int numDevices;
+    cudaGetDeviceCount(&numDevices);
+    // cargar matriz TNF a cada dispositivo
+    float* TNF_device[numDevices];
+    double* contig_log_device[numDevices];
+
+    float* TNF;
+    cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
+    cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(float), cudaMemcpyDeviceToHost);
+
+    TNF_device[0] = TNF_d;
+    contig_log_device[0] = contig_log;
+    for (int i = 1; i < numDevices; i++) {
+        cudaSetDevice(i);
+        cudaMalloc((void**)&TNF_device[i], nobs * 136 * sizeof(float));
+        cudaMalloc((void**)&contig_log_device[i], nobs * sizeof(double));
+        cudaMemcpy(TNF_device[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(contig_log_device[i], contig_log, nobs * sizeof(double), cudaMemcpyHostToDevice);
+    }
+    cudaFreeHost(TNF);
+
+
+
+    if (numDevices == 0) {
+        cerr << "No CUDA devices found" << endl;
+        exit(1);
+    }
+    else {
+        cout << "Found " << numDevices << " CUDA devices" << endl;
+    }
+
+
     ProgressTracker progress = ProgressTracker(nobs);
     std::vector<size_t>& from = g.from;
     std::vector<size_t>& to = g.to;
@@ -834,6 +868,10 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
     reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
+
+        int device_id = omp_get_thread_num() % numDevices;
+        cudaSetDevice(device_id); // a cada hilo se asigna a un dispositivo
+        
         double *graph_d, *graph_h;
         cudaMalloc((void**)&graph_d, TILE * TILE * sizeof(double));
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
@@ -843,7 +881,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_device[device_id], contig_log_device[device_id], matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
@@ -851,7 +889,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             if (jj + TILE < nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d, contig_log, matrix_y, matrix_next_x, ii, jj + TILE,
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_device[device_id], contig_log_device[device_id], matrix_y, matrix_next_x, ii, jj + TILE,
                                                       floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
@@ -892,6 +930,12 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
+
+    for (int i = 1; i < numDevices; i++) {
+        cudaSetDevice(i);
+        cudaFree(TNF_device[i]);
+        cudaFree(contig_log_device[i]);
+    }
 
     g.sTNF.shrink_to_fit();
     g.to.shrink_to_fit();
@@ -2240,8 +2284,7 @@ int main(int ac, char* av[]) {
     output_bins(cls);
     verbose_message("Finished\n");
     cudaFreeHost(_mem);
-    cudaFree(TNF_d);
-    cudaFree(contig_log);
+    //cudaFree(contig_log);
 
     TIMERSTOP(total);
     return 0;
