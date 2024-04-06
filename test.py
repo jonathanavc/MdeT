@@ -329,12 +329,16 @@ tiempos["latex"] = {
     "Metabat2" : latex_m2,
     "MetabatCuda2" : latex_mc2,
     "Bins": latex_bins,
-    "Aceleration": ((tiempos["Metabat2"]['Total']['avg']-tiempos["MetabatCuda2"]['Total']['avg']) / tiempos["Metabat2"]['Total']['avg']) * 100
+    "TimeRduction": ((tiempos["Metabat2"]['Total']['avg']-tiempos["MetabatCuda2"]['Total']['avg']) / tiempos["Metabat2"]['Total']['avg']) * 100,
+    "Aceleration": tiempos["Metabat2"]['Total']['avg'] / tiempos["MetabatCuda2"]['Total']['avg']
 }
 
 print("Total CUDA: " + str(tiempos["MetabatCuda2"]['Total']['avg']))
 
 print("Total OMP: " + str(tiempos["Metabat2"]['Total']['avg']))
+
+print("Time Reduction: " + str(tiempos["latex"]["Aceleration"]))
+
 
 print("Aceleration: " + str(tiempos["latex"]["Aceleration"]))
 
