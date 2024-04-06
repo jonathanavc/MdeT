@@ -844,7 +844,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         exit(1);
     }
     else {
-        cout << "Found " << numDevices << " CUDA devices" << endl;
+        cout <<  "Using " << numDevices << " CUDA devices" << endl;
     }
 
 
