@@ -255,7 +255,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     if (ct1 == ct2) return;
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
     if (preProb >= floor_preProb_cutoff)
-        graph[prob_index] = 1.0 - (1.0 / (1 + exp(preProb)));
+        graph[prob_index] = 1.0 - (1.0 / (1. + exp(preProb)));
     else
         graph[prob_index] = 0;
 }
@@ -290,7 +290,7 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
         __syncthreads();
     }
     if (threadIdx.x == 0) {
-        max_dist[contig_idx] = 1.0 - (1.0 / (1 + exp(shared_max[0])));
+        max_dist[contig_idx] = 1.0 - (1.0 / (1. + exp(shared_max[0])));
     }
 }
 
