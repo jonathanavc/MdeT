@@ -36,6 +36,9 @@ tiempos = {
     "Metabat2": {}
 }
 
+os.system("rm -rf " + "outMetabat2")
+os.system("rm -rf " + "outMetabat2Cuda")
+
 def avg(arr):
     return sum(arr)/len(arr)
 
