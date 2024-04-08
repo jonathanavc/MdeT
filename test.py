@@ -52,6 +52,9 @@ def check_md5(file1, file2):
 
 def check_all_files_in_directory(directory_path1, directory_path2):
     files = os.listdir(directory_path1)
+    diff_files = len(os.listdir(directory_path1)) - len(os.listdir(directory_path2))
+    if len(os.listdir(directory_path1)) > len(os.listdir(directory_path2)):
+        files = os.listdir(directory_path2)
     verified_files_count = 0
     for i in range(0, len(files)):
         file1 = os.path.join(directory_path1, files[i])
@@ -60,7 +63,7 @@ def check_all_files_in_directory(directory_path1, directory_path2):
             verified_files_count += 1
 
     if len(files) != 0:
-        return (verified_files_count / len(files)) * 100
+        return (verified_files_count / (len(files) + diff_files)) * 100
     else:
         return 100
 
