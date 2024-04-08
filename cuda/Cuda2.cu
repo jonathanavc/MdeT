@@ -884,7 +884,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
-                size_t graph_des = que_index * matrix_y;
+                size_t graph_des = que_index * matrix_x;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
