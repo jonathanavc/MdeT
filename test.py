@@ -26,6 +26,10 @@ else:
     archivo_abd = sys.argv[2]
     print("File abd: " + archivo_abd)
 
+if(len(sys.argv) == 4):
+    num_ex = int(sys.argv[3])
+    print("Number of experiments: " + str(num_ex))
+
 seeds_list = []
 sim_list = []
 
