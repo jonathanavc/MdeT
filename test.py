@@ -61,7 +61,8 @@ def check_all_files_in_directory(directory_path1, directory_path2):
         file2 = os.path.join(directory_path2, files[i])
         if check_md5(file1, file2):
             verified_files_count += 1
-
+    os.system("rm -rf " + directory_path1)
+    os.system("rm -rf " + directory_path2)
     if len(files) != 0:
         return (verified_files_count / (len(files) + diff_files)) * 100
     else:
