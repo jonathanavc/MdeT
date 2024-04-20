@@ -901,7 +901,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     if (i == j || !is_nz(i, j)) continue;
                     // test
                     if (graph_h[graph_des + (j - jj)] > floor_preProb_cutoff) continue;
-                    double sTNF = = 1. - (1. / (1. + exp(graph_h[graph_des + (j - jj)])));
+                    double sTNF = 1. - (1. / (1. + exp(graph_h[graph_des + (j - jj)])));
                     if ((edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
