@@ -901,7 +901,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     double sTNF = graph_h[graph_des + (j - jj)];
 
                     //test
-                    double sTNF2 = cal_tnf_dist(i, j);
+                    double sTNF2 = 1. - cal_tnf_dist(i, j);
                     if (sTNF != sTNF2) {
                         printf("Ctg1: %d, Ctg2: %d,sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
                     }
