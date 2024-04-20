@@ -251,13 +251,13 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
     if (r1 >= nc1){
-        graph[prob_index] = 2;
+        graph[prob_index] = 2; // test
         return;
     }
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
     if (ct1 == ct2){
-        graph[prob_index] = 2;
+        graph[prob_index] = 2; // test
         return;
     }
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
@@ -859,7 +859,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     }
     // printf("TILE: %d\n", TILE);
 
-    const double floor_preProb_cutoff = LOG((1.0 / (1. - cutoff)) - 1.0);
+    const double floor_preProb_cutoff = LOG((1.0 / (1. - (float)cutoff)) - 1.0);
     // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
     // reduction(merge_double: sTNF)
 
