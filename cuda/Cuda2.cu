@@ -125,7 +125,7 @@ static boost::numeric::ublas::matrix<float> ABD_VAR;
 static boost::numeric::ublas::matrix<float> small_ABD;
 // static boost::numeric::ublas::matrix<float> TNF;
 
-// static float* TNF_data;
+static float* TNF;
 static float* TNF_d;
 // static char* seqs_d;
 // static size_t* seqs_d_index;
@@ -682,14 +682,14 @@ Distance cal_abd_dist(size_t r1, size_t r2, size_t i, bool& nz) {
     return std::min(std::max(d, 1e-6), 1. - 1e-6);
 }
 
-/*
+
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0);
     const Distance floor_prob = 0.1;
     const Distance floor_preProb = LOG((1.0 / floor_prob) - 1.0);
     Distance d = 0;
     for (size_t i = 0; i < nTNF; ++i) {
-        d += (TNF(r1, i) - TNF(r2, i)) * (TNF(r1, i) - TNF(r2, i));  // euclidean distance
+        d += (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]) * (TNF[r1 * nobs + i] - TNF[r2 * nobs + i]);  // euclidean distance
     }
     d = SQRT(d);
     Distance b, c;  // parameters
@@ -743,7 +743,6 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
 
     return prob;
 }
-*/
 
 size_t countLines(const char* f) {
     size_t lines = 0;
@@ -834,9 +833,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     float* TNF_device[numDevices];
     double* contig_log_device[numDevices];
 
-    float* TNF;
-    cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
-    cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(float), cudaMemcpyDeviceToHost);
+    //float* TNF;
+    //cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
+    //cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(float), cudaMemcpyDeviceToHost);
 
     TNF_device[0] = TNF_d;
     contig_log_device[0] = contig_log;
@@ -899,16 +898,16 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t graph_des = que_index * matrix_x;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
-                    /* test
-                    if (graph_h[graph_des + (j - jj)] <= floor_preProb_cutoff) continue;
-                    double sTNF = 1. - (1. / (1. + exp(graph_h[graph_des + (j - jj)])));
-                    if ((edges[que_index].size() < maxEdges ||
-                                      (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
-                        if (edges[que_index].size() == maxEdges) edges[que_index].pop();
-                        edges[que_index].push(std::make_pair(j, sTNF));
-                    }
-                    //*/
                     double sTNF = graph_h[graph_des + (j - jj)];
+
+                    //test
+                    double sTNF2 = cal_tnf_dist(i, j);
+                    if (sTNF != sTNF2) {
+                        printf("sTNF: %f, sTNF2: %f\n", sTNF, sTNF2);
+                    }
+                    /// test
+
+
                     if (sTNF && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
@@ -1828,7 +1827,7 @@ int main(int ac, char* av[]) {
     TIMERSTART(TNF_CAL);
     {
         cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
-        float* TNF;
+        //float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
         ProgressTracker progress(nobs);
 
@@ -1867,7 +1866,7 @@ int main(int ac, char* av[]) {
         }
         verbose_message("Finished TNF calculation.                                  \n");
         cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
-        cudaFreeHost(TNF);
+        //cudaFreeHost(TNF);
     }
     TIMERSTOP(TNF_CAL);
 
