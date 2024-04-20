@@ -261,7 +261,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
         return;
     }
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
-    
+
     // test
     graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
     
@@ -903,7 +903,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 
                     //test
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
-                    if (sTNF != sTNF2) {
+                    if (abs(sTNF - sTNF2) > 1e-6) {
                         printf("Ctg1: %d, Ctg2: %d,sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
                     }
                     /// test
