@@ -900,7 +900,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     // test
-                    if (graph_h[graph_des + (j - jj)] > floor_preProb_cutoff) continue;
+                    if (graph_h[graph_des + (j - jj)] <= floor_preProb_cutoff) continue;
                     double sTNF = 1. - (1. / (1. + exp(graph_h[graph_des + (j - jj)])));
                     if ((edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
@@ -909,9 +909,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                     /* original
                     double sTNF = graph_h[graph_des + (j - jj)];
-                    
-                    //if(sTNF > 1) cerr << "sTNF: " << sTNF << ";ctg1:"<< i + ii <<";ctg2"<< j+jj << endl;
-                    if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
+                    if (sTNF && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
