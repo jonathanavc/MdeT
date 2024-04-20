@@ -197,7 +197,7 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
         d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);
     }
     d = sqrt(d);
-    
+
     double b, c;
 
     double lw[19];
@@ -902,8 +902,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     //test
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
                     if (abs(sTNF - sTNF2) > 1e-6) {
-                        printf("Ctg1: %d, Ctg2: %d,sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
-                    }
+                        printf("Ctg1: %d, Ctg2: %d, diff:%g\n", i, j, abs(sTNF - sTNF2));
                     /// test
 
 
