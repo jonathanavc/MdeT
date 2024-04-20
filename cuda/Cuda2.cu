@@ -846,7 +846,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMemcpy(TNF_device[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
         cudaMemcpy(contig_log_device[i], contig_log, nobs * sizeof(double), cudaMemcpyHostToDevice);
     }
-    cudaFreeHost(TNF);
+    //cudaFreeHost(TNF);
 
     verbose_message("Executing with %d CUDA devices\n", numDevices);
     
@@ -903,7 +903,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     //test
                     double sTNF2 = cal_tnf_dist(i, j);
                     if (sTNF != sTNF2) {
-                        printf("sTNF: %f, sTNF2: %f\n", sTNF, sTNF2);
+                        printf("Ctg1: %d, Ctg2: %d,sTNF: %f, sTNF2: %f\n", i, j, sTNF, sTNF2);
                     }
                     /// test
 
