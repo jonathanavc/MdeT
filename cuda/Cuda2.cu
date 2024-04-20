@@ -895,7 +895,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
-                    if(sTNF == 2) cerr << "sTNF: " << sTNF << ";ctg1:"<< i + ii <<";ctg2"<< j+jj << endl;
+                    if(sTNF > 1) cerr << "sTNF: " << sTNF << ";ctg1:"<< i + ii <<";ctg2"<< j+jj << endl;
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
