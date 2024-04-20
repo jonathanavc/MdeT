@@ -262,14 +262,14 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     }
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
     // test
-    graph[prob_index] = preProb;
+    //graph[prob_index] = preProb;
 
-    /* original
+    ///* original
     if (preProb > floor_preProb_cutoff)
         graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
     else
         graph[prob_index] = 0;
-    */
+    //*/
 }
 
 __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
@@ -899,7 +899,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 size_t graph_des = que_index * matrix_x;
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
-                    // test
+                    /* test
                     if (graph_h[graph_des + (j - jj)] <= floor_preProb_cutoff) continue;
                     double sTNF = 1. - (1. / (1. + exp(graph_h[graph_des + (j - jj)])));
                     if ((edges[que_index].size() < maxEdges ||
@@ -907,14 +907,14 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
-                    /* original
+                    //*/
                     double sTNF = graph_h[graph_des + (j - jj)];
                     if (sTNF && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
-                    */
+                    //*/
                 }
             }
         }
