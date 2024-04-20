@@ -901,9 +901,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 
                     //test
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
-                    if (abs(sTNF - sTNF2) > 1e-6) {
-                        printf("Ctg1: %d, Ctg2: %d, diff:%f\n", i, j, abs(sTNF - sTNF2));
-                    }
+                    printf("Ctg1: %d, Ctg2: %d, diff:%f\n", i, j, abs(sTNF - sTNF2));
                     /// test
 
 
