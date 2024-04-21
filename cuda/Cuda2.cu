@@ -904,8 +904,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     if (abs(sTNF - sTNF2) > 1e-8) {
                         printf("Ctg1: %d, Ctg2: %d,diff:%f\n", i, j, abs(sTNF - sTNF2));
                     }
+                    sTNF = sTNF2;
                     /// test
-
 
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
