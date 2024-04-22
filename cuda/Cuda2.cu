@@ -366,7 +366,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
 
 
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
-    
+    cudaSetDevice(0);
     double* max_dist_d;
     size_t* contigs_d;
     cudaMalloc((void**)&max_dist_d, _nobs * sizeof(double));
