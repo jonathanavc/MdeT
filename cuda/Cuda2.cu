@@ -353,11 +353,12 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
         size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
         cudaSetDevice(i);
         cudaDeviceSynchronize();
+        getError("kernel(" + std::to_string(i) + ")");
         cudaMemcpy(max_dist_h + i * contigs_per_device, max_dist_d[i], nobs_device * sizeof(double), cudaMemcpyDeviceToHost);
+         getError("cpy(" + std::to_string(i) + ")");
         cudaFree(contigs_d[i]);
         cudaFree(max_dist_d[i]);
     }
-    getError("kernel");
 }
 
 
