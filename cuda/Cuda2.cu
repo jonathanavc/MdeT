@@ -340,30 +340,18 @@ void getError(std::string s = "") {
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d[numDevices];
     double* max_dist_d[numDevices];
-    size_t contigs_per_device = (_nobs + numDevices - 1)/ numDevices;
     for (int i = 0; i < numDevices; i++) {
-        size_t contigs_size = min(contigs_per_device, _nobs - i * contigs_per_device);
         cudaSetDevice(i);
-        cudaMalloc((void**)&contigs_d[i], contigs_size * sizeof(size_t));
-        cudaMalloc((void**)&max_dist_d[i], contigs_size * sizeof(double));
-        cudaMemcpy(contigs_d[i], idx.data() + i * contigs_per_device, contigs_size * sizeof(size_t), cudaMemcpyHostToDevice);
-        getError("cpy(" + std::to_string(i) + ")");
-        
-    }
-    getError("kernel launched\n");
-    for (int i = 0; i < numDevices; i++) {
-        size_t contigs_size = min(contigs_per_device, _nobs - i * contigs_per_device);
-        cudaSetDevice(i);
-        get_tnf_max_prob_sample<<<contigs_size, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, contigs_size);
+        cudaMalloc((void**)&max_dist_d[i], _nobs * sizeof(double));
+        cudaMalloc((void**)&contigs_d[i], idx.size() * sizeof(size_t));
+        cudaMemcpy(contigs_d[i], idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
+        get_tnf_max_prob_sample<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, _nobs);
         cudaDeviceSynchronize();
-        getError("kernel("+ std::to_string(i)+")");
-        
-        cudaMemcpy(max_dist_h + i * contigs_per_device, max_dist_d[i], contigs_size * sizeof(double), cudaMemcpyDeviceToHost);
-        getError("cpy("+ std::to_string(i)+")");
+        cudaMemcpy(max_dist_h + i * _nobs, max_dist_d[i], _nobs * sizeof(double), cudaMemcpyDeviceToHost);
         cudaFree(contigs_d[i]);
         cudaFree(max_dist_d[i]);
+        getError("kernel");
     }
-    
 }
 
 
