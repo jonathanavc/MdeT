@@ -1363,7 +1363,7 @@ int main(int ac, char* av[]) {
         return 1;
     }
 
-    cudaGetDeviceCount(&numDevices)
+    cudaGetDeviceCount(&numDevices);
 
     omp_set_num_threads(numThreads);
     verbose_message("Executing with %d CPU threads and %d CUDA threads in %d CUDA devices\n", numThreads, numThreads2, numDevices);
