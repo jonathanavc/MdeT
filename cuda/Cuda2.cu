@@ -361,7 +361,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
     }
 }
 
-
+/*
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     cudaSetDevice(0);
     double* max_dist_d;
@@ -376,7 +376,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaFree(max_dist_d);
     getError("kernel");
 }
-
+*/
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char* _mem) {
     size_t readSz = 0;
@@ -969,7 +969,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
     double *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
-    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
+    launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
 
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
 
