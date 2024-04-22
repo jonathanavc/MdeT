@@ -928,12 +928,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaFree(graph_d);
         cudaFreeHost(graph_h);
     }
-    for (int i = 1; i < numDevices; i++) {
-        cudaSetDevice(i);
-        cudaFree(TNF_device[i]);
-        cudaFree(contig_log_device[i]);
-    }
-
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
