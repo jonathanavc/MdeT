@@ -295,7 +295,7 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
 }
 
 //__host__ __device__
-short get_tn(char* __restrict__ contig) {
+short get_tn(const char*  contig) {
     unsigned char N;
     short tn = 0;
     // if (contig[0] == 'X') return 256;
@@ -308,7 +308,7 @@ short get_tn(char* __restrict__ contig) {
 }
 
 //__host__ __device__
-void next_contig(const char* contig, char c) {
+void next_contig(char* contig, const char c) {
     if (c == '\n') {
         contig[0] = 'X';
         return;
