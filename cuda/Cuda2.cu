@@ -858,7 +858,6 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 #pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
     reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
-
         int device_id = omp_get_thread_num() % numDevices;
         cudaSetDevice(device_id); // a cada hilo se asigna a un dispositivo
         
