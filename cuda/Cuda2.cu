@@ -973,6 +973,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     for (size_t i = 0; i < _nobs; i++) {
         if (max_nobs_h[i] != max_nobs_h2[i]) {
             printf("Ctg: %d, max_nobs_h:%f, max_nobs_h2:%f\n", i, max_nobs_h[i], max_nobs_h2[i]);
+            exit(1);
         }
     }
     getError("launch_tnf_max_prob_sample_kernel");
