@@ -262,9 +262,9 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
 }
 
 __global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
-                                         size_t nobs, size_t limit) {
+                                         size_t nobs, size_t start) {
     extern __shared__ double shared_max[];
-    size_t contig_idx = blockIdx.x;
+    size_t contig_idx = start + blockIdx.x;
     if (contig_idx >= limit) return;
     //fix local_max
     double local_max = DBL_MIN;
@@ -343,12 +343,11 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
     size_t contigs_per_device = (_nobs + numDevices - 1) / numDevices;
     for(int i = 0; i < numDevices; i++){
         size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
-        printf("Device %d: %d\n", i, nobs_device);
         cudaSetDevice(i);
         cudaMalloc((void**)&max_dist_d[i], nobs_device * sizeof(double));
         cudaMalloc((void**)&contigs_d[i], idx.size() * sizeof(size_t));
-        cudaMemcpy(contigs_d[i], idx.data() + i * contigs_per_device, nobs_device * sizeof(size_t), cudaMemcpyHostToDevice);
-        get_tnf_max_prob_sample<<<nobs_device, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, nobs_device);
+        cudaMemcpy(contigs_d[i], idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
+        get_tnf_max_prob_sample<<<nobs_device, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, i * contigs_per_device);
     }
     for(int i = 0; i < numDevices; i++){
         size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
@@ -368,7 +367,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaMalloc((void**)&max_dist_d, _nobs * sizeof(double));
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    get_tnf_max_prob_sample<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d, TNF_d[0], contig_log[0], contigs_d, nobs, _nobs);
+    get_tnf_max_prob_sample<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d, TNF_d[0], contig_log[0], contigs_d, nobs, 0);
     cudaDeviceSynchronize();
     cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(contigs_d);
