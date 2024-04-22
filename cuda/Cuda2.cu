@@ -340,23 +340,17 @@ void getError(std::string s = "") {
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d[numDevices];
     double* max_dist_d[numDevices];
-    size_t contigs_per_device = (_nobs + numDevices - 1) / numDevices;
-    for(int i = 0; i < numDevices; i++){
-        size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
-        printf("Device %d: %d\n", i, nobs_device);
+    for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
-        cudaMalloc((void**)&max_dist_d[i], nobs_device * sizeof(double));
+        cudaMalloc((void**)&max_dist_d[i], _nobs * sizeof(double));
         cudaMalloc((void**)&contigs_d[i], idx.size() * sizeof(size_t));
-        cudaMemcpy(contigs_d[i], idx.data() + i * contigs_per_device, nobs_device * sizeof(size_t), cudaMemcpyHostToDevice);
-        get_tnf_max_prob_sample<<<nobs_device, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, nobs_device);
-    }
-    for(int i = 0; i < numDevices; i++){
-        size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
-        cudaSetDevice(i);
+        cudaMemcpy(contigs_d[i], idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
+        get_tnf_max_prob_sample<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, _nobs);
         cudaDeviceSynchronize();
-        cudaMemcpy(max_dist_h + i * contigs_per_device, max_dist_d[i], nobs_device * sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(max_dist_h + i * _nobs, max_dist_d[i], _nobs * sizeof(double), cudaMemcpyDeviceToHost);
         cudaFree(contigs_d[i]);
         cudaFree(max_dist_d[i]);
+        getError("kernel");
     }
 }
 
