@@ -960,21 +960,22 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     // std::vector<unsigned char> connected_nodes;
     // connected_nodes.resize(_nobs);
 
-    size_t idx(nobs);
+    std::vector<size_t> idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
+
     printf("size of idx: %d\n", idx.size());
 
     double *max_nobs_h;
     double *max_nobs_h2;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     cudaMallocHost((void**)&max_nobs_h2, _nobs * sizeof(double));
+    //cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
-    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h2, _nobs);
+    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
     for (size_t i = 0; i < _nobs; i++) {
         if (max_nobs_h[i] != max_nobs_h2[i]) {
             printf("Ctg: %d, max_nobs_h:%f, max_nobs_h2:%f\n", i, max_nobs_h[i], max_nobs_h2[i]);
-            exit(1);
         }
     }
     getError("launch_tnf_max_prob_sample_kernel");
