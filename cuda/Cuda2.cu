@@ -338,7 +338,6 @@ void getError(std::string s = "") {
 
 
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
-    int numDevices = 1;
     size_t* contigs_d[numDevices];
     double* max_dist_d[numDevices];
     size_t contigs_per_device = (_nobs + numDevices - 1)/ numDevices;
@@ -367,6 +366,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
 
 
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
+    
     double* max_dist_d;
     size_t* contigs_d;
     cudaMalloc((void**)&max_dist_d, _nobs * sizeof(double));
@@ -947,7 +947,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     verbose_message("Finished Building TNF Graph (%d edges) [%.1fGb / %.1fGb]                                          \n",
                     g.getEdgeCount(), getUsedPhysMem(), getTotalPhysMem() / 1024 / 1024);
 
-    for (int i = 1; i < numDevices; i++) {
+    for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
         cudaFree(TNF_d[i]);
         cudaFree(contig_log[i]);
