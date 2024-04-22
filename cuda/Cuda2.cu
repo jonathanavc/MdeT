@@ -844,14 +844,9 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     std::vector<double>& sTNF = g.sTNF;
     size_t TILE = 10;
     try {
-            {
-                size_t cache = CacheSize() * 1024;
-                while(cache < TILE * TILE * sizeof(double) + TILE * maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double))){
-                    TILE++;
-                }
-                TILE--;
-                printf("TILE: %d\n", TILE);
-            }
+        TILE = std::max(
+            (size_t)((CacheSize() * 1024.) / (maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))),
+            (size_t)10);
         /*
         TILE = std::max(
             (size_t)((CacheSize() * 1024.) / (2 * sizeof(float) * nTNF + maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))),
