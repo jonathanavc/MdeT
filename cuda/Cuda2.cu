@@ -340,6 +340,7 @@ void getError(std::string s = "") {
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d[numDevices];
     double* max_dist_d[numDevices];
+    _nobs = _nobs / numDevices;
     for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
         cudaMalloc((void**)&max_dist_d[i], _nobs * sizeof(double));
