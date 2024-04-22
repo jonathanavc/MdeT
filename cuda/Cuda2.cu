@@ -343,6 +343,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
     size_t contigs_per_device = (_nobs + numDevices - 1) / numDevices;
     for(int i = 0; i < numDevices; i++){
         size_t nobs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
+        printf("Device %d: %d\n", i, nobs_device);
         cudaSetDevice(i);
         cudaMalloc((void**)&max_dist_d[i], nobs_device * sizeof(double));
         cudaMalloc((void**)&contigs_d[i], idx.size() * sizeof(size_t));
