@@ -1863,7 +1863,7 @@ int main(int ac, char* av[]) {
 
     TNF_d = (float**) malloc(numDevices * sizeof(float*));
     contig_log = (double**) malloc(numDevices * sizeof(double*));
-    for (size_t i = 0; i < numDevices; ++i) {
+    for (int i = 0; i < numDevices; ++i) {
         cudaSetDevice(i);
         cudaMalloc((void**)&TNF_d[i], nobs * 136 * sizeof(float));
         cudaMalloc((void**)&contig_log[i], nobs * sizeof(double));
