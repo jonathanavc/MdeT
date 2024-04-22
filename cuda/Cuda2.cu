@@ -319,7 +319,7 @@ short get_tn(char* __restrict__ contig) {
 }
 
 //__host__ __device__
-void next_contig(char* __restrict__ contig, char c) {
+void next_contig(const char* contig, char c) {
     if (c == '\n') {
         contig[0] = 'X';
         return;
@@ -843,7 +843,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
         cudaMalloc((void**)&TNF_device[i], nobs * 136 * sizeof(float));
         cudaMalloc((void**)&contig_log_device[i], nobs * sizeof(double));
         cudaMemcpy(TNF_device[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(contig_log_device[i], contig_log, nobs * sizeof(double), cudaMemcpyHostToDevice);
+        cudaMemcpy(contig_log_device[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
     }
     //cudaFreeHost(TNF);
 
