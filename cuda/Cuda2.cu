@@ -338,8 +338,8 @@ void getError(std::string s = "") {
 
 
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
-    double* max_dist_d[numDevices];
     size_t* contigs_d[numDevices];
+    double* max_dist_d[numDevices];
     size_t contigs_per_device = (_nobs + numDevices - 1)/ numDevices;
     for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
@@ -357,10 +357,11 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
         getError("kernel");
         size_t contigs_size = min(contigs_per_device, _nobs - i * contigs_per_device);
         cudaMemcpy(max_dist_h + i * contigs_per_device, max_dist_d[i], contigs_size * sizeof(double), cudaMemcpyDeviceToHost);
+        getError("cpy");
         cudaFree(contigs_d[i]);
         cudaFree(max_dist_d[i]);
     }
-    getError("cpy");
+    
 }
 
 /*
