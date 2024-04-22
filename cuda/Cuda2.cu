@@ -1861,8 +1861,8 @@ int main(int ac, char* av[]) {
     }
     TIMERSTOP(TNF_CAL);
 
-    TNF_d = (float**) cudaMallocHost(numDevices * sizeof(float*));
-    contig_log = (double**) cudaMallocHost(numDevices * sizeof(double*));
+    TNF_d = (float**) malloc(numDevices * sizeof(float*));
+    contig_log = (double**) malloc(numDevices * sizeof(double*));
     for (size_t i = 0; i < numDevices; ++i) {
         cudaSetDevice(i);
         cudaMallocHost((void**)&TNF_d[i], nobs * 136 * sizeof(float));
