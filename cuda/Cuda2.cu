@@ -260,11 +260,12 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
         graph[prob_index] = 0;
 }
 
-__global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
-                                         size_t nobs, size_t _des, size_t limit) {
+__global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
+                                         size_t nobs, size_t limit) {
     extern __shared__ double shared_max[];
-    size_t contig_idx = _des + blockIdx.x;
+    size_t contig_idx = blockIdx.x;
     if (contig_idx >= limit) return;
+    //fix local_max
     double local_max = DBL_MIN;
     float TNF1[136];
     for (int i = 0; i < 136; i++) {
@@ -338,8 +339,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     size_t* contigs_d;
     cudaMalloc((void**)&contigs_d, idx.size() * sizeof(size_t));
     cudaMemcpy(contigs_d, idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-    get_tnf_max_prob_sample3<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, 0,
-                                                                                   _nobs);
+    get_tnf_max_prob_sample<<<_nobs, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d, TNF_d, contig_log, contigs_d, nobs, _nobs);
     cudaDeviceSynchronize();
     cudaMemcpy(max_dist_h, max_dist_d, _nobs * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(contigs_d);
@@ -1834,7 +1834,7 @@ int main(int ac, char* av[]) {
             for (size_t j = 3; j < seq.length(); ++j) {
                 next_contig(contig_temp, seq[j]);
                 short tn = get_tn(contig_temp);
-                if (tn & 256) continue;
+                if (tn & (short)256) continue;
                 TNF_temp[TNmap_d[tn]]++;
             }
             double rsum = 0;
