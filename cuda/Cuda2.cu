@@ -96,6 +96,7 @@ static bool outUnbinned = false;
 static size_t minSample = 3;
 static unsigned long long totalSize = 0, totalSize1 = 0;
 static int numThreads2 = 32;
+static int numDevices = 1;
 
 static size_t maxEdges = 200;
 static const char line_delim = '\n';
@@ -126,10 +127,10 @@ static boost::numeric::ublas::matrix<float> small_ABD;
 // static boost::numeric::ublas::matrix<float> TNF;
 
 static float* TNF;
-static float* TNF_d;
+static float** TNF_d;
 // static char* seqs_d;
 // static size_t* seqs_d_index;
-static double* contig_log;
+static double** contig_log;
 std::vector<size_t> seqs_h_index_i;
 std::vector<size_t> seqs_h_index_e;
 
@@ -335,9 +336,8 @@ void getError(std::string s = "") {
     }
 }
 
+
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
-    int numDevices;
-    cudaGetDeviceCount(&numDevices);
     double* max_dist_d[numDevices];
     size_t* contigs_d[numDevices];
     size_t contigs_per_device = (_nobs + numDevices - 1)/ numDevices;
@@ -363,6 +363,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
     getError("kernel");
 }
 
+/*
 void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     double* max_dist_d;
     size_t* contigs_d;
@@ -376,6 +377,7 @@ void launch_tnf_max_prob_sample_kernel(std::vector<size_t> idx, double* max_dist
     cudaFree(max_dist_d);
     getError("kernel");
 }
+*/
 
 void reader(int fpint, int id, size_t chunk, size_t _size, char* _mem) {
     size_t readSz = 0;
@@ -844,29 +846,6 @@ bool is_nz(size_t r1, size_t r2) {
 #pragma omp declare reduction(merge_double : std::vector<double> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
 
 void gen_tnf_graph(Graph& g, Similarity cutoff) {
-
-    // preparar multiple gpu para el calculo de la matriz de distancias
-    int numDevices;
-    cudaGetDeviceCount(&numDevices);
-    // cargar matriz TNF a cada dispositivo
-    float* TNF_device[numDevices];
-    double* contig_log_device[numDevices];
-
-    //float* TNF;
-    //cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
-    //cudaMemcpy(TNF, TNF_d, nobs * 136 * sizeof(float), cudaMemcpyDeviceToHost);
-
-    TNF_device[0] = TNF_d;
-    contig_log_device[0] = contig_log;
-    for (int i = 1; i < numDevices; i++) {
-        cudaSetDevice(i);
-        cudaMalloc((void**)&TNF_device[i], nobs * 136 * sizeof(float));
-        cudaMalloc((void**)&contig_log_device[i], nobs * sizeof(double));
-        cudaMemcpy(TNF_device[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(contig_log_device[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
-    }
-    //cudaFreeHost(TNF);
-
     verbose_message("Executing with %d CUDA devices\n", numDevices);
     
     ProgressTracker progress = ProgressTracker(nobs);
@@ -906,14 +885,14 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_device[device_id], contig_log_device[device_id], matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE < nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_device[device_id], contig_log_device[device_id], matrix_y, matrix_next_x, ii, jj + TILE,
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_next_x, ii, jj + TILE,
                                                       floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
@@ -969,8 +948,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
 
     for (int i = 1; i < numDevices; i++) {
         cudaSetDevice(i);
-        cudaFree(TNF_device[i]);
-        cudaFree(contig_log_device[i]);
+        cudaFree(TNF_d[i]);
+        cudaFree(contig_log[i]);
     }
 
     g.sTNF.shrink_to_fit();
@@ -991,7 +970,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     double *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     //cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
-    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
+    launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
     getError("launch_tnf_max_prob_sample_kernel");
     //cudaFree(max_nobs_d);
 
@@ -1384,8 +1363,10 @@ int main(int ac, char* av[]) {
         return 1;
     }
 
+    cudaGetDeviceCount(&numDevices)
+
     omp_set_num_threads(numThreads);
-    verbose_message("Executing with %d CPU threads and %d CUDA threads\n", numThreads, numThreads2);
+    verbose_message("Executing with %d CPU threads and %d CUDA threads in %d CUDA devices\n", numThreads, numThreads2, numDevices);
 
     TIMERSTART(total);
 
@@ -1836,22 +1817,21 @@ int main(int ac, char* av[]) {
     verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
                     1000, minContig);
 
-    // prepare logsizes
-    /*
-    logSizes.resize(nobs);
-#pragma omp parallel for
-    for (size_t r = 0; r < nobs; ++r) {
-        logSizes[r] = LOG10(std::min(seqs[r].size(), (size_t)500000));
+    contig_log = (double**) malloc(numDevices * sizeof(double*));
+    for (size_t i = 0; i < numDevices; ++i) {
+        cudaSetDevice(i);
+        cudaMalloc((void**)&contig_log[i], nobs * sizeof(double));
+        cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
     }
-    */
-
-    cudaMalloc((void**)&contig_log, nobs * sizeof(double));
-    cudaMemcpy(contig_log, logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
 
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
     TIMERSTART(TNF_CAL);
     {
-        cudaMalloc((void**)&TNF_d, nobs * 136 * sizeof(float));
+        TNF_d = (float **) malloc(numDevices * sizeof(float *));
+        for (size_t i = 0; i < numDevices; ++i) {
+            cudaSetDevice(i);
+            cudaMalloc((void**)&TNF_d[i], nobs * 136 * sizeof(float));
+        }
         //float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
         ProgressTracker progress(nobs);
@@ -1890,7 +1870,10 @@ int main(int ac, char* av[]) {
             }
         }
         verbose_message("Finished TNF calculation.                                  \n");
-        cudaMemcpy(TNF_d, TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+        for(size_t i = 0; i < numDevices; ++i) {
+            cudaSetDevice(i);
+            cudaMemcpy(TNF_d[i], TNF + i * nobs * 136, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+        }
         //cudaFreeHost(TNF);
     }
     TIMERSTOP(TNF_CAL);
