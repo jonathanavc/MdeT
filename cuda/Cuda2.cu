@@ -1865,10 +1865,10 @@ int main(int ac, char* av[]) {
     contig_log = (double**) malloc(numDevices * sizeof(double*));
     for (size_t i = 0; i < numDevices; ++i) {
         cudaSetDevice(i);
-        cudaMallocHost((void**)&TNF_d[i], nobs * 136 * sizeof(float));
-        cudaMallocHost((void**)&contig_log[i], nobs * sizeof(double));
-        cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToHost);
-        cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToHost);
+        cudaMalloc((void**)&TNF_d[i], nobs * 136 * sizeof(float));
+        cudaMalloc((void**)&contig_log[i], nobs * sizeof(double));
+        cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
     }
 
 
