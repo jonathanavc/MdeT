@@ -265,7 +265,7 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
     extern __shared__ double shared_max[];
     size_t contig_idx = _des + blockIdx.x;
     if (contig_idx >= limit) return;
-    double local_max = -1;
+    double local_max = DBL_MIN;
     float TNF1[136];
     for (int i = 0; i < 136; i++) {
         TNF1[i] = TNF[contigs[contig_idx] * 136 + i];
@@ -294,7 +294,7 @@ __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restri
     }
 }
 
-//__host__ __device__
+//__host__ __device__ __restricted__
 short get_tn(const char*  contig) {
     unsigned char N;
     short tn = 0;
