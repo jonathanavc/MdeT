@@ -1818,22 +1818,9 @@ int main(int ac, char* av[]) {
     verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
                     1000, minContig);
 
-    contig_log = (double**) malloc(numDevices * sizeof(double*));
-    for (size_t i = 0; i < numDevices; ++i) {
-        cudaSetDevice(i);
-        cudaMalloc((void**)&contig_log[i], nobs * sizeof(double));
-        cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
-    }
-
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
     TIMERSTART(TNF_CAL);
     {
-        TNF_d = (float **) malloc(numDevices * sizeof(float *));
-        for (size_t i = 0; i < numDevices; ++i) {
-            cudaSetDevice(i);
-            cudaMalloc((void**)&TNF_d[i], nobs * 136 * sizeof(float));
-        }
-        //float* TNF;
         cudaMallocHost((void**)&TNF, nobs * 136 * sizeof(float));
         ProgressTracker progress(nobs);
 
@@ -1871,13 +1858,20 @@ int main(int ac, char* av[]) {
             }
         }
         verbose_message("Finished TNF calculation.                                  \n");
-        for(size_t i = 0; i < numDevices; ++i) {
-            cudaSetDevice(i);
-            cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
-        }
-        //cudaFreeHost(TNF);
     }
     TIMERSTOP(TNF_CAL);
+
+    TNF_d = (float**) cudaMallocHost(numDevices * sizeof(float*));
+    contig_log = (double**) cudaMallocHost(numDevices * sizeof(double*));
+    for (size_t i = 0; i < numDevices; ++i) {
+        cudaSetDevice(i);
+        cudaMallocHost((void**)&TNF_d[i], nobs * 136 * sizeof(float));
+        cudaMallocHost((void**)&contig_log[i], nobs * sizeof(double));
+        cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToHost);
+        cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToHost);
+    }
+
+
 
     verbose_message("Finished TNF calculation.                                  \n");
 
