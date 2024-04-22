@@ -1872,7 +1872,7 @@ int main(int ac, char* av[]) {
         verbose_message("Finished TNF calculation.                                  \n");
         for(size_t i = 0; i < numDevices; ++i) {
             cudaSetDevice(i);
-            cudaMemcpy(TNF_d[i], TNF + i * nobs * 136, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
+            cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
         }
         //cudaFreeHost(TNF);
     }
