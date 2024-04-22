@@ -970,7 +970,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     cudaMallocHost((void**)&max_nobs_h2, _nobs * sizeof(double));
     //cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
-    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
+    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h2, _nobs);
     for (size_t i = 0; i < _nobs; i++) {
         if (max_nobs_h[i] != max_nobs_h2[i]) {
             printf("Ctg: %d, max_nobs_h:%f, max_nobs_h2:%f\n", i, max_nobs_h[i], max_nobs_h2[i]);
