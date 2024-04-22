@@ -265,7 +265,7 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restric
                                          size_t nobs, size_t start) {
     extern __shared__ double shared_max[];
     size_t contig_idx = start + blockIdx.x;
-    if (contig_idx >= limit) return;
+    //if (contig_idx >= limit) return;
     //fix local_max
     double local_max = DBL_MIN;
     float TNF1[136];
