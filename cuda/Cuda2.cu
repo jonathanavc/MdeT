@@ -292,7 +292,7 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restric
         __syncthreads();
     }
     if (threadIdx.x == 0) {
-        max_dist[contig_idx] = 1. - (1. / (1. + exp(shared_max[0])));
+        max_dist[blockIdx.x] = 1. - (1. / (1. + exp(shared_max[0])));
     }
 }
 
