@@ -993,7 +993,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     //cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
     getError("launch_tnf_max_prob_sample_kernel");
-    cudaFree(max_nobs_d);
+    //cudaFree(max_nobs_d);
 
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
 
