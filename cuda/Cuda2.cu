@@ -844,9 +844,19 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     std::vector<double>& sTNF = g.sTNF;
     size_t TILE = 10;
     try {
+            {
+                size_t cache = CacheSize() * 1024;
+                while(cache < TILE * TILE * sizeof(double) + TILE * maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double))){
+                    TILE++;
+                }
+                TILE--;
+                printf("TILE: %d\n", TILE);
+            }
+        /*
         TILE = std::max(
             (size_t)((CacheSize() * 1024.) / (2 * sizeof(float) * nTNF + maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))),
             (size_t)10);
+        */
     } catch (...) {
     }
     // printf("TILE: %d\n", TILE);
@@ -958,7 +968,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     launch_tnf_max_prob_sample_kernel(idx, max_nobs_d, max_nobs_h, _nobs);
     getError("launch_tnf_max_prob_sample_kernel");
     cudaFree(max_nobs_d);
-    
+
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
 
     size_t p = 999, pp = 1000;
