@@ -898,7 +898,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     /// test
                     */
 
-                    if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
+                    if (sTNF && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
