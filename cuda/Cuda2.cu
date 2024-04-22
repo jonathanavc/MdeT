@@ -960,9 +960,10 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     // std::vector<unsigned char> connected_nodes;
     // connected_nodes.resize(_nobs);
 
-    size_t idx[_nobs];
+    size_t idx(nobs);
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
+    printf("size of idx: %d\n", idx.size());
 
     double *max_nobs_h;
     double *max_nobs_h2;
