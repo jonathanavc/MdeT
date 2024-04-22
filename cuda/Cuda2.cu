@@ -348,11 +348,12 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
         cudaMalloc((void**)&max_dist_d[i], contigs_size * sizeof(double));
         cudaMemcpy(contigs_d[i], idx.data() + i * contigs_per_device, contigs_size * sizeof(size_t), cudaMemcpyHostToDevice);
         getError("cpy(" + std::to_string(i) + ")");
-        get_tnf_max_prob_sample<<<contigs_size, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, contigs_size);
+        
     }
     getError("kernel launched\n");
     for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
+        get_tnf_max_prob_sample<<<contigs_size, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, contigs_size);
         cudaDeviceSynchronize();
         getError("kernel("+ std::to_string(i)+")");
         size_t contigs_size = min(contigs_per_device, _nobs - i * contigs_per_device);
@@ -971,7 +972,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     double *max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     //cudaMalloc((void**)&max_nobs_d, _nobs * sizeof(double));
-    launch_tnf_max_prob_sample_kernel(idx, max_nobs_h, _nobs);
+    launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
     getError("launch_tnf_max_prob_sample_kernel");
     //cudaFree(max_nobs_d);
 
