@@ -248,27 +248,16 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
-    if (r1 >= nc1){
-        //graph[prob_index] = 2; // test
-        return;
-    }
+    if (r1 >= nc1) return;
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
-    if (ct1 == ct2){
-        //graph[prob_index] = 2; // test
-        return;
-    }
+    if (ct1 == ct2) return;
     double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
 
-    // test
-    graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
-    
-    /* original
     if (preProb > floor_preProb_cutoff)
         graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
     else
         graph[prob_index] = 0;
-    */
 }
 
 __global__ void get_tnf_max_prob_sample3(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
@@ -898,7 +887,8 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
-
+                    
+                    /*
                     //test
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
                     if (abs(sTNF - sTNF2) > 1e-8) {
@@ -906,6 +896,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     }
                     sTNF = sTNF2;
                     /// test
+                    */
 
                     if (sTNF > cutoff && (edges[que_index].size() < maxEdges ||
                                       (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
