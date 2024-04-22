@@ -959,6 +959,18 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     getError("launch_tnf_max_prob_sample_kernel");
     cudaFree(max_nobs_d);
 
+    for (size_t i = 0; i < _nobs; ++i) {
+        double _nob_max = DBL_MIN;
+        for (size_t j = 0; j < nobs; ++j) {
+            _nob_max = std::max(_nob_max, cal_tnf_dist(idx[i], j));
+        }
+        if(FABS(_nob_max - max_nobs_h[i]) > 1e-6) {
+            printf("Ctg: %d, max_nobs_h:%f, _nob_max:%f\n", idx[i], max_nobs_h[i], _nob_max);
+        }
+        max_nobs_h[i] = _nob_max;
+    }
+
+
     std::sort(max_nobs_h, max_nobs_h + _nobs, std::greater<double>());
 
     size_t p = 999, pp = 1000;
