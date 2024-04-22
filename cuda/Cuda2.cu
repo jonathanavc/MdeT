@@ -350,7 +350,7 @@ void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* ma
         get_tnf_max_prob_sample<<<contigs_size, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, contigs_size);
 
     }
-    printf("kernel launched\n");
+    getError("kernel launched\n");
     for (int i = 0; i < numDevices; i++) {
         cudaSetDevice(i);
         cudaDeviceSynchronize();
