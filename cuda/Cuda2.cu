@@ -30,9 +30,9 @@
 #include <sys/sysinfo.h>
 #endif
 
-#include "metrictime2.hpp"
 #include "ProgressTracker.h"
 #include "cuckoohash_map.hh"
+#include "metrictime2.hpp"
 #include "ranker.h"
 #include "tile.h"
 
@@ -232,20 +232,20 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
     double preProb = -(b + c * d);
 
     if (preProb <= floor_preProb) {
-        b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] +
-            _b2[7] * lw[6] + _b2[8] * lw[7] + _b2[9] * lw[8] + _b2[10] * lw[9] + _b2[11] * lw[10] + _b2[12] * lw[18] +
-            _b2[13] * lw[13] + _b2[14] * lw[14] + _b2[15] * lw[15] + _b2[16] * lw[16];
-        c = _c2[0] + _c2[1] * lw[0] + _c2[2] * lw[1] + _c2[3] * lw[2] + _c2[4] * lw[3] + _c2[5] * lw[4] + _c2[6] * lw[5] +
-            _c2[7] * lw[6] + _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] +
-            _c2[13] * lw[11] + _c2[14] * lw[12] + _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
+        b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] + _b2[7] * lw[6] +
+            _b2[8] * lw[7] + _b2[9] * lw[8] + _b2[10] * lw[9] + _b2[11] * lw[10] + _b2[12] * lw[18] + _b2[13] * lw[13] + _b2[14] * lw[14] +
+            _b2[15] * lw[15] + _b2[16] * lw[16];
+        c = _c2[0] + _c2[1] * lw[0] + _c2[2] * lw[1] + _c2[3] * lw[2] + _c2[4] * lw[3] + _c2[5] * lw[4] + _c2[6] * lw[5] + _c2[7] * lw[6] +
+            _c2[8] * lw[7] + _c2[9] * lw[8] + _c2[10] * lw[9] + _c2[11] * lw[10] + _c2[12] * lw[18] + _c2[13] * lw[11] + _c2[14] * lw[12] +
+            _c2[15] * lw[13] + _c2[16] * lw[14] + _c2[17] * lw[15] + _c2[18] * lw[16];
         preProb = -(b + c * d);
         if (preProb > floor_preProb) preProb = floor_preProb;
     }
     return preProb;
 }
 
-__global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1,
-                              size_t nc2, size_t off1, size_t off2, double floor_preProb_cutoff) {
+__global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1, size_t nc2,
+                              size_t off1, size_t off2, double floor_preProb_cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
     size_t r1 = prob_index / nc2;
     size_t r2 = prob_index % nc2;
@@ -261,12 +261,12 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
         graph[prob_index] = 0;
 }
 
-__global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs,
-                                         size_t nobs, size_t start) {
+__global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restrict__ TNF, double* size_log, size_t* contigs, size_t nobs,
+                                        size_t start) {
     extern __shared__ double shared_max[];
     size_t contig_idx = start + blockIdx.x;
     if (contig_idx >= nobs) return;
-    //fix local_max
+    // fix local_max
     double local_max = DBL_MIN;
     float TNF1[136];
     for (int i = 0; i < 136; i++) {
@@ -297,7 +297,7 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restric
 }
 
 //__host__ __device__ __restricted__
-short get_tn(const char*  contig) {
+short get_tn(const char* contig) {
     unsigned char N;
     short tn = 0;
     // if (contig[0] == 'X') return 256;
@@ -336,20 +336,20 @@ void getError(std::string s = "") {
     }
 }
 
-
 void launch_tnf_max_prob_sample_kernel_multi(std::vector<size_t> idx, double* max_dist_h, size_t _nobs) {
     size_t* contigs_d[numDevices];
     double* max_dist_d[numDevices];
     size_t contigs_per_device = (_nobs + numDevices - 1) / numDevices;
-    for(int i = 0; i < numDevices; i++){
+    for (int i = 0; i < numDevices; i++) {
         size_t contigs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
         cudaSetDevice(i);
         cudaMalloc((void**)&max_dist_d[i], contigs_device * sizeof(double));
         cudaMalloc((void**)&contigs_d[i], idx.size() * sizeof(size_t));
         cudaMemcpy(contigs_d[i], idx.data(), idx.size() * sizeof(size_t), cudaMemcpyHostToDevice);
-        get_tnf_max_prob_sample<<<contigs_device, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i], contigs_d[i], nobs, i * contigs_per_device);
+        get_tnf_max_prob_sample<<<contigs_device, numThreads2, numThreads2 * sizeof(double)>>>(max_dist_d[i], TNF_d[i], contig_log[i],
+                                                                                               contigs_d[i], nobs, i * contigs_per_device);
     }
-    for(int i = 0; i < numDevices; i++){
+    for (int i = 0; i < numDevices; i++) {
         size_t contigs_device = min(contigs_per_device, _nobs - i * contigs_per_device);
         cudaSetDevice(i);
         cudaDeviceSynchronize();
@@ -581,8 +581,7 @@ int label_propagation(Graph& g, std::vector<size_t>& membership, std::vector<siz
         running = false;
         size_t nLeft = 0;
         /* In the prescribed order, loop over the vertices and reassign labels */
-        for (size_t i = 0; i < node_order.size();
-             i++) {  // we reconsider all nodes regardless of its previous status, but is it better?
+        for (size_t i = 0; i < node_order.size(); i++) {  // we reconsider all nodes regardless of its previous status, but is it better?
             size_t v1 = node_order[i];
             std::unordered_map<size_t, double> neighbor_scores;  // sum of neighbors scores to cluster k
             std::unordered_map<size_t, size_t> neighbor_counts;  // keep number of neighbors
@@ -702,7 +701,6 @@ Distance cal_abd_dist(size_t r1, size_t r2, size_t i, bool& nz) {
     return std::min(std::max(d, 1e-6), 1. - 1e-6);
 }
 
-
 Distance cal_tnf_dist(size_t r1, size_t r2) {
     // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0);
     const Distance floor_prob = 0.1;
@@ -748,13 +746,12 @@ Distance cal_tnf_dist(size_t r1, size_t r2) {
     if (prob >= floor_prob) {  // second logistic model
         b = 6770.9351457442 + -5933.7589419767 * lw11 + -2976.2879986855 * lw21 + 3279.7524685865 * lw12 + 1602.7544794819 * lw22 +
             -967.2906583423 * lw13 + -462.0149190219 * lw23 + 159.8317289682 * lw14 + 74.4884405822 * lw24 + -14.0267151808 * lw15 +
-            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 +
-            -0.0546309127 * lw13 * lw23 + 0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
+            -6.3644917671 * lw25 + 0.5108811613 * lw16 + 0.2252455343 * lw26 + 0.965040193 * lw12 * lw22 + -0.0546309127 * lw13 * lw23 +
+            0.0012917084 * lw14 * lw24 + -1.14383e-05 * lw15 * lw25;
         c = 39406.5712626297 + -77863.1741143294 * lw11 + 9586.8761567725 * lw21 + 55360.1701572325 * lw12 + -5825.2491611377 * lw22 +
-            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 +
-            -724.0348081819 * lw15 + 25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 +
-            449.4660736502 * lw11 * lw21 + -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 +
-            0.0001235384 * lw15 * lw25;
+            -21887.8400068324 * lw13 + 1751.6803621934 * lw23 + 5158.3764225203 * lw14 + -290.1765894829 * lw24 + -724.0348081819 * lw15 +
+            25.364646181 * lw25 + 56.0522105105 * lw16 + -0.9172073892 * lw26 + -1.8470088417 * lw17 + 449.4660736502 * lw11 * lw21 +
+            -24.4141920625 * lw12 * lw22 + 0.8465834103 * lw13 * lw23 + -0.0158943762 * lw14 * lw24 + 0.0001235384 * lw15 * lw25;
         // prob = 1.0 / (1 + EXP(-(b + c * d)));
         //  prob = prob < .1 ? .1 : prob;
         preProb = -(b + c * d);  // EXP(preProb) <= 9 yields prob >= 0.1, so preProb <= LOG(9.0) to calculate, otherwise use the floor
@@ -846,16 +843,14 @@ bool is_nz(size_t r1, size_t r2) {
 
 void gen_tnf_graph(Graph& g, Similarity cutoff) {
     verbose_message("Executing with %d CUDA devices\n", numDevices);
-    
+
     ProgressTracker progress = ProgressTracker(nobs);
     std::vector<size_t>& from = g.from;
     std::vector<size_t>& to = g.to;
     std::vector<double>& sTNF = g.sTNF;
     size_t TILE = 10;
     try {
-        TILE = std::max(
-            (size_t)((CacheSize() * 1024.) / (maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))),
-            (size_t)10);
+        TILE = std::max((size_t)((CacheSize() * 1024.) / (maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))), (size_t)10);
         /*
         TILE = std::max(
             (size_t)((CacheSize() * 1024.) / (2 * sizeof(float) * nTNF + maxEdges * (2 * sizeof(size_t) + 1 * sizeof(double)))),
@@ -869,12 +864,11 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
     // #pragma omp parallel for schedule(dynamic, 1) proc_bind(spread) reduction(merge_size_t: from) reduction(merge_size_t: to)
     // reduction(merge_double: sTNF)
 
-#pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) \
-    reduction(merge_double : sTNF)
+#pragma omp parallel for schedule(dynamic, 1) reduction(merge_size_t : from) reduction(merge_size_t : to) reduction(merge_double : sTNF)
     for (size_t ii = 0; ii < nobs; ii += TILE) {
         int device_id = omp_get_thread_num() % numDevices;
-        cudaSetDevice(device_id); // a cada hilo se asigna a un dispositivo
-        
+        cudaSetDevice(device_id);  // a cada hilo se asigna a un dispositivo
+
         double *graph_d, *graph_h;
         cudaMalloc((void**)&graph_d, TILE * TILE * sizeof(double));
         cudaMallocHost((void**)&graph_h, TILE * TILE * sizeof(double));
@@ -884,15 +878,16 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_x, ii, jj, floor_preProb_cutoff);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_x, ii, jj,
+                                                      floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE < nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
-                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_next_x, ii, jj + TILE,
-                                                      floor_preProb_cutoff);
+                get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_next_x, ii,
+                                                      jj + TILE, floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
@@ -900,7 +895,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                 for (size_t j = jj; j < jj + TILE && j < nobs; ++j) {
                     if (i == j || !is_nz(i, j)) continue;
                     double sTNF = graph_h[graph_des + (j - jj)];
-                    
+
                     /*
                     //test
                     double sTNF2 = 1. - cal_tnf_dist(i, j);
@@ -912,7 +907,7 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
                     */
 
                     if (sTNF && (edges[que_index].size() < maxEdges ||
-                                      (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
+                                 (edges[que_index].size() == maxEdges && sTNF > edges[que_index].top().second))) {
                         if (edges[que_index].size() == maxEdges) edges[que_index].pop();
                         edges[que_index].push(std::make_pair(j, sTNF));
                     }
@@ -966,8 +961,7 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
     std::iota(idx.begin(), idx.end(), 0);
     random_unique(idx.begin(), idx.end(), _nobs);
 
-
-    double *max_nobs_h;
+    double* max_nobs_h;
     cudaMallocHost((void**)&max_nobs_h, _nobs * sizeof(double));
     launch_tnf_max_prob_sample_kernel_multi(idx, max_nobs_h, _nobs);
 
@@ -995,8 +989,8 @@ size_t gen_tnf_graph_sample(double coverage = 1., bool full = false) {
 
             break;
         } else
-            verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r",
-                            (double)p / 10., counton, _nobs, cov * 100, round);
+            verbose_message("Preparing TNF Graph Building [pTNF = %2.1f; %d / %d (P = %2.2f%%) round %d]               \r", (double)p / 10.,
+                            counton, _nobs, cov * 100, round);
         pp = p;
         pcov = cov;
 
@@ -1035,8 +1029,7 @@ void rescue_singletons(ClassMap& cls) {
             }
         }
     }
-    if (verbose && large_unbinned.size() > 0)
-        verbose_message("Rescued %d large contig(s) into singleton bin(s)\n", large_unbinned.size());
+    if (verbose && large_unbinned.size() > 0) verbose_message("Rescued %d large contig(s) into singleton bin(s)\n", large_unbinned.size());
     for (auto id : large_unbinned) {
         assert(cls.find(id) == cls.end());
         cls[id].push_back(id);
@@ -1194,8 +1187,7 @@ void output_bins(ClassMap& cls) {
             if (verbose) {
                 verbose_message("%2.2f%% (%lld bases) of large (>=%d) and %2.2f%% (%lld bases) of small (<%d) contigs were binned.\n",
                                 (double)binnedSize / totalSize * 100, (unsigned long long)binnedSize, minContig,
-                                binnedSize1 == 0 ? 0 : (double)binnedSize1 / totalSize1 * 100, (unsigned long long)binnedSize1,
-                                minContig);
+                                binnedSize1 == 0 ? 0 : (double)binnedSize1 / totalSize1 * 100, (unsigned long long)binnedSize1, minContig);
             }
             cout.precision(20);
             if (verbose)
@@ -1252,8 +1244,7 @@ int main(int ac, char* av[]) {
         "Percentage of 'good' contigs considered for binning decided by connection among contigs. The greater, the more sensitive.")(
         "minS", po::value<Similarity>(&minS)->default_value(60),
         "Minimum score of a edge for binning (should be between 1 and 99). The greater, the more specific.")(
-        "maxEdges", po::value<size_t>(&maxEdges)->default_value(200),
-        "Maximum number of edges per node. The greater, the more sensitive.")(
+        "maxEdges", po::value<size_t>(&maxEdges)->default_value(200), "Maximum number of edges per node. The greater, the more sensitive.")(
         "pTNF", po::value<Similarity>(&pTNF)->default_value(0),
         "TNF probability cutoff for building TNF graph. Use it to skip the preparation step. (0: auto).")(
         "noAdd", po::value<bool>(&noAdd)->zero_tokens(), "Turning off additional binning for lost or small contigs.")(
@@ -1265,9 +1256,8 @@ int main(int ac, char* av[]) {
         "Minimum total effective mean coverage of a contig (sum of depth over minCV) for binning.")(
         "minClsSize,s", po::value<size_t>(&minClsSize)->default_value(200000), "Minimum size of a bin as the output.")(
         "numThreads,t", po::value<size_t>(&numThreads)->default_value(0), "Number of threads to use (0: use all cores).")(
-        "onlyLabel,l", po::value<bool>(&onlyLabel)->zero_tokens(),
-        "Output only sequence labels as a list in a column without sequences.")("saveCls", po::value<bool>(&saveCls)->zero_tokens(),
-                                                                                "Save cluster memberships as a matrix format")(
+        "onlyLabel,l", po::value<bool>(&onlyLabel)->zero_tokens(), "Output only sequence labels as a list in a column without sequences.")(
+        "saveCls", po::value<bool>(&saveCls)->zero_tokens(), "Save cluster memberships as a matrix format")(
         "unbinned", po::value<bool>(&outUnbinned)->zero_tokens(), "Generate [outFile].unbinned.fa file for unbinned contigs")(
         "noBinOut", po::value<bool>(&noBinOut)->zero_tokens(),
         "No bin output. Usually combined with --saveCls to check only contig memberships")(
@@ -1550,8 +1540,7 @@ int main(int ac, char* av[]) {
                             contigs.merge(contigs_l);
                             small_contigs.merge(small_contigs_l);
                             contig_names.insert(contig_names.end(), contig_names_l.begin(), contig_names_l.end());
-                            small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(),
-                                                      small_contig_names_l.end());
+                            small_contig_names.insert(small_contig_names.end(), small_contig_names_l.begin(), small_contig_names_l.end());
                             seqs.insert(seqs.end(), seqs_l.begin(), seqs_l.end());
                             small_seqs.insert(small_seqs.end(), small_seqs_l.begin(), small_seqs_l.end());
                             logSizes.insert(logSizes.end(), logSizes_l.begin(), logSizes_l.end());
@@ -1638,8 +1627,7 @@ int main(int ac, char* av[]) {
                         isLarge = true;
 
                     if ((isSmall && small_contigs[label] != num1) || (isLarge && contigs[label] != num)) {
-                        cerr << "[Error!] the order of contigs in abundance file is not the same as the assembly file: " << label
-                             << endl;
+                        cerr << "[Error!] the order of contigs in abundance file is not the same as the assembly file: " << label << endl;
                         exit(1);
                     }
                     isGood = true;
@@ -1690,8 +1678,8 @@ int main(int ac, char* av[]) {
                         isGood = false;
                     }
                     if (mean < 0) {
-                        cerr << "[Warning!] Negative coverage depth is not allowed for the contig " << label << ", column " << c + 1
-                             << ": " << mean << endl;
+                        cerr << "[Warning!] Negative coverage depth is not allowed for the contig " << label << ", column " << c + 1 << ": "
+                             << mean << endl;
                         isGood = false;
                     }
                 }
@@ -1712,8 +1700,8 @@ int main(int ac, char* av[]) {
                 if (c == (int)(nABD * (cvExt ? 1 : 2) - 1)) {  // last data of the line, check mean coverage
                     if (meanSum < minCVSum) {
                         if (debug)
-                            verbose_message("[Info] Ignored a contig (%s) having effective mean coverage %2.2f < %2.2f \n",
-                                            label.c_str(), meanSum, minCVSum);
+                            verbose_message("[Info] Ignored a contig (%s) having effective mean coverage %2.2f < %2.2f \n", label.c_str(),
+                                            meanSum, minCVSum);
                         isGood = false;
                     }
                 }
@@ -1811,8 +1799,8 @@ int main(int ac, char* av[]) {
         }
     }
     TIMERSTOP(ABD);
-    verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1,
-                    1000, minContig);
+    verbose_message("Number of target contigs: %d of large (>= %d) and %d of small ones (>=%d & <%d). \n", nobs, minContig, nobs1, 1000,
+                    minContig);
 
     verbose_message("Start TNF calculation. nobs = %zd\n", nobs);
     TIMERSTART(TNF_CAL);
@@ -1857,8 +1845,8 @@ int main(int ac, char* av[]) {
     }
     TIMERSTOP(TNF_CAL);
 
-    TNF_d = (float**) malloc(numDevices * sizeof(float*));
-    contig_log = (double**) malloc(numDevices * sizeof(double*));
+    TNF_d = (float**)malloc(numDevices * sizeof(float*));
+    contig_log = (double**)malloc(numDevices * sizeof(double*));
     for (int i = 0; i < numDevices; ++i) {
         cudaSetDevice(i);
         cudaMalloc((void**)&TNF_d[i], nobs * 136 * sizeof(float));
@@ -1866,8 +1854,6 @@ int main(int ac, char* av[]) {
         cudaMemcpy(TNF_d[i], TNF, nobs * 136 * sizeof(float), cudaMemcpyHostToDevice);
         cudaMemcpy(contig_log[i], logSizes.data(), nobs * sizeof(double), cudaMemcpyHostToDevice);
     }
-
-
 
     verbose_message("Finished TNF calculation.                                  \n");
 
@@ -1971,8 +1957,7 @@ int main(int ac, char* av[]) {
             ABD_VAR.resize(0, 0, false);
 
             if (debug)
-                cout << *std::min_element(g.sSCR.begin(), g.sSCR.end()) << " : " << *std::max_element(g.sSCR.begin(), g.sSCR.end())
-                     << endl;
+                cout << *std::min_element(g.sSCR.begin(), g.sSCR.end()) << " : " << *std::max_element(g.sSCR.begin(), g.sSCR.end()) << endl;
 
             // 4. build sequential graph covering x % nodes and do clustering and add more edges and do clustering again
             std::vector<size_t> oSCR;
@@ -2014,8 +1999,7 @@ int main(int ac, char* av[]) {
                     }
                 }
 
-                if (g2.getEdgeCount() > 0 &&
-                    ((Similarity)g2.connected_nodes.size() / g2.n >= p_schedule2[which_p] || i == nEdges - 1)) {
+                if (g2.getEdgeCount() > 0 && ((Similarity)g2.connected_nodes.size() / g2.n >= p_schedule2[which_p] || i == nEdges - 1)) {
                     // cout << "g2.sSCR.back(): " << g2.sSCR.back() << endl;
                     label_propagation(g2, mems, node_order);
                     verbose_message(
@@ -2293,7 +2277,7 @@ int main(int ac, char* av[]) {
     output_bins(cls);
     verbose_message("Finished\n");
     cudaFreeHost(_mem);
-    //cudaFree(contig_log);
+    // cudaFree(contig_log);
 
     TIMERSTOP(total);
     return 0;
