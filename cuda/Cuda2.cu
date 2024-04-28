@@ -314,7 +314,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
     if (ct1 == ct2) return;
-    double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    double preProb = cal_tnf_pre_dist_d_if(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
 
     if (preProb > floor_preProb_cutoff)
         graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
