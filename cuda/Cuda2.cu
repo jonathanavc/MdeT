@@ -187,17 +187,16 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
                                           25.364646181,      56.0522105105,     -0.9172073892,   -1.8470088417,    449.4660736502,
                                           -24.4141920625,    0.8465834103,      -0.0158943762,   0.0001235384};
 
-//__device__ __constant__ double floor_preProb 0x400193EA7AAD030B; //sin los mismos resultados
-//__device__ __constant__ double floor_preProb = 2.1972245773362193827904904738450514092949811156454989034693886672; // sin los mismos
-// resultados
 __device__ __constant__ double floor_preProb = 2.1972245773362196;
 
 __device__ double cal_tnf_pre_dist_d_if(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
     double d = 0;
+    /*
     for (size_t i = 0; i < 136; ++i) {
         float diff = __fsub_rn(TNF1[i], TNF2[i]);
-        d += __fmul_rn(diff, diff);
+        d = __dadd_rn(d, (double)__fmul_rn(diff, diff));
     }
+    /*as
     d = __dsqrt_rn(d);
 
     double b, c;
@@ -222,25 +221,12 @@ __device__ double cal_tnf_pre_dist_d_if(double r1, double r2, const float* __res
     lw[13] = __dmul_rn(lw[2], lw[3]);
     lw[18] = __dmul_rn(lw[9], lw[1]);
 
-    /*
-    b = _b1[0];
-    for (int i = 1; i < 18; i++) {
-        b = __dadd_rn(b, __dmul_rn(_b1[i], lw[i - 1]));
-    }
-    */
-
     b = _b1[0] + __dmul_rn(_b1[1], lw[0]) + __dmul_rn(_b1[2], lw[1]) + __dmul_rn(_b1[3], lw[2]) + __dmul_rn(_b1[4], lw[3]) +
         __dmul_rn(_b1[5], lw[4]) + __dmul_rn(_b1[6], lw[5]) + __dmul_rn(_b1[7], lw[6]) + __dmul_rn(_b1[8], lw[7]) +
         __dmul_rn(_b1[9], lw[8]) + __dmul_rn(_b1[10], lw[9]) + __dmul_rn(_b1[11], lw[10]) + __dmul_rn(_b1[12], lw[11]) +
         __dmul_rn(_b1[13], lw[12]) + __dmul_rn(_b1[14], lw[13]) + __dmul_rn(_b1[15], lw[14]) + __dmul_rn(_b1[16], lw[15]) +
         __dmul_rn(_b1[17], lw[16]);
 
-    /*
-    c = _c1[0];
-    for (int i = 1; i < 18; i++) {
-        c = __dadd_rn(c, __dmul_rn(_c1[i], lw[i - 1]));
-    }
-    */
     c = _c1[0] + __dmul_rn(_c1[1], lw[0]) + __dmul_rn(_c1[2], lw[1]) + __dmul_rn(_c1[3], lw[2]) + __dmul_rn(_c1[4], lw[3]) +
         __dmul_rn(_c1[5], lw[4]) + __dmul_rn(_c1[6], lw[5]) + __dmul_rn(_c1[7], lw[6]) + __dmul_rn(_c1[8], lw[7]) +
         __dmul_rn(_c1[9], lw[8]) + __dmul_rn(_c1[10], lw[9]) + __dmul_rn(_c1[11], lw[10]) + __dmul_rn(_c1[12], lw[11]) +
