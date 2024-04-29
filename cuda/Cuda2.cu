@@ -196,7 +196,7 @@ __device__ double cal_tnf_pre_dist_d_if(double r1, double r2, const float* __res
         float diff = __fsub_rn(TNF1[i], TNF2[i]);
         d = __dadd_rn(d, (double)__fmul_rn(diff, diff));
     }
-    /*as
+    */
     d = __dsqrt_rn(d);
 
     double b, c;
