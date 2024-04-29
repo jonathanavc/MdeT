@@ -328,7 +328,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
 
     if (preProb > floor_preProb_cutoff)
         // funcion  intrínseca
-        graph[prob_index] = 1. - __drpc_rn(__dadd_rn((double)1, exp(preProb)));
+        graph[prob_index] = 1. - __drcp_rn(__dadd_rn((double)1, exp(preProb)));
     // original
     // graph[prob_index] = 1. - (1. / (1. + exp(preProb)));
     else
