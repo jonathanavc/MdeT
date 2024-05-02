@@ -240,8 +240,8 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
     return preProb;
 }
 
-__global__ void get_tnf_graph2(double* graph, float* __restrict__ TNF, double* __restrict__ contig_log, size_t nc1, size_t nc2, size_t off1,
-                               size_t off2, double floor_preProb_cutoff) {
+__global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1, size_t nc2,
+                               size_t off1, size_t off2, double floor_preProb_cutoff) {
     float TNF_local[136];
     const size_t index = blockIdx.x;
     const size_t ct1 = off1 + index;
