@@ -250,7 +250,6 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
     for (size_t i = 0; i < 136; i++) {
         TNF_local[i] = TNF[ct1 * 136 + i];
     }
-
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
         if (ct1 == ct2) continue;
