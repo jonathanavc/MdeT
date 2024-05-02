@@ -189,7 +189,7 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
 
 __device__ __constant__ double floor_preProb = 2.1972245773362196;
 
-__device__ double cal_tnf_pre_dist_d2(double r1, double r2, static float* TNF1, static float* TNF2) {
+__device__ double cal_tnf_pre_dist_d2(double r1, double r2, float* TNF1, float* TNF2) {
     double d = 0;
     float diff = 0;
     for (size_t i = 0; i < 136; ++i) {
@@ -293,9 +293,9 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
     return preProb;
 }
 
-__global__ void get_tnf_graph2(double* graph, static float* __restrict__ TNF, static double* __restrict__ contig_log, size_t nc1,
-                               size_t nc2, size_t off1, size_t off2, double floor_preProb_cutoff) {
-    static float TNF_local[136];
+__global__ void get_tnf_graph2(double* graph, float* __restrict__ TNF, double* __restrict__ contig_log, size_t nc1, size_t nc2, size_t off1,
+                               size_t off2, double floor_preProb_cutoff) {
+    float TNF_local[136];
     const size_t index = blockIdx.x;
     const size_t ct1 = off1 + index;
     const double contig_log1 = contig_log[ct1];
