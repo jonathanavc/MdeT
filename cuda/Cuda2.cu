@@ -189,68 +189,6 @@ __device__ __constant__ double _c2[19] = {39406.5712626297,  -77863.1741143294, 
 
 __device__ __constant__ double floor_preProb = 2.1972245773362196;
 
-__device__ double cal_tnf_pre_dist_d_if(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
-    double d = 0;
-    for (size_t i = 0; i < 136; ++i) {
-        float diff = __fsub_rn(TNF1[i], TNF2[i]);
-        d += __fmul_rn(diff, diff);
-    }
-
-    d = __dsqrt_rn(d);
-
-    double b, c;
-
-    double lw[19];
-    lw[0] = min(r1, r2);
-    lw[1] = max(r1, r2);
-    lw[2] = __dmul_rn(lw[0], lw[0]);
-    lw[4] = __dmul_rn(lw[2], lw[0]);
-    lw[6] = __dmul_rn(lw[4], lw[0]);
-    lw[8] = __dmul_rn(lw[6], lw[0]);
-    lw[10] = __dmul_rn(lw[8], lw[0]);
-    lw[11] = __dmul_rn(lw[10], lw[0]);
-    lw[3] = __dmul_rn(lw[1], lw[1]);
-    lw[5] = __dmul_rn(lw[3], lw[1]);
-    lw[7] = __dmul_rn(lw[5], lw[1]);
-    lw[9] = __dmul_rn(lw[7], lw[1]);
-    lw[12] = __dmul_rn(lw[0], lw[1]);
-    lw[14] = __dmul_rn(lw[4], lw[5]);
-    lw[15] = __dmul_rn(lw[6], lw[7]);
-    lw[16] = __dmul_rn(lw[8], lw[9]);
-    lw[13] = __dmul_rn(lw[2], lw[3]);
-    lw[18] = __dmul_rn(lw[9], lw[1]);
-
-    b = _b1[0] + __dmul_rn(_b1[1], lw[0]) + __dmul_rn(_b1[2], lw[1]) + __dmul_rn(_b1[3], lw[2]) + __dmul_rn(_b1[4], lw[3]) +
-        __dmul_rn(_b1[5], lw[4]) + __dmul_rn(_b1[6], lw[5]) + __dmul_rn(_b1[7], lw[6]) + __dmul_rn(_b1[8], lw[7]) +
-        __dmul_rn(_b1[9], lw[8]) + __dmul_rn(_b1[10], lw[9]) + __dmul_rn(_b1[11], lw[10]) + __dmul_rn(_b1[12], lw[11]) +
-        __dmul_rn(_b1[13], lw[12]) + __dmul_rn(_b1[14], lw[13]) + __dmul_rn(_b1[15], lw[14]) + __dmul_rn(_b1[16], lw[15]) +
-        __dmul_rn(_b1[17], lw[16]);
-
-    c = _c1[0] + __dmul_rn(_c1[1], lw[0]) + __dmul_rn(_c1[2], lw[1]) + __dmul_rn(_c1[3], lw[2]) + __dmul_rn(_c1[4], lw[3]) +
-        __dmul_rn(_c1[5], lw[4]) + __dmul_rn(_c1[6], lw[5]) + __dmul_rn(_c1[7], lw[6]) + __dmul_rn(_c1[8], lw[7]) +
-        __dmul_rn(_c1[9], lw[8]) + __dmul_rn(_c1[10], lw[9]) + __dmul_rn(_c1[11], lw[10]) + __dmul_rn(_c1[12], lw[11]) +
-        __dmul_rn(_c1[13], lw[12]) + __dmul_rn(_c1[14], lw[13]) + __dmul_rn(_c1[15], lw[14]) + __dmul_rn(_c1[16], lw[15]) +
-        __dmul_rn(_c1[17], lw[16]);
-
-    double preProb = -__dadd_rn(b, __dmul_rn(c, d));
-
-    if (preProb <= floor_preProb) {
-        b = _b2[0] + __dmul_rn(_b2[1], lw[0]) + __dmul_rn(_b2[2], lw[1]) + __dmul_rn(_b2[3], lw[2]) + __dmul_rn(_b2[4], lw[3]) +
-            __dmul_rn(_b2[5], lw[4]) + __dmul_rn(_b2[6], lw[5]) + __dmul_rn(_b2[7], lw[6]) + __dmul_rn(_b2[8], lw[7]) +
-            __dmul_rn(_b2[9], lw[8]) + __dmul_rn(_b2[10], lw[9]) + __dmul_rn(_b2[11], lw[10]) + __dmul_rn(_b2[12], lw[18]) +
-            __dmul_rn(_b2[13], lw[13]) + __dmul_rn(_b2[14], lw[14]) + __dmul_rn(_b2[15], lw[15]) + __dmul_rn(_b2[16], lw[16]);
-        c = _c2[0] + __dmul_rn(_c2[1], lw[0]) + __dmul_rn(_c2[2], lw[1]) + __dmul_rn(_c2[3], lw[2]) + __dmul_rn(_c2[4], lw[3]) +
-            __dmul_rn(_c2[5], lw[4]) + __dmul_rn(_c2[6], lw[5]) + __dmul_rn(_c2[7], lw[6]) + __dmul_rn(_c2[8], lw[7]) +
-            __dmul_rn(_c2[9], lw[8]) + __dmul_rn(_c2[10], lw[9]) + __dmul_rn(_c2[11], lw[10]) + __dmul_rn(_c2[12], lw[18]) +
-            __dmul_rn(_c2[13], lw[11]) + __dmul_rn(_c2[14], lw[12]) + __dmul_rn(_c2[15], lw[13]) + __dmul_rn(_c2[16], lw[14]) +
-            __dmul_rn(_c2[17], lw[15]) + __dmul_rn(_c2[18], lw[16]);
-
-        preProb = -__dadd_rn(b, __dmul_rn(c, d));
-        if (preProb > floor_preProb) preProb = floor_preProb;
-    }
-    return preProb;
-}
-
 __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
@@ -302,6 +240,28 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
     return preProb;
 }
 
+__global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1, size_t nc2,
+                               size_t off1, size_t off2, double floor_preProb_cutoff) {
+    extern __shared__ double TNF_local[];
+    size_t index = blockIdx.x;
+    size_t ct1 = off1 + index;
+    double contig_log1 = contig_log[ct1];
+    for (size_t i = index; i < 136; i += blockDim.x) {
+        TNF_local[i] = TNF[ct1 * 136 + i];
+    }
+    __syncthreads();
+    size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
+    for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
+        size_t ct2 = off2 + i;
+        if (ct1 == ct2) continue;
+        double preProb = cal_tnf_pre_dist_d(contig_log1, contig_log[ct2], TNF_local, TNF + ct2 * 136);
+        if (preProb > floor_preProb_cutoff)
+            graph[index * nc2 + i] = 1. - (1. / (1. + exp(preProb)));
+        else
+            graph[index * nc2 + i] = 0;
+    }
+}
+
 __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1, size_t nc2,
                               size_t off1, size_t off2, double floor_preProb_cutoff) {
     size_t prob_index = (threadIdx.x + blockIdx.x * blockDim.x);
@@ -311,7 +271,7 @@ __global__ void get_tnf_graph(double* graph, const float* __restrict__ TNF, cons
     size_t ct1 = off1 + r1;
     size_t ct2 = off2 + r2;
     if (ct1 == ct2) return;
-    double preProb = cal_tnf_pre_dist_d_if(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
+    double preProb = cal_tnf_pre_dist_d(contig_log[ct1], contig_log[ct2], TNF + ct1 * 136, TNF + ct2 * 136);
 
     if (preProb > floor_preProb_cutoff)
         // funcion  intrínseca
@@ -939,16 +899,24 @@ void gen_tnf_graph(Graph& g, Similarity cutoff) {
             size_t matrix_x = min(TILE, (nobs - jj));
             if (jj == 0) {
                 size_t bloqs = ((matrix_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                /*
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_x, ii, jj,
                                                       floor_preProb_cutoff);
+                */
+                get_tnf_graph2<<<matrix_y, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_x, ii, jj,
+                                                          floor_preProb_cutoff);
             }
             cudaDeviceSynchronize();
             cudaMemcpy(graph_h, graph_d, TILE * matrix_x * sizeof(double), cudaMemcpyDeviceToHost);
             if (jj + TILE < nobs) {
                 size_t matrix_next_x = min(TILE, (nobs - jj - TILE));
                 size_t bloqs = ((matrix_next_x * matrix_y) + numThreads2 - 1) / numThreads2;
+                /*
                 get_tnf_graph<<<bloqs, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_next_x, ii,
                                                       jj + TILE, floor_preProb_cutoff);
+                */
+                get_tnf_graph2<<<matrix_y, numThreads2>>>(graph_d, TNF_d[device_id], contig_log[device_id], matrix_y, matrix_next_x, ii,
+                                                          jj + TILE, floor_preProb_cutoff);
             }
             for (size_t i = ii; i < ii + TILE && i < nobs; ++i) {
                 size_t que_index = i - ii;
