@@ -242,14 +242,14 @@ __device__ double cal_tnf_pre_dist_d(double r1, double r2, const float* __restri
 
 __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, const double* __restrict__ contig_log, size_t nc1, size_t nc2,
                                size_t off1, size_t off2, double floor_preProb_cutoff) {
-    extern __shared__ double TNF_local[];
+    float  TNF_local[136];
     size_t index = blockIdx.x;
     size_t ct1 = off1 + index;
     double contig_log1 = contig_log[ct1];
-    for (size_t i = index; i < 136; i += blockDim.x) {
+    for (size_t i = 0; i < 136; i++) {
         TNF_local[i] = TNF[ct1 * 136 + i];
     }
-    __syncthreads();
+
     size_t prob_per_thread = (nc2 + blockDim.x - 1) / blockDim.x;
     for (size_t i = prob_per_thread * threadIdx.x; i < min(prob_per_thread * threadIdx.x + prob_per_thread, nc2); i++) {
         size_t ct2 = off2 + i;
