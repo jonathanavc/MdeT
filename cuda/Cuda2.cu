@@ -217,7 +217,7 @@ __device__ double cal_tnf_pre_dist_d2(double r1, double r2, const float* __restr
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
-    
+
     b = b1[0];
     for (size_t i = 1; i < 18; ++i) {
         b += b1[i] * lw[i - 1];
@@ -309,7 +309,7 @@ __global__ void get_tnf_graph2(double* graph, const float* __restrict__ TNF, con
         if (ct1 == ct2) continue;
         double preProb = cal_tnf_pre_dist_d2(contig_log1, contig_log[ct2], TNF_local, TNF + ct2 * 136);
         if (preProb > floor_preProb_cutoff)
-            graph[index * nc2 + i] = 1. - __drcp_rn(__dadd_rn((double)1, exp(preProb)));
+            graph[index * nc2 + i] = 1. - 1. / (1. + exp(preProb));
         else
             graph[index * nc2 + i] = 0;
     }
