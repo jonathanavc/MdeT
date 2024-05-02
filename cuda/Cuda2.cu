@@ -191,12 +191,11 @@ __device__ __constant__ double floor_preProb = 2.1972245773362196;
 
 __device__ double cal_tnf_pre_dist_d_if(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
     double d = 0;
-    /*
     for (size_t i = 0; i < 136; ++i) {
         float diff = __fsub_rn(TNF1[i], TNF2[i]);
-        d = __dadd_rn(d, (double)__fmul_rn(diff, diff));
+        d += __fmul_rn(diff, diff);
     }
-    */
+
     d = __dsqrt_rn(d);
 
     double b, c;
@@ -337,7 +336,7 @@ __global__ void get_tnf_max_prob_sample(double* max_dist, const float* __restric
     size_t dist_per_thread = (nobs + blockDim.x - 1) / blockDim.x;
     for (size_t i = dist_per_thread * threadIdx.x; i < min(dist_per_thread * threadIdx.x + dist_per_thread, nobs); i++) {
         if (i == contig_idx) continue;
-        double dist = cal_tnf_pre_dist_d_if(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
+        double dist = cal_tnf_pre_dist_d(size_log[contigs[contig_idx]], size_log[contigs[i]], TNF1, TNF + contigs[i] * 136);
         if (dist > local_max) {
             local_max = dist;
         }
