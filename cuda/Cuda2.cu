@@ -192,9 +192,10 @@ __device__ __constant__ double floor_preProb = 2.1972245773362196;
 __device__ double cal_tnf_pre_dist_d2(double r1, double r2, const float* __restrict__ TNF1, const float* __restrict__ TNF2) {
     double d = 0;
     for (size_t i = 0; i < 136; ++i) {
-        d += (TNF1[i] - TNF2[i]) * (TNF1[i] - TNF2[i]);
+        float diff = TNF1[i] - TNF2[i];
+        d += __fmul_rn(diff, diff);
     }
-    d = sqrt(d);
+    d = __dsqrt_rn(d);
     double b, c;
     double lw[19];
     lw[0] = min(r1, r2);
