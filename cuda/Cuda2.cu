@@ -217,14 +217,17 @@ __device__ double cal_tnf_pre_dist_d2(double r1, double r2, const float* __restr
     lw[16] = lw[8] * lw[9];
     lw[13] = lw[2] * lw[3];
     lw[18] = lw[9] * lw[1];
+    
     b = b1[0];
     for (size_t i = 1; i < 18; ++i) {
         b += b1[i] * lw[i - 1];
     }
+
     c = c1[0];
     for (size_t i = 1; i < 18; ++i) {
         c += c1[i] * lw[i - 1];
     }
+
     double preProb = -(b + c * d);
     if (preProb <= floor_preProb) {
         b = _b2[0] + _b2[1] * lw[0] + _b2[2] * lw[1] + _b2[3] * lw[2] + _b2[4] * lw[3] + _b2[5] * lw[4] + _b2[6] * lw[5] + _b2[7] * lw[6] +
